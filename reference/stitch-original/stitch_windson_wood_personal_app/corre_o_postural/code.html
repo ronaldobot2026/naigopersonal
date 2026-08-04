@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Correção Postural | Windson Wood</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@600&amp;family=Hanken+Grotesk:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(32, 31, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(73, 71, 63, 0.5);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .active-tab-indicator {
+            view-transition-name: active-tab;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-container": "#b8b5ae",
+                      "tertiary-fixed-dim": "#cbc4cc",
+                      "outline-variant": "#49473f",
+                      "on-surface-variant": "#cbc6bc",
+                      "primary-fixed-dim": "#cbc6b8",
+                      "primary-fixed": "#e7e2d4",
+                      "on-tertiary": "#332f35",
+                      "on-primary-fixed-variant": "#49473c",
+                      "on-primary-fixed": "#1d1c13",
+                      "on-tertiary-container": "#e5dde5",
+                      "inverse-on-surface": "#31302f",
+                      "primary": "#cbc6b8",
+                      "error-container": "#93000a",
+                      "surface-tint": "#cbc6b8",
+                      "inverse-surface": "#e5e2df",
+                      "surface-container-highest": "#353533",
+                      "error": "#ffb4ab",
+                      "secondary-fixed": "#e6e2db",
+                      "secondary": "#c9c6bf",
+                      "surface-container": "#201f1e",
+                      "surface-container-low": "#1c1b1a",
+                      "on-error": "#690005",
+                      "outline": "#949087",
+                      "secondary-container": "#484741",
+                      "on-tertiary-fixed-variant": "#4a454c",
+                      "secondary-fixed-dim": "#c9c6bf",
+                      "tertiary-fixed": "#e8e0e8",
+                      "surface": "#141312",
+                      "on-primary-container": "#e5e0d1",
+                      "background": "#141312",
+                      "on-error-container": "#ffdad6",
+                      "on-secondary-fixed": "#1c1c17",
+                      "on-background": "#e5e2df",
+                      "on-tertiary-fixed": "#1e1a20",
+                      "tertiary-container": "#666168",
+                      "on-secondary": "#31302c",
+                      "tertiary": "#cbc4cc",
+                      "surface-bright": "#3a3937",
+                      "on-secondary-fixed-variant": "#484741",
+                      "surface-variant": "#353533",
+                      "surface-dim": "#141312",
+                      "surface-container-lowest": "#0e0e0d",
+                      "on-surface": "#e5e2df",
+                      "on-primary": "#323127",
+                      "inverse-primary": "#615e53",
+                      "primary-container": "#666358",
+                      "surface-container-high": "#2b2a28"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "container-max": "1200px",
+                      "margin-desktop": "32px",
+                      "gutter": "16px",
+                      "unit": "4px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "label-caps": ["JetBrains Mono"],
+                      "stat-lg": ["Hanken Grotesk"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "body-sm": ["Inter"],
+                      "headline-xl": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                      "stat-lg": ["48px", {"lineHeight": "48px", "fontWeight": "800"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- Top AppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-background border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a fitness trainer in a high-end gym setting. The lighting is moody and dramatic with warm metallic highlights, reflecting an elite training environment. The trainer has a focused expression, wearing premium dark athletic gear. The background shows blurred mechanical gym equipment and a weathered steel aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2wscPpiITaiMc6YmxjbiVYaHcCET9zNBNo5ScLQZS2oINMyHz7cAa5mFTEBH-SUGklZ5GTLDg67QRgD1XJSigt4R8k4o5XwL1tPkYSVQ1NX8XVnKrI9_xoNaKcI0ufruXDBGQJ3sVpHM_LGrGaWBt0IHkS_AkRm3DqQyhJKRTPUqAvdKQkpugkxXNNIj0CVT4iAp-RBJbKxbfO3TKBzB8X6uVLHX7CKdoqYx5B5b9dX38IQFku9nhTjTlRC1O9USJb8ckeAhfKVs"/>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tight text-primary">WINDSON WOOD</h1>
+</div>
+<button class="text-primary hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="pt-20 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Module Header -->
+<div class="mb-8">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">accessibility_new</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Módulo</span>
+</div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface">Correção Postural</h2>
+<p class="text-on-surface-variant mt-2 max-w-2xl">Refine seu alinhamento cinético através de mobilidade direcionada, alongamento e fortalecimento estrutural. Projetado para performance fisiológica de elite.</p>
+</div>
+<!-- Filter Chips (Categories) -->
+<div class="flex gap-3 overflow-x-auto hide-scrollbar mb-8 pb-2">
+<button class="px-6 py-2 bg-primary text-on-primary font-label-caps text-label-caps rounded-full whitespace-nowrap shadow-lg">Mobilidade</button>
+<button class="px-6 py-2 bg-surface-container-high text-on-surface-variant border border-outline-variant font-label-caps text-label-caps rounded-full whitespace-nowrap hover:bg-surface-variant/30 transition-all">Alongamento</button>
+<button class="px-6 py-2 bg-surface-container-high text-on-surface-variant border border-outline-variant font-label-caps text-label-caps rounded-full whitespace-nowrap hover:bg-surface-variant/30 transition-all">Fortalecimento</button>
+</div>
+<!-- Bento Grid Layout for Sessions -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Main Hero Session -->
+<div class="md:col-span-8 group relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container h-[400px]">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A wide shot of a high-end fitness studio featuring a student performing complex spinal mobility movements. The lighting is low-key with sharp highlights on the muscles and industrial textures like gunmetal and weathered steel. The floor is dark rubberized matting, and the background shows high-quality mechanical training equipment in a sophisticated dark palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDERB6YUpOevrFW-GNVkO0xTi47r5OkHOFqKeMZRUNGkv89aQBO-_rpg3Ia9qwCKxIOxFSlfHzsAuyxyhVlxQQLGFK0amUdNatoCy28E1SzuldOJh9yXXvxOnDkcC41rzNj8hG4-cqBHRjQAbpl8Qk0zcdRPyoW0TXEwknN3elT5PfOt5w8dSd5481VrAN9JAj0fDsWOK0QFs_Y28HFC7Bwo-Je8R7sXp87rxvj6aM28RiyuM-Pne-dZJagiC8Ol6Y4K9iARenw3wM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
+</div>
+<div class="absolute bottom-0 left-0 p-6 z-10 w-full">
+<div class="flex justify-between items-end">
+<div>
+<span class="inline-block px-3 py-1 bg-primary/20 text-primary border border-primary/30 rounded text-xs font-label-caps mb-3">SESSÃO EM DESTAQUE</span>
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-1">Descompressão Espinal Profunda</h3>
+<div class="flex gap-4 text-on-surface-variant font-label-caps text-label-caps">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> 15 MIN</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">bolt</span> INTERMEDIÁRIO</span>
+</div>
+</div>
+<button class="w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-xl">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Stats/Progress Sidebar -->
+<div class="md:col-span-4 flex flex-col gap-gutter">
+<div class="p-6 bg-surface-container-low border border-outline-variant rounded-xl">
+<h4 class="font-label-caps text-label-caps text-primary mb-4">PROGRESSO SEMANAL</h4>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-body-sm text-on-surface">Conformidade</span>
+<span class="text-body-sm font-label-caps">82%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 82%"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant">
+<div>
+<p class="text-on-surface-variant text-[10px] font-label-caps uppercase">Sessões</p>
+<p class="text-headline-lg-mobile font-stat-lg text-on-surface">12</p>
+</div>
+<div>
+<p class="text-on-surface-variant text-[10px] font-label-caps uppercase">Total Min</p>
+<p class="text-headline-lg-mobile font-stat-lg text-on-surface">184</p>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 bg-surface-container-low border border-outline-variant rounded-xl flex-grow relative overflow-hidden group">
+<div class="relative z-10">
+<h4 class="font-label-caps text-label-caps text-primary mb-2">A SEGUIR</h4>
+<p class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface leading-tight">Série de Ponte Torácica</p>
+<p class="text-body-sm text-on-surface-variant mt-2">Agendado para 16:30 hoje</p>
+<button class="mt-4 px-4 py-2 border border-outline text-on-surface font-label-caps text-label-caps rounded hover:bg-surface-variant/30 transition-colors">LEMBRE-ME</button>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px]">fitness_center</span>
+</div>
+</div>
+</div>
+<!-- List of Sessions -->
+<div class="md:col-span-12 mt-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase tracking-widest">Biblioteca de Exercícios: Mobilidade</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Exercise Card 1 -->
+<div class="group bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden hover:border-primary/50 transition-colors">
+<div class="aspect-video relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="A focused close-up of a high-performance athlete performing a scapular mobility drill in a dark-themed gym. The background is minimally lit with cold industrial tones, focusing on the mechanical movement of the joints and muscle definition. The style is cinematic and serious, emphasizing anatomical precision and seasoned strength." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlYFxpOYhjZiQpLd56q29NeOIUgABHWYRlmdutm5mQSYjwhF1QssGm6hlLUAB1UFvdysYJBM1CaK6kyn1a1GIvOFrkIqOr2FFgba1CPH_vrrMKMnw9HxjmiJpdp5_eCpUqDCEMO_X3sdXzRNzNlr_Nz3wNINZyDs7GXVsXARsajn3gxDBqTH_yunUqgiSBGhZAGFys1UlcI82X7SPn9Dj9AQ3NkmV_TstRMqvfNn_P4RYAcqqp_7jmJ2xmR89SXoqP9KpoamoHsrs"/>
+<div class="absolute bottom-2 right-2 px-2 py-1 bg-background/80 backdrop-blur rounded text-[10px] font-label-caps">08:20</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-body-md font-bold text-on-surface">Protocolo de Escápula Alada</h4>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_vert</span>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-secondary-container text-[10px] font-label-caps rounded">OMBROS</span>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-secondary-container text-[10px] font-label-caps rounded">FÁCIL</span>
+</div>
+</div>
+</div>
+<!-- Exercise Card 2 -->
+<div class="group bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden hover:border-primary/50 transition-colors">
+<div class="aspect-video relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="A cinematic side view of a training session focusing on hip mobility. The scene is set in an elite, dark-toned fitness facility with weathered steel textures and moody, high-contrast lighting. The instructor guides the student through a fluid, controlled range of motion. The overall mood is professional and results-driven, with a sophisticated industrial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_VWwz1l748019iiuVpP2jU0LjR1WzrP9abFN7eJl-oUWTFPcHJIbASYaQ0fGw_nU5nP2XCsBm9rcB4ZTc50HDpsBwXGOq-Xk55d_QZ20E53NJ0eOav6jw0mkgfe1obY7n2VmCRTeKd6lUVXDBqCjyT4gP3c38FieNhfzHEk_Sotp0cx4jV-bors1Y8BYNXq43r-wiwFaTY44VlK9YHRaoGgikWNdjz7as7dA1AE_l0Z-5ySjeCwDREAbvo2AQqIw5bgLLMi9aafc"/>
+<div class="absolute bottom-2 right-2 px-2 py-1 bg-background/80 backdrop-blur rounded text-[10px] font-label-caps">12:45</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-body-md font-bold text-on-surface">Fluxo de Quadril: Nível 2</h4>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_vert</span>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-secondary-container text-[10px] font-label-caps rounded">QUADRIL</span>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-secondary-container text-[10px] font-label-caps rounded">INTERMEDIÁRIO</span>
+</div>
+</div>
+</div>
+<!-- Exercise Card 3 -->
+<div class="group bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden hover:border-primary/50 transition-colors">
+<div class="aspect-video relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="A low-angle shot of a student working on ankle mobility using specialized equipment. The gym environment is premium and high-tech, featuring a palette of desaturated metallics and deep charcoal. Warm industrial lighting casts soft glows on the textures. The focus is on the precision of the movement and the high-quality training standards of the facility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDL2aNcTARO1mTqic9oOVZ15JsIgKrB7jjALWhzhbadbnvQbFnt3cbmysEAPeIYe2ykVei2hD9jQ3etn69Ov5oUYIB-6oDBaaC2n8OYH88zEApkBcPjMzndaHCbYEQLP02CVcJldeozrn0HUbjoC2bGFdSQkDMGHCWG-Scw67P18bTVGioTG02vx9X-rhmq-tRr_zbfNYVSnjsnY4LEToM_glVHzP8rmaE_CW_jY2VBV0_C91qk7wvQyEEL2wkp7G-SAEsr44HOtgQ"/>
+<div class="absolute bottom-2 right-2 px-2 py-1 bg-background/80 backdrop-blur rounded text-[10px] font-label-caps">05:30</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-body-md font-bold text-on-surface">Reset de Dorsiflexão de Tornozelo</h4>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_vert</span>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-secondary-container text-[10px] font-label-caps rounded">TORNOZELO</span>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-secondary-container text-[10px] font-label-caps rounded">FÁCIL</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-surface-container-lowest border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps text-label-caps mt-1">Treinos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+<span class="font-label-caps text-label-caps mt-1">Evolução</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-caps text-label-caps mt-1">Biblioteca</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-caps text-label-caps mt-1">Chat</span>
+</a>
+</nav>
+<!-- Interactive Layer -->
+<script>
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    btn.style.transform = '';
+                }, 100);
+            });
+        });
+
+        // Filter chip selection logic
+        const filterChips = document.querySelectorAll('.flex.gap-3 button');
+        filterChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                filterChips.forEach(c => {
+                    c.classList.remove('bg-primary', 'text-on-primary');
+                    c.classList.add('bg-surface-container-high', 'text-on-surface-variant', 'border', 'border-outline-variant');
+                });
+                chip.classList.add('bg-primary', 'text-on-primary');
+                chip.classList.remove('bg-surface-container-high', 'text-on-surface-variant', 'border', 'border-outline-variant');
+            });
+        });
+    </script>
+</body></html>

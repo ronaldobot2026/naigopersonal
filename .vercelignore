@@ -1,0 +1,10 @@
+# Export estático original do Google Stitch — material de referência da migração,
+# nunca entra no build. São ~3,9 MB enviados a cada deploy sem nenhum uso.
+reference/
+
+# Documentação do projeto — lida no repositório, não servida pela aplicação.
+docs/
+
+# Artefatos locais
+coverage/
+*.tsbuildinfo

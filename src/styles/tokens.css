@@ -1,0 +1,85 @@
+/**
+ * Fonte única de verdade dos tokens de design.
+ *
+ * Restaurado em 2026-07-23 pro tema "Iron Elite" (dark industrial, hierarquia por camadas
+ * tonais) — valores extraídos do último build publicado antes da migração pro tema claro de
+ * 2026-07-22, que nunca chegou a ir pro ar. Ver docs/DESIGN_SYSTEM.md e DECISIONS.md
+ * ("Dark-mode fixo, sem tema claro").
+ *
+ * Tailwind v4 gera utilities automaticamente a partir das variáveis --color-*, --font-*,
+ * --radius-* e --spacing-* declaradas dentro de @theme (abordagem "CSS-first").
+ */
+@theme {
+  /* Superfícies — hierarquia por camadas tonais (dark industrial) */
+  --color-background: #141312;
+  --color-surface: #201f1e;
+  --color-surface-elevated: #2b2a28;
+  --color-surface-high: #353533;
+  --color-border: #49473f;
+
+  /* Texto */
+  --color-text-primary: #e5e2df;
+  --color-text-secondary: #cbc6bc;
+
+  /* Ações — acento único, restrito a CTAs e destaques */
+  --color-action-primary: #cbc6b8;
+  --color-action-primary-foreground: #323127;
+  --color-action-secondary: #2b2a28;
+  --color-action-secondary-foreground: #cbc6b8;
+
+  /* Estados semânticos (não conclusivos clinicamente — ver docs/POSTURAL_ASSESSMENT.md) */
+  --color-success: #9caf7c;
+  --color-success-foreground: #201f1e;
+  --color-warning: #f2ca50;
+  --color-warning-foreground: #201f1e;
+  --color-error: #ffb4ab;
+  --color-error-foreground: #201f1e;
+  --color-error-container: #93000a;
+  --color-informative: #cbc4cc;
+  --color-informative-foreground: #201f1e;
+
+  /* Tipografia */
+  --font-display: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* ------------------------------------------------------------------------
+   * Materiais translúcidos (camada "vidro")
+   *
+   * Peso do material codifica hierarquia: `chrome` é o mais escuro e separa
+   * regiões estruturais (barras, sidebar); `surface` e `high` são mais leves e
+   * ficam em elementos de conteúdo. Nunca empilhar um material leve sobre outro
+   * leve — a legibilidade colapsa.
+   * ---------------------------------------------------------------------- */
+  --color-glass: rgba(43, 42, 40, 0.55);
+  --color-glass-high: rgba(53, 53, 51, 0.6);
+  --color-glass-chrome: rgba(20, 19, 18, 0.66);
+  /* Aresta superior clara — é a luz batendo na quina do material. */
+  --color-glass-edge: rgba(255, 255, 255, 0.09);
+
+  /* Sombras em camadas: contato curto + difusão longa, como profundidade real. */
+  --shadow-glass-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-glass: 0 2px 6px rgba(0, 0, 0, 0.34), 0 12px 32px rgba(0, 0, 0, 0.26);
+  --shadow-glass-lg: 0 4px 12px rgba(0, 0, 0, 0.38), 0 24px 60px rgba(0, 0, 0, 0.32);
+
+  /* Curva única: desaceleração exponencial, sem overshoot. Objetos reais desaceleram
+   * suavemente. Uma curva com bounce só se justificaria em interação que carrega momento
+   * (arrastar e soltar, flick) — este app não tem nenhuma, então não existe token para isso. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Forma — cantos mais generosos que o "Iron Elite" original, para acompanhar
+   * a leitura de material contínuo. Ver docs/DESIGN_SYSTEM.md. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Espaçamento — unidade básica de 4px (--spacing é o multiplicador da escala numérica do Tailwind) */
+  --spacing: 4px;
+  --spacing-gutter: 16px;
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 32px;
+  --spacing-container-max: 1200px;
+}

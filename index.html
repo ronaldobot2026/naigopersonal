@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Windson Wood Personal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- CDN das imagens/GIFs do catálogo de exercícios (© Gym visual) -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!--
+      display=block (e não swap) é deliberado para a fonte de ícones: com swap, enquanto a fonte
+      não chega o navegador desenha a ligadura em texto puro e a tela mostra "fitness_center",
+      "add_a_photo", "check_circle" escritos por extenso. Com block o ícone fica invisível até
+      carregar. Os quatro eixos são pedidos explicitamente porque globals.css define
+      font-variation-settings para opsz e GRAD — sem pedi-los, esses eixos não existem no arquivo.
+    -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

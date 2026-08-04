@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #141312;
+            color: #e5e2df;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-overlay {
+            background: linear-gradient(180deg, rgba(20, 19, 18, 0) 0%, rgba(20, 19, 18, 0.8) 100%);
+        }
+        /* Custom scrollbar for library categories */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#4a454c",
+                      "on-primary-fixed-variant": "#49473c",
+                      "background": "#141312",
+                      "outline-variant": "#49473f",
+                      "on-primary": "#323127",
+                      "primary-fixed": "#e7e2d4",
+                      "inverse-primary": "#615e53",
+                      "inverse-surface": "#e5e2df",
+                      "surface-container-high": "#2b2a28",
+                      "surface-bright": "#3a3937",
+                      "on-surface": "#e5e2df",
+                      "on-primary-fixed": "#1d1c13",
+                      "on-secondary-fixed": "#1c1c17",
+                      "tertiary-container": "#666168",
+                      "on-background": "#e5e2df",
+                      "secondary": "#c9c6bf",
+                      "surface": "#141312",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#cbc4cc",
+                      "on-tertiary-container": "#e5dde5",
+                      "on-secondary-container": "#b8b5ae",
+                      "surface-tint": "#cbc6b8",
+                      "secondary-fixed-dim": "#c9c6bf",
+                      "secondary-container": "#484741",
+                      "primary-container": "#666358",
+                      "surface-container-highest": "#353533",
+                      "on-error": "#690005",
+                      "tertiary-fixed": "#e8e0e8",
+                      "surface-container": "#201f1e",
+                      "surface-container-lowest": "#0e0e0d",
+                      "on-secondary": "#31302c",
+                      "error-container": "#93000a",
+                      "primary": "#cbc6b8",
+                      "on-tertiary": "#332f35",
+                      "on-primary-container": "#e5e0d1",
+                      "surface-variant": "#353533",
+                      "surface-dim": "#141312",
+                      "on-surface-variant": "#cbc6bc",
+                      "tertiary": "#cbc4cc",
+                      "secondary-fixed": "#e6e2db",
+                      "primary-fixed-dim": "#cbc6b8",
+                      "inverse-on-surface": "#31302f",
+                      "on-tertiary-fixed": "#1e1a20",
+                      "on-secondary-fixed-variant": "#484741",
+                      "outline": "#949087",
+                      "error": "#ffb4ab",
+                      "surface-container-low": "#1c1b1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "gutter": "16px",
+                      "container-max": "1200px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "32px"
+              },
+              "fontFamily": {
+                      "stat-lg": ["Hanken Grotesk"],
+                      "label-caps": ["JetBrains Mono"],
+                      "headline-xl": ["Hanken Grotesk"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "body-sm": ["Inter"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "stat-lg": ["48px", {"lineHeight": "48px", "fontWeight": "800"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen bg-background">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">fitness_center</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Windsom Wood Personal</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary hover:text-primary cursor-pointer">search</span>
+<div class="w-8 h-8 rounded-full border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional high-contrast portrait of a fit individual in a premium dark-themed gym environment. The lighting is dramatic and moody, using soft overhead spotlights to emphasize physical form. The overall aesthetic is elite, sophisticated, and dark gold-toned to match the weathered steel brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8ZgTkOJsJ7o54OzjkpMHk9C1JeJP_yVNq4diHLiE3yOw3HPC1U_Bxjd7b-3oa0VWFZH2mCnH68dQn_4DdoDgwrrW5fGslSEZ8D5y9v1u7lz7bb6E2pZ4NFd5LfwcD2hp3ZrYyruj9Bx8EHpzX0zt3yM8w5BuPbVdKlhOCwT0aTFSpz5IkHszEVv0Ca2Y-0ee7rSqNNBXRE474A8am64_NQh6DhGRv4Taf11O0ndTHOcIeRn57NLimB9afSmLH9JicSmqHpVZw-xg"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-20 pb-24 px-margin-mobile max-w-container-max mx-auto w-full">
+<!-- Search & Filter Header -->
+<section class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">Biblioteca de Exercícios</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Aprimore sua técnica com vídeos detalhados.</p>
+</section>
+<!-- Categories Horizontal Scroll -->
+<nav class="mb-8 overflow-x-auto no-scrollbar flex gap-4 -mx-margin-mobile px-margin-mobile">
+<button class="flex flex-col items-center gap-2 min-w-[80px] p-2 bg-primary-container text-on-primary-container rounded-lg transition-all active:scale-95">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-caps text-[10px] uppercase">Tudo</span>
+</button>
+<button class="flex flex-col items-center gap-2 min-w-[80px] p-2 bg-surface-container border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-[10px] uppercase">Peito</span>
+</button>
+<button class="flex flex-col items-center gap-2 min-w-[80px] p-2 bg-surface-container border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined">back_hand</span>
+<span class="font-label-caps text-[10px] uppercase">Costas</span>
+</button>
+<button class="flex flex-col items-center gap-2 min-w-[80px] p-2 bg-surface-container border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined">accessibility_new</span>
+<span class="font-label-caps text-[10px] uppercase">Ombro</span>
+</button>
+<button class="flex flex-col items-center gap-2 min-w-[80px] p-2 bg-surface-container border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined">directions_walk</span>
+<span class="font-label-caps text-[10px] uppercase">Pernas</span>
+</button>
+<button class="flex flex-col items-center gap-2 min-w-[80px] p-2 bg-surface-container border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps text-[10px] uppercase">Braços</span>
+</button>
+<button class="flex flex-col items-center gap-2 min-w-[80px] p-2 bg-surface-container border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined">self_improvement</span>
+<span class="font-label-caps text-[10px] uppercase">Mobilidade</span>
+</button>
+</nav>
+<!-- Bento Grid Library -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Exercise Card 1 -->
+<div class="group relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low transition-all hover:border-primary">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A professional high-angle shot of a person performing a perfect barbell bench press in an industrial-style gym. The lighting highlights the chest muscles and the metallic texture of the bar. Mood is intense and focused, with deep shadows and warm weathered steel accents in the background equipment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBEv_zBUjQKflZhkfWgXliujNzfG3XRmcraRDCZbeQBB9k-rCv52uhbNyLMmCOZTiIAryer7g0qM6hyBhVW-PVsrmEHvI3mO7wyqIh2wk4ehtLMVDf0-l9bD8EGHHiF21PKp8NNBYRZUUxAY4kW4hVKElEgOCuah6PvFZRhAPQe6MttHmgad22CQh3RqP7_4d0ktR1L5_0QFVoEEtapBGVGSJzC8PHyW9IIJAenLz9wKrPZ3PhwiUb98dFMXpfN2kRzLQB40Bt-AY"/>
+<div class="absolute inset-0 glass-overlay flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute top-2 right-2 bg-background/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-label-caps text-primary border border-primary/20">
+                        01:45
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Supino Reto</h3>
+<span class="font-label-caps text-primary text-[10px]">PEITO</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">Exercício fundamental para desenvolvimento da força e hipertrofia da musculatura peitoral.</p>
+</div>
+</div>
+<!-- Exercise Card 2 -->
+<div class="group relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low transition-all hover:border-primary">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Close-up of a weightlifter's back performing a heavy pull-down exercise. Every muscle detail is illuminated by low-key cinematic lighting. The aesthetic is raw and professional, focusing on the mechanical precision of the movement within a high-end training facility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHtVjHjx9hFlUtAFQafZaXYv5_s1otb_JHlcUytl-k4HIno6Uy8wz7XMpwdTcRWm__rlGKKDEErUu_--TdACgG8tnK6ZHl02YHzwpxDoSr0tDjrk4MHJHd3gERsUjuO91qyJSna9xTjMKkMDjhTaABQpgZpoWZrjTeUB4g9y8-IW42Ljpp_eZ7FT3nwHo-JUvGo1Cr8RpgsChHkbckRuRRzYR4T740T7MKcMqQdzhvKkJqV8uiqcvaMy9tkPGZzCSnwR_hKXfQDUk"/>
+<div class="absolute inset-0 glass-overlay flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute top-2 right-2 bg-background/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-label-caps text-primary border border-primary/20">
+                        02:10
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Puxada Alta</h3>
+<span class="font-label-caps text-primary text-[10px]">COSTAS</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">Focado no latíssimo do dorso, essencial para a largura das costas e postura.</p>
+</div>
+</div>
+<!-- Exercise Card 3 -->
+<div class="group relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low transition-all hover:border-primary">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Atmospheric shot of a person performing lateral raises with dumbbells. The focus is on the shoulder deltoids, captured with sharp contrast and a slightly desaturated warm metallic color palette. The background features blurred high-end gym equipment in gunmetal grey." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEP-7eFO5r-WnPlZCBqKuqJFvnHRC7EFi7xaO8GL8btCxMz1F0CUB8QMm90Ku19EiZ7q6337pQ1Uw9dU9hk6Lsxt9Q25odzA9y6PktNGtaL3okC_Z-SU3kbbPikqNdaHDFkk8CsBesvmNZwkx2uAAtXfTdphp9mBxI8FQgE1-Yr3zc96LLuvVx0_JziUk58WVGPEf80-Wr0hBf7DKRYkRvbJXzcfI4nW6Xw-DGocxEdrrJVrbwUbDpyRc0AdZD_xDetoonhSCAtb0"/>
+<div class="absolute inset-0 glass-overlay flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute top-2 right-2 bg-background/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-label-caps text-primary border border-primary/20">
+                        01:20
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Elevação Lateral</h3>
+<span class="font-label-caps text-primary text-[10px]">OMBRO</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">Isolamento lateral para ombros redondos e definidos. Atenção total à técnica.</p>
+</div>
+</div>
+<!-- Exercise Card 4 -->
+<div class="group relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low transition-all hover:border-primary">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Powerful shot of a deep squat with a heavy barbell. The focus is on the leg muscles and solid stance. Cinematic lighting creates a sense of seasonal strength and mechanical precision. Dark warm metallic environment with subtle highlights on the iron plates." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8PLqLVBhx3EKo-neuGrEk1IMrtUnEOYdeGIUcnXF701Icbi-UZMVY1LaftgrXA12f8WH4o-vQWBIcOCkJciiBcYz4OEANAnnfh-M4beM-kYtbxnXupzhgUHXssUFiRFWfQoUXEzcGXktuYy9v_JiWZHHPi635nRxfLpHVuFVl-VdVJ7TToXsUvBmzDionH0cRlErlb-vf43js7R4gisZBFy1GxlzHdiqWgFF5exLuoexDfp-w6XFPMmTrYfTMa2DVxXg3RLPLoWg"/>
+<div class="absolute inset-0 glass-overlay flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute top-2 right-2 bg-background/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-label-caps text-primary border border-primary/20">
+                        03:00
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Agachamento</h3>
+<span class="font-label-caps text-primary text-[10px]">PERNAS</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">O rei dos exercícios de perna. Ativa glúteos, quadríceps e core.</p>
+</div>
+</div>
+<!-- Exercise Card 5 -->
+<div class="group relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low transition-all hover:border-primary">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Detail shot of arm muscles performing a bicep curl with a heavy chrome dumbbell. The lighting is crisp and highlights muscle fiber and vascularity. Industrial dark aesthetic with warm bronze tones in the shadows. High contrast and professional composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4SmDKNH-F0LP81ivwt0gdkIgzFNNehn114KF_nBX7_kiExl3EAp3yxyjeXl1yvmIkUr7DggO_g8alDefEs1XQsyOEIFQ0UnLwC__PIfz7hUwFY8rTXeO1adWx_V-EnVfVlgffP3V9fVgCAp8nCYe93djidXoeUwTDPDJtMSbG9bHZ1Z3_PuqLpmFXLsI9YJElOWU14r2otjTtOCuDYMb0Xv906R4B9vFAKfpPOmbIVSppAk4O9adeEKeuEAQjOKvVb4LP3C1RV64"/>
+<div class="absolute inset-0 glass-overlay flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute top-2 right-2 bg-background/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-label-caps text-primary border border-primary/20">
+                        01:15
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Rosca Direta</h3>
+<span class="font-label-caps text-primary text-[10px]">BRAÇOS</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">Clássico para hipertrofia do bíceps. Controle absoluto na fase excêntrica.</p>
+</div>
+</div>
+<!-- Exercise Card 6 -->
+<div class="group relative overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low transition-all hover:border-primary">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A serene yet technologically advanced shot of a person performing hip mobility drills on a dark textured mat. Soft ambient lighting creates a calm, results-driven atmosphere. Palette of deep blacks, weathered steel, and oxidized silver accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtKA-a6y1mkgnlqH3yaBTOJperwVQ-CG-X5JlshBITY8yB58wuojpQfY0QAL-oRwhnHGhNfLP05BzntUD3LaCdljjTpV14X8EJrISm_oOsNsIyJCz9orVcq9FyjCOCSELkK0sdgAFcXlaMWFELlPw-tLtIJI2e1-z-iemg_MScFtYS8UyAfH2BizNSws1fZnJxIbNV-q7khQKPv8sOUJlvZkVw_3ea6Q3rAWrOAr_pbbBdxuNVRzJpESDYLUUlSY32JOYWXZmreRk"/>
+<div class="absolute inset-0 glass-overlay flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute top-2 right-2 bg-background/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-label-caps text-primary border border-primary/20">
+                        05:40
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Mobilidade Quadril</h3>
+<span class="font-label-caps text-primary text-[10px]">MOBILIDADE</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">Rotina de 5 minutos para destravar o quadril e melhorar a performance nos treinos.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-unit bg-surface-container border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">exercise</span>
+<span class="font-label-caps text-[10px]">Workouts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-caps text-[10px]">Evolution</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="font-label-caps text-[10px]">Library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-caps text-[10px]">Chat</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('scale-95');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('scale-95');
+            });
+            button.addEventListener('mouseleave', () => {
+                button.classList.remove('scale-95');
+            });
+        });
+
+        // Simple category filtering logic (Visual feedback only)
+        const categoryButtons = document.querySelectorAll('nav[class*="overflow-x-auto"] button');
+        categoryButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                categoryButtons.forEach(b => {
+                    b.classList.remove('bg-primary-container', 'text-on-primary-container');
+                    b.classList.add('bg-surface-container', 'text-on-surface-variant', 'border', 'border-outline-variant');
+                });
+                btn.classList.add('bg-primary-container', 'text-on-primary-container');
+                btn.classList.remove('bg-surface-container', 'text-on-surface-variant', 'border', 'border-outline-variant');
+            });
+        });
+    </script>
+</body></html>

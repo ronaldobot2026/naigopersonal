@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Trainer Dashboard | WINDSON WOOD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&amp;family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"primary-fixed-dim": "#cbc6b9", "inverse-surface": "#e6e2e0", outline: "#949087", "on-secondary-fixed": "#1d1c17", "secondary-fixed-dim": "#cac6bf", "surface-dim": "#141312", "tertiary-fixed-dim": "#cbc4cc", "primary-fixed": "#e7e2d4", "on-primary-container": "#e5e0d2", "surface-container-high": "#2b2a29", tertiary: "#cbc4cc", "on-primary-fixed": "#1d1c13", "on-primary": "#323027", "on-tertiary-container": "#e5dde5", "on-background": "#e6e2e0", "on-secondary": "#32302c", "on-tertiary": "#332f35", "primary-container": "#666358", "on-error": "#690005", surface: "#141312", "inverse-primary": "#615e53", "on-surface": "#e6e2e0", "on-surface-variant": "#cbc6bc", "on-tertiary-fixed-variant": "#4a454c", error: "#ffb4ab", background: "#141312", "outline-variant": "#49473f", "surface-bright": "#3a3938", "on-primary-fixed-variant": "#49473d", "on-tertiary-fixed": "#1e1a20", "on-secondary-container": "#b8b5ae", "surface-container-low": "#1c1b1a", "inverse-on-surface": "#31302f", "tertiary-container": "#666168", "on-secondary-fixed-variant": "#484742", "tertiary-fixed": "#e8e0e8", "surface-tint": "#cbc6b9", "secondary-fixed": "#e6e2db", secondary: "#cac6bf", "surface-variant": "#363433", "surface-container": "#201f1e", primary: "#cbc6b9", "surface-container-lowest": "#0f0e0d", "error-container": "#93000a", "secondary-container": "#484742", "surface-container-highest": "#363433", "on-error-container": "#ffdad6"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {"margin-desktop": "32px", gutter: "16px", "container-max": "1200px", "margin-mobile": "16px", unit: "4px"}, fontFamily: {"label-caps": ["JetBrains Mono"], "body-sm": ["Inter"], "headline-xl": ["Hanken Grotesk"], "body-md": ["Inter"], "headline-lg-mobile": ["Hanken Grotesk"], "headline-lg": ["Hanken Grotesk"], "stat-lg": ["Hanken Grotesk"], headline: ["Hanken Grotesk"], display: ["Hanken Grotesk"], body: ["Inter"], label: ["Jetbrains Mono"]}, fontSize: {"label-caps": ["12px", {lineHeight: "16px", letterSpacing: "0.1em", fontWeight: "600"}], "body-sm": ["14px", {lineHeight: "20px", fontWeight: "400"}], "headline-xl": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "800"}], "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-lg-mobile": ["24px", {lineHeight: "32px", fontWeight: "700"}], "headline-lg": ["32px", {lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "700"}], "stat-lg": ["48px", {lineHeight: "48px", fontWeight: "800"}]}}}};</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bento-card {
+            background-color: #0F0F0F;
+            border: 1px solid #1A1A1A;
+            transition: border-color 0.3s ease;
+        }
+        .bento-card:hover {
+            border-color: #f2ca50;
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #0e0e0e;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #4d4635;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary selection:text-on-primary">
+<!-- Shell Navigation (Desktop SideNav & Mobile BottomNav) -->
+<div class="flex h-screen overflow-hidden">
+<!-- Navigation Drawer (Desktop) -->
+<aside class="hidden md:flex flex-col gap-unit p-margin-mobile h-full w-80 rounded-r-xl bg-surface-container-low border-r border-outline-variant z-50">
+<div class="mb-8 p-4">
+<h1 class="font-headline-lg text-primary tracking-tight">WINDSON WOOD</h1>
+<p class="font-label-caps text-on-surface-variant text-[10px]">ELITE TRAINING SYSTEM</p>
+</div>
+<div class="flex items-center gap-4 p-4 mb-6 bg-surface-variant/20 rounded-lg">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-primary-container flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a fitness coach with a serious, determined expression. The lighting is dramatic and high-contrast, characteristic of a premium dark-themed fitness brand. He wears a sleek black polo shirt with a subtle gold logo. The background is a blurred, high-end gym environment with industrial metallic accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAGtFwOgp87tgSQykj1X3Ykg2jf4zUmze77hnpenUJ2CLPn1uLKarkRqNauGzwku9OK8nJ8JWtTWUKzu6rmWFXWvTY4FBPCeYaxvxSpH_C_C93cYnaE-ypk2x_5LZwroS-f-1ISK7j0XDBPxYZtq1ehnizcmcENakfKGfEEsnf7e-YDTNMpi97XKB5KAD2cUThXyddu8jwwm7ni78pXFyvkWtqg6w2dEGvPwspU2LvVRb5Oiii7BBR0--_-czzU45EfZjG3CyjOSY"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Joao Silva</p>
+<p class="text-body-sm text-on-surface-variant">Head Trainer</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="bg-primary-container text-on-primary-container font-bold rounded-lg flex items-center gap-3 px-4 py-3 transition-all translate-x-1" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-on-surface hover:bg-surface-variant/30 rounded-lg flex items-center gap-3 px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Students</span>
+</a>
+<a class="text-on-surface hover:bg-surface-variant/30 rounded-lg flex items-center gap-3 px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span>Workout Builder</span>
+</a>
+<a class="text-on-surface hover:bg-surface-variant/30 rounded-lg flex items-center gap-3 px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span>Analytics</span>
+</a>
+<div class="h-px bg-outline-variant my-2"></div>
+<a class="text-on-surface hover:bg-surface-variant/30 rounded-lg flex items-center gap-3 px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full z-50 bg-background border-b border-outline-variant">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:text-headline-lg font-bold tracking-tight text-primary">DASHBOARD</h2>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:text-primary-fixed transition-colors">notifications</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary md:hidden">
+<img class="w-full h-full object-cover" data-alt="A small circular avatar profile picture of a professional trainer. Dark, high-contrast lighting emphasizing a serious and professional fitness coaching aesthetic. Gold highlights reflect on the sharp edges of the facial features." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5HAvaN2SUJF-eXpTF6ALGUdlY0MRhQzn6as3hlW1htgcZcu3xPbudO8V3gmMIB8yeoxH0UIT29_ytYmwmL8T2SW0Os5q608ZTVxCcHHQSmsNWC2QGdmhHvbVcGUBMHGo7UqOXuwQWjIuEaur-c2gu4RohSekU9-uGPA8JTue_HExWzonJte2f6rm8o7_At6EkBysVjigtIXj_o0R4mgJYebi42Kn3UCMDihdIfRR4vQitMszYHRyI5skQOxH6_syUnspqj52DiYE"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto custom-scroll p-margin-mobile md:p-margin-desktop bg-background">
+<div class="max-w-container-max mx-auto space-y-gutter">
+<!-- Stats Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<!-- Total Students -->
+<div class="bento-card p-6 rounded-xl relative overflow-hidden flex flex-col justify-between h-40">
+<div class="z-10">
+<p class="font-label-caps text-on-surface-variant">TOTAL STUDENTS</p>
+<h3 class="font-stat-lg text-stat-lg text-primary mt-2">56</h3>
+</div>
+<div class="flex gap-4 z-10 text-body-sm">
+<span class="text-primary-fixed-dim flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span> 48 Active
+                                </span>
+<span class="text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-surface-variant"></span> 8 Inactive
+                                </span>
+</div>
+<!-- Subtle Background Texture -->
+<div class="absolute right-[-20px] bottom-[-20px] opacity-10">
+<span class="material-symbols-outlined text-[120px] text-primary">groups</span>
+</div>
+</div>
+<!-- Assessments -->
+<div class="bento-card p-6 rounded-xl flex flex-col justify-between h-40">
+<div>
+<p class="font-label-caps text-on-surface-variant">PENDING ASSESSMENTS</p>
+<h3 class="font-stat-lg text-stat-lg text-primary mt-2">5</h3>
+</div>
+<div class="flex items-center text-body-sm text-error">
+<span class="material-symbols-outlined text-sm mr-1">priority_high</span>
+                                Requires Attention Today
+                            </div>
+</div>
+<!-- Completed Today -->
+<div class="bento-card p-6 rounded-xl flex flex-col justify-between h-40">
+<div>
+<p class="font-label-caps text-on-surface-variant">WORKOUTS TODAY</p>
+<h3 class="font-stat-lg text-stat-lg text-primary mt-2">12</h3>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4"></div>
+</div>
+</div>
+<!-- Quick Action -->
+<div class="bg-primary p-6 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer hover:bg-primary-fixed-dim transition-all active:scale-95 group h-40">
+<span class="material-symbols-outlined text-on-primary text-[40px] mb-2 group-hover:scale-110 transition-transform">add_circle</span>
+<p class="font-bold text-on-primary font-headline-lg-mobile text-[18px]">NEW WORKOUT</p>
+</div>
+</div>
+<!-- Main Section Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Recent Students List -->
+<div class="lg:col-span-2 bento-card rounded-xl overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center">
+<h4 class="font-headline-lg-mobile text-on-surface">Recent Students</h4>
+<button class="text-primary font-label-caps text-[10px] hover:underline">VIEW ALL</button>
+</div>
+<div class="divide-y divide-outline-variant">
+<!-- Student Row 1 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a female student in high-end athletic wear. Moody studio lighting with a focus on form and strength. The image is filtered with a slight metallic desaturation to match the brand's premium dark aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD0N2Nr4hORJmttZIN8gLD7Xom_u6RdZqxXjfSy-cMEA722jgUZMisigyHHgebS-LftD1WG_wRmsxPnj0VA_puYwNwmrc-f3AUnUEkqF-_m8WljO45Ai2gjeg0xzBLMJ3gDuYulYVpIvyEUyUh8Q2g7C5q_oD4ZQisfhZHqmiyR105aBvHG8PkgLMVTapJ79sWvreniWd_N79txJ4Ueep2__ZXS82Be9dlqe7pmTGL9004HguP6oEoVrJyHaTP8UD4RGD1lo4OB1c"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Maria Santos</p>
+<p class="text-body-sm text-on-surface-variant">Last session: 45 min ago</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right hidden sm:block">
+<p class="text-[10px] font-label-caps text-on-surface-variant">PROGRESS</p>
+<p class="text-primary font-bold">91%</p>
+</div>
+<span class="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_rgba(242,202,80,0.5)]"></span>
+<button class="material-symbols-outlined text-on-surface-variant">chevron_right</button>
+</div>
+</div>
+<!-- Student Row 2 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a male student athlete in a dark gym environment. Focused and intense expression, sweating from a workout. High-contrast lighting with shadows emphasizing muscle definition. Premium aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2esILV_QDlMlZzNqykJ5H7wsa4PPvyBdjaBkQgjI-18jbU1sF2rUXtJ0Bkmb8snixwraDgKl9cHna2EzmjBeLNBFMHoIEv7An-g-XOnMyE78XwCtjMr6ccZqvVbVPgcyqhMxWmwCF9kYd5l5XEaEI9lglpMrApoWVIOsy4YCQTye5wmYsY42gcYT2va3NGnioknVkzQs96TTuV79nFODBXHQcxZ8xJWkJq4TsSrJVyJ_uEKnxYXs0BqpEYD99GRvAH6AuHdt2_ko"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Pedro Oliveira</p>
+<p class="text-body-sm text-on-surface-variant">Last session: 2h ago</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right hidden sm:block">
+<p class="text-[10px] font-label-caps text-on-surface-variant">PROGRESS</p>
+<p class="text-primary font-bold">78%</p>
+</div>
+<span class="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_rgba(242,202,80,0.5)]"></span>
+<button class="material-symbols-outlined text-on-surface-variant">chevron_right</button>
+</div>
+</div>
+<!-- Student Row 3 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Cinematic portrait of a student athlete resting against a gym wall. Dramatic side lighting, deep shadows, and subtle gold highlights. The visual style is professional, high-end, and extremely high-contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4QIHEoOXtWP9lUQUDVAwLn9i5QXx76m817IGJFtYWbBD8nQofKUk6c0k5UoCb34i_-YebrHVnIlk7-53kjH0S2i49a6CKP6s8fONQcZ92ercNW3YuaC8q72GBTRzdsldSxjjqCmka9WbMSFKxFiFuO4c2JbQMvVaEZorH5Rlz46B53kN047QNBOj0zzCebdy0wB802sBOWJTVbKAn59IJbYxMmSL23z4c0OXKo70xQLnzBF0sfEaLW01AGCR--XaLXbiFA24XmWk"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Ana Paula</p>
+<p class="text-body-sm text-on-surface-variant">Last session: Yesterday</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right hidden sm:block">
+<p class="text-[10px] font-label-caps text-on-surface-variant">PROGRESS</p>
+<p class="text-primary font-bold">88%</p>
+</div>
+<span class="w-3 h-3 rounded-full bg-surface-variant"></span>
+<button class="material-symbols-outlined text-on-surface-variant">chevron_right</button>
+</div>
+</div>
+<!-- Student Row 4 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Profile shot of a student lifting weights in a high-performance training facility. Moody atmosphere with professional lighting. Strong focus on the industrial aesthetic of the gym equipment and the athlete's concentration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJP6WCrSOecrPwao68ZIsRFDmhlW-fSaMrMB-rkuTJTwB8LTSdPUAisS4w2rW7BcoEhcJs5lp7IBgCvR9rRYtxB3Wx8iAcJCQwRZXkf5T5Gfu2bfSdBKSzjmwSz4UmoyBEp_O2p9TuCGN3R_fZaYuUJNWcpTGrIAQ4vxZqE7JXxUKI-HCspR7OY4I5u0f1zVml8SJGwn5yJTEW_7AvoIW9DCaFnNsSrcJlDqIKq-2uha0tL1IQ8M03N4AlazHNA7yku7hj0kJyncg"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Lucas Costa</p>
+<p class="text-body-sm text-on-surface-variant">Inactive: 5 days</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right hidden sm:block">
+<p class="text-[10px] font-label-caps text-on-surface-variant">PROGRESS</p>
+<p class="text-primary font-bold">85%</p>
+</div>
+<span class="w-3 h-3 rounded-full bg-error animate-pulse"></span>
+<button class="material-symbols-outlined text-on-surface-variant">chevron_right</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Widgets -->
+<div class="space-y-gutter">
+<!-- Team Activity / Alerts -->
+<div class="bento-card rounded-xl p-6">
+<h4 class="font-headline-lg-mobile text-on-surface mb-4">Priority Alerts</h4>
+<div class="space-y-4">
+<div class="flex gap-3 p-3 bg-error/10 border-l-2 border-error rounded-r-lg">
+<span class="material-symbols-outlined text-error">notification_important</span>
+<div>
+<p class="font-bold text-body-sm">Assessment Overdue</p>
+<p class="text-[12px] text-on-surface-variant">Joao Silva - 3 days late</p>
+</div>
+</div>
+<div class="flex gap-3 p-3 bg-primary/10 border-l-2 border-primary rounded-r-lg">
+<span class="material-symbols-outlined text-primary">emoji_events</span>
+<div>
+<p class="font-bold text-body-sm">New Personal Best</p>
+<p class="text-[12px] text-on-surface-variant">Maria Santos hit 100kg Bench</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Performance Chart Placeholder -->
+<div class="bento-card rounded-xl p-6 h-64 relative overflow-hidden">
+<h4 class="font-headline-lg-mobile text-on-surface mb-2">Team Engagement</h4>
+<p class="text-body-sm text-on-surface-variant mb-4">Last 7 Days Activity</p>
+<div class="flex items-end justify-between h-24 gap-1 mt-4">
+<div class="w-full bg-surface-variant h-[30%] rounded-t-sm"></div>
+<div class="w-full bg-surface-variant h-[45%] rounded-t-sm"></div>
+<div class="w-full bg-surface-variant h-[60%] rounded-t-sm"></div>
+<div class="w-full bg-primary h-[85%] rounded-t-sm"></div>
+<div class="w-full bg-surface-variant h-[50%] rounded-t-sm"></div>
+<div class="w-full bg-primary h-[95%] rounded-t-sm shadow-[0_0_10px_rgba(242,202,80,0.3)]"></div>
+<div class="w-full bg-primary-container h-[70%] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] font-label-caps text-on-surface-variant">
+<span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom spacing for mobile navigation overlap -->
+<div class="h-24 md:hidden"></div>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-surface-container-lowest border-t border-outline-variant md:hidden">
+<a class="flex flex-col items-center justify-center text-primary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-[10px]">Students</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-caps text-[10px]">Evo</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-caps text-[10px]">Chat</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-[10px]">Config</span>
+</a>
+</nav>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        // Simple hover effect for cards using JS for extra punch
+        document.querySelectorAll('.bento-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>

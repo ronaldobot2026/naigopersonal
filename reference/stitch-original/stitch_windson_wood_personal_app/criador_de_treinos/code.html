@@ -1,0 +1,311 @@
+<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Workout Creator | Windsom Wood Personal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Hanken+Grotesk:wght@700;800&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-secondary-container": "#b8b5ae",
+                "tertiary-fixed-dim": "#cbc4cc",
+                "outline-variant": "#49473f",
+                "on-surface-variant": "#cbc6bc",
+                "primary-fixed-dim": "#cbc6b8",
+                "primary-fixed": "#e7e2d4",
+                "on-tertiary": "#332f35",
+                "on-primary-fixed-variant": "#49473c",
+                "on-primary-fixed": "#1d1c13",
+                "on-tertiary-container": "#e5dde5",
+                "inverse-on-surface": "#31302f",
+                "primary": "#cbc6b8",
+                "error-container": "#93000a",
+                "surface-tint": "#cbc6b8",
+                "inverse-surface": "#e5e2df",
+                "surface-container-highest": "#353533",
+                "error": "#ffb4ab",
+                "secondary-fixed": "#e6e2db",
+                "secondary": "#c9c6bf",
+                "surface-container": "#201f1e",
+                "surface-container-low": "#1c1b1a",
+                "on-error": "#690005",
+                "outline": "#949087",
+                "secondary-container": "#484741",
+                "on-tertiary-fixed-variant": "#4a454c",
+                "secondary-fixed-dim": "#c9c6bf",
+                "tertiary-fixed": "#e8e0e8",
+                "surface": "#141312",
+                "on-primary-container": "#e5e0d1",
+                "background": "#141312",
+                "on-error-container": "#ffdad6",
+                "on-secondary-fixed": "#1c1c17",
+                "on-background": "#e5e2df",
+                "on-tertiary-fixed": "#1e1a20",
+                "tertiary-container": "#666168",
+                "on-secondary": "#31302c",
+                "tertiary": "#cbc4cc",
+                "surface-bright": "#3a3937",
+                "on-secondary-fixed-variant": "#484741",
+                "surface-variant": "#353533",
+                "surface-dim": "#141312",
+                "surface-container-lowest": "#0e0e0d",
+                "on-surface": "#e5e2df",
+                "on-primary": "#323127",
+                "inverse-primary": "#615e53",
+                "primary-container": "#666358",
+                "surface-container-high": "#2b2a28"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "container-max": "1200px",
+                "margin-desktop": "32px",
+                "gutter": "16px",
+                "unit": "4px",
+                "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                "body-md": ["Inter"],
+                "label-caps": ["JetBrains Mono"],
+                "stat-lg": ["Hanken Grotesk"],
+                "headline-lg-mobile": ["Hanken Grotesk"],
+                "headline-lg": ["Hanken Grotesk"],
+                "body-sm": ["Inter"],
+                "headline-xl": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                "stat-lg": ["48px", {"lineHeight": "48px", "fontWeight": "800"}],
+                "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        
+        /* Custom scrollbar for premium dark feel */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #141312;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #49473f;
+            border-radius: 2px;
+        }
+
+        .iron-border {
+            border: 1px solid #49473f;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-24">
+<!-- TopAppBar Navigation Shell -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">fitness_center</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-primary">Windsom Wood Personal</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A high-contrast profile portrait of a professional fitness coach with a serious expression, shot in a moody, low-light environment. The lighting emphasizes muscular definition and a weathered, elite athletic aesthetic. The background consists of dark gunmetal gym equipment. The color palette is dominated by warm greys and deep charcoal tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8yCrfiNu6HG10XJ1U8emv8v5IgXVqmzUapM-Pvt1lBIbiMAxTXn-l30CDHQZVAV0rwsTWew8HuPQ4bOx1YfrkOALX6MPZEVp6EUH6oYp-doWvHqdH7AYawsBGUuUq-en8A09cVHVU8arl31B0vAjCYzs7bOZSUFzZysqwU3QLz5pR6U2DxfqYVBe1a8aIRCMzsR5kmUT2CyF0rKGc4_UU2Xf2bruOdyZ9ZGJfDJgDnPWyJUA_050i8Xn3v8xnU3TVHu6QClvguZU">
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="mt-20 px-margin-mobile max-w-container-max mx-auto">
+<!-- Header Section -->
+<section class="mb-8">
+<div class="flex items-center gap-2 text-on-surface-variant mb-2">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+<span class="font-label-caps text-label-caps uppercase">Área do Personal</span>
+</div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Criar Novo Treino</h2>
+</section>
+<!-- Workout Config -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-12">
+<div class="md:col-span-8 space-y-6">
+<!-- Name Input -->
+<div class="bg-surface-container p-6 rounded-lg iron-border">
+<label class="font-label-caps text-label-caps text-secondary mb-2 block">NOME DO TREINO</label>
+<input class="w-full bg-transparent border-b border-secondary-container text-headline-lg-mobile font-headline-lg-mobile focus:border-primary focus:ring-0 transition-colors py-2 text-on-surface placeholder-on-surface-variant/30" placeholder="Ex: Treino A - Superior" type="text">
+</div>
+<!-- Exercise List -->
+<div class="space-y-4">
+<div class="flex justify-between items-center px-2">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant">EXERCÍCIOS ADICIONADOS (4)</h3>
+<button class="text-primary font-label-caps text-label-caps hover:underline">REORDENAR</button>
+</div>
+<!-- Exercise Card 1 -->
+<div class="bg-surface-container-low iron-border rounded-lg p-4 flex items-center gap-4 transition-all hover:bg-surface-container-high group">
+<div class="flex-shrink-0 drag-handle cursor-grab text-outline-variant group-hover:text-secondary">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="w-20 h-20 bg-surface-container-highest rounded overflow-hidden flex-shrink-0 border border-outline-variant">
+<img class="w-full h-full object-cover grayscale" data-alt="Close-up of a weightlifter performing a dumbbell bench press in a dark, atmospheric private gym. The shot captures the texture of the iron weights and the tension in the athlete's arms. Moody, high-contrast lighting with deep shadows and metallic highlights. Visual style is professional, gritty, and high-performance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtyVkGsyLQr3sS3woey-BWgvc36IDvbErsAeK9It1JQqsj-JArgPU02hNyZpXfCBDcj8VPzl7ZBAt0ySLFQRZDN3gA3vCDNxiTMm-hKHyITVxaqDFD8dU6vxLS06l2rG8TIT4BCbVaJDgOA7UJwiL4inIwrrE1XOcifYj1diUHyyFJk34AsJ3-T7EAQgKUvwqy4juRbYVaonLUSN-AtdcvsYU86x-IMzwNayinpauKhFH1S_iim2nPWl6ecYUxozsbilfAII6ZAiI">
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-1 leading-tight">Supino Inclinado c/ Halteres</h4>
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline text-[10px]">SÉRIES</span>
+<span class="font-stat-lg text-headline-lg-mobile text-primary">4</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline text-[10px]">REPS</span>
+<span class="font-stat-lg text-headline-lg-mobile text-primary">10-12</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline text-[10px]">CARGA</span>
+<span class="font-stat-lg text-headline-lg-mobile text-primary">32kg</span>
+</div>
+</div>
+</div>
+<button class="p-2 text-outline-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<!-- Exercise Card 2 -->
+<div class="bg-surface-container-low iron-border rounded-lg p-4 flex items-center gap-4 transition-all hover:bg-surface-container-high group">
+<div class="flex-shrink-0 drag-handle cursor-grab text-outline-variant group-hover:text-secondary">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="w-20 h-20 bg-surface-container-highest rounded overflow-hidden flex-shrink-0 border border-outline-variant">
+<img class="w-full h-full object-cover grayscale" data-alt="A wide-grip pull-up being performed on a weathered steel bar. The camera angle is from below, focusing on the back musculature and the industrial texture of the pull-up station. The scene is lit with dramatic, focused spotlights against a dark, warm-grey background. The atmosphere is intense and elite." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcmo5qgQvQ4bTtWZhEIXkrMcnOkRJmIIq0T44myK-082tCIKa_B7q2gNmkOZ6xtbhy7Rh2k_zomaoJNH3ZBpFCQ7Lmd_V9YPdo-naVi_kasnDbBUZ4Qwqx0lcR-sySwACYU407WJ14LHcrEvDVeNrP_2nol-6Zfl4GMoAECp6nnlE6aowioKifeW0M2U9MIhu7viw_szhx9C8-cEmfHz006pEqKYCQahDpZ_zz4KqDIGjJILNqKAPdtgRZlp4pvA6Wb99f3lqkKyc">
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-1 leading-tight">Puxada Frontal Aberta</h4>
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline text-[10px]">SÉRIES</span>
+<span class="font-stat-lg text-headline-lg-mobile text-primary">3</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline text-[10px]">REPS</span>
+<span class="font-stat-lg text-headline-lg-mobile text-primary">12</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline text-[10px]">DESCANSO</span>
+<span class="font-stat-lg text-headline-lg-mobile text-primary">60s</span>
+</div>
+</div>
+</div>
+<button class="p-2 text-outline-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<!-- Add Button -->
+<button class="w-full py-8 border-2 border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-surface-container-high transition-all group active:scale-[0.99]">
+<span class="material-symbols-outlined text-4xl text-outline-variant group-hover:text-primary transition-colors">add_circle</span>
+<span class="font-label-caps text-label-caps text-secondary">ADICIONAR EXERCÍCIO DA BIBLIOTECA</span>
+</button>
+</div>
+</div>
+<!-- Sidebar Controls -->
+<div class="md:col-span-4">
+<div class="sticky top-24 space-y-4">
+<div class="bg-surface-container-high p-6 rounded-lg iron-border">
+<h5 class="font-label-caps text-label-caps text-primary mb-6">RESUMO DO PLANO</h5>
+<div class="space-y-4 mb-8">
+<div class="flex justify-between items-center border-b border-outline-variant pb-2">
+<span class="text-body-sm text-secondary">Tempo Estimado</span>
+<span class="font-label-caps text-on-surface">~55 MIN</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant pb-2">
+<span class="text-body-sm text-secondary">Volume Total</span>
+<span class="font-label-caps text-on-surface">18 SÉRIES</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant pb-2">
+<span class="text-body-sm text-secondary">Foco Muscular</span>
+<div class="flex flex-wrap gap-1 justify-end">
+<span class="px-2 py-0.5 bg-surface-container-highest text-[10px] font-label-caps rounded border border-outline-variant">PEITO</span>
+<span class="px-2 py-0.5 bg-surface-container-highest text-[10px] font-label-caps rounded border border-outline-variant">COSTAS</span>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary font-label-caps py-4 rounded-lg flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined">save</span>
+                            SALVAR TREINO
+                        </button>
+<button class="w-full mt-2 text-error font-label-caps py-4 border border-error/30 rounded-lg hover:bg-error/10 transition-all">
+                            DESCARTAR
+                        </button>
+</div>
+<div class="p-6 bg-surface-container rounded-lg iron-border flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">info</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">Este treino ficará disponível imediatamente para todos os seus alunos cadastrados.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Shell Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-unit bg-surface-container dark:bg-surface-container border-t border-outline-variant dark:border-outline-variant">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Painel</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary dark:text-primary transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps">Alunos</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="show_chart">show_chart</span>
+<span class="font-label-caps text-label-caps">Evolução</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-label-caps text-label-caps">Chat</span>
+</div>
+</nav>
+<!-- Micro-interaction Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    input.parentElement.classList.add('border-primary');
+                    input.parentElement.classList.remove('iron-border');
+                });
+                input.addEventListener('blur', () => {
+                    input.parentElement.classList.remove('border-primary');
+                    input.parentElement.classList.add('iron-border');
+                });
+            });
+        });
+    </script>
+
+
+</body></html>

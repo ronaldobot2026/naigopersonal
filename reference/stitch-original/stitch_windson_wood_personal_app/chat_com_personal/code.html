@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chat - Windsom Wood Personal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #141312;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #49473f;
+            border-radius: 10px;
+        }
+        /* Custom micro-interactions */
+        .message-bubble {
+            transition: transform 0.2s ease;
+        }
+        .message-bubble:active {
+            scale: 0.98;
+        }
+    </style>
+<!-- Tailwind Config from Style Guidance -->
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#4a454c",
+                      "on-primary-fixed-variant": "#49473c",
+                      "background": "#141312",
+                      "outline-variant": "#49473f",
+                      "on-primary": "#323127",
+                      "primary-fixed": "#e7e2d4",
+                      "inverse-primary": "#615e53",
+                      "inverse-surface": "#e5e2df",
+                      "surface-container-high": "#2b2a28",
+                      "surface-bright": "#3a3937",
+                      "on-surface": "#e5e2df",
+                      "on-primary-fixed": "#1d1c13",
+                      "on-secondary-fixed": "#1c1c17",
+                      "tertiary-container": "#666168",
+                      "on-background": "#e5e2df",
+                      "secondary": "#c9c6bf",
+                      "surface": "#141312",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#cbc4cc",
+                      "on-tertiary-container": "#e5dde5",
+                      "on-secondary-container": "#b8b5ae",
+                      "surface-tint": "#cbc6b8",
+                      "secondary-fixed-dim": "#c9c6bf",
+                      "secondary-container": "#484741",
+                      "primary-container": "#666358",
+                      "surface-container-highest": "#353533",
+                      "on-error": "#690005",
+                      "tertiary-fixed": "#e8e0e8",
+                      "surface-container": "#201f1e",
+                      "surface-container-lowest": "#0e0e0d",
+                      "on-secondary": "#31302c",
+                      "error-container": "#93000a",
+                      "primary": "#cbc6b8",
+                      "on-tertiary": "#332f35",
+                      "on-primary-container": "#e5e0d1",
+                      "surface-variant": "#353533",
+                      "surface-dim": "#141312",
+                      "on-surface-variant": "#cbc6bc",
+                      "tertiary": "#cbc4cc",
+                      "secondary-fixed": "#e6e2db",
+                      "primary-fixed-dim": "#cbc6b8",
+                      "inverse-on-surface": "#31302f",
+                      "on-tertiary-fixed": "#1e1a20",
+                      "on-secondary-fixed-variant": "#484741",
+                      "outline": "#949087",
+                      "error": "#ffb4ab",
+                      "surface-container-low": "#1c1b1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "gutter": "16px",
+                      "container-max": "1200px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "32px"
+              },
+              "fontFamily": {
+                      "stat-lg": ["Hanken Grotesk"],
+                      "label-caps": ["JetBrains Mono"],
+                      "headline-xl": ["Hanken Grotesk"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "body-sm": ["Inter"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "stat-lg": ["48px", {"lineHeight": "48px", "fontWeight": "800"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md">
+<!-- TopAppBar - Mapped from JSON -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="fitness_center">fitness_center</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Windsom Wood Personal</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a high-end fitness trainer with an athletic build and serious expression. The lighting is dramatic and high-contrast, typical of a moody, warm-industrial dark aesthetic. The background is a blurred high-end private gym with weathered steel and gunmetal tones, reflecting an elite training environment. The style is sophisticated and professional, aligned with a corporate modern vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr6_Ia7P6NqxCwItGSzQCi_OWziUyZaU0POKIhl4YbwkYppAH03jEs5VtWewUlBFjz1PsFdk5yxEttBQWVUTobJ5-tZ0HlUkSjrMv5t8ugyEmkRYeol_Fukym41gpX6gPMOThk8sXHe6btX-4n570v7dLptg0DReQ4Pik67UoIlJ-RXqskJyG0sZNQRFZTDofU6a3lBSHJwts6YMsGGdaZR0033Or_HVrF5dL7vNOyFckPCQlgz52PWcFcG6R6F9OJ39PxV8ygOKQ"/>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 mt-14 mb-16 overflow-y-auto px-margin-mobile py-gutter max-w-container-max mx-auto w-full flex flex-col">
+<!-- Chat Date Separator -->
+<div class="flex justify-center mb-gutter">
+<span class="bg-surface-container px-3 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant border border-outline-variant">HOJE</span>
+</div>
+<!-- Chat History -->
+<div class="flex flex-col gap-4 flex-1">
+<!-- Received Message -->
+<div class="flex flex-col items-start max-w-[85%]">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] text-primary">TRAINER WOOD</span>
+</div>
+<div class="bg-surface-container-high border border-outline-variant p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm message-bubble">
+<p class="font-body-md text-on-surface">Olá! Vi seus resultados da evolução de hoje. Excelente progresso no supino inclinado. Como está se sentindo para o treino de pernas amanhã?</p>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1 ml-1">14:20</span>
+</div>
+<!-- Sent Message -->
+<div class="flex flex-col items-end max-w-[85%] self-end">
+<div class="bg-primary-container p-3 rounded-tl-xl rounded-br-xl rounded-bl-xl border border-primary/20 shadow-sm message-bubble">
+<p class="font-body-md text-on-primary-container">Obrigado! Senti que a técnica está bem mais sólida. Para amanhã estou um pouco cansado, mas pronto para o desafio. Algum ajuste no volume?</p>
+</div>
+<div class="flex items-center gap-1 mt-1 mr-1">
+<span class="font-label-caps text-[10px] text-on-surface-variant">14:25</span>
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="done_all">done_all</span>
+</div>
+</div>
+<!-- Received Message (Audio) -->
+<div class="flex flex-col items-start max-w-[85%]">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] text-primary">TRAINER WOOD</span>
+</div>
+<div class="bg-surface-container-high border border-outline-variant p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl w-full message-bubble">
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined fill-icon" data-icon="play_arrow">play_arrow</span>
+</button>
+<div class="flex-1 flex flex-col gap-1">
+<div class="h-1 bg-outline-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-1/3"></div>
+</div>
+<div class="flex justify-between">
+<span class="font-label-caps text-[10px] text-on-surface-variant">0:12 / 0:45</span>
+</div>
+</div>
+</div>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1 ml-1">14:28</span>
+</div>
+<!-- Sent Message (Photo) -->
+<div class="flex flex-col items-end max-w-[85%] self-end">
+<div class="bg-primary-container p-1 rounded-tl-xl rounded-br-xl rounded-bl-xl border border-primary/20 shadow-sm overflow-hidden message-bubble">
+<div class="w-full aspect-square rounded-lg overflow-hidden bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="A high-contrast photo of a supplement shelf and a shaker bottle in a dark, moody kitchen with warm metallic accents. The lighting highlights the textures of the powder and the matte finish of the bottle. The aesthetic is elite, professional, and follows the weathered gunmetal and dark earth tone palette of the brand. No human faces, focusing on the mechanical precision of preparation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtEUp6wlxWo04EMtc_tKDq-Ax1UHdwBEpZ0Lfvju3OytWt75UaotBp4UWV7Nkt37dlAcrUiH7Yq74eZew4M5GUJdw2TnaIcHJBbpNETIfBcL8W8I-Pg9Rjh3nlz9o_KEkuqHvRXudCVKkoKKmReIyB7Vp2aSzcQgzcW1QCA_QsCA_7L9aocCeq8agcIvwDEjyFwQBUcpD4sehOBI-nu5VvBCW9QqK4DF8KYy73As5PqTa9JsUP4-eFWMTs3YPMSoFhfV_tqpjDI9M"/>
+</div>
+<div class="p-2">
+<p class="font-body-sm text-on-primary-container">Pré-treino preparado para amanhã!</p>
+</div>
+</div>
+<div class="flex items-center gap-1 mt-1 mr-1">
+<span class="font-label-caps text-[10px] text-on-surface-variant">14:35</span>
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="done_all">done_all</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Input Bar -->
+<div class="fixed bottom-16 left-0 w-full bg-surface-container border-t border-outline-variant p-gutter z-40">
+<div class="max-w-container-max mx-auto flex items-center gap-3">
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-2">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<div class="flex-1 bg-surface-container-low border-b border-outline focus-within:border-primary transition-colors relative">
+<input class="w-full bg-transparent border-none text-on-surface font-body-md py-3 px-2 focus:ring-0 placeholder:text-on-surface-variant/50" placeholder="Escreva sua mensagem..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</button>
+<button class="bg-primary text-on-primary w-10 h-10 flex items-center justify-center rounded-lg active:scale-95 transition-all shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- BottomNavBar - Mapped from JSON -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-unit bg-surface-container border-t border-outline-variant">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors flex-1 h-full active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<!-- Workouts -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors flex-1 h-full active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="exercise">exercise</span>
+<span class="font-label-caps text-label-caps">Workouts</span>
+</a>
+<!-- Evolution -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors flex-1 h-full active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-label-caps text-label-caps">Evolution</span>
+</a>
+<!-- Library -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors flex-1 h-full active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-caps text-label-caps">Library</span>
+</a>
+<!-- Chat (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-primary transition-colors flex-1 h-full active:scale-90 duration-200 border-t-2 border-primary" href="#">
+<span class="material-symbols-outlined fill-icon" data-icon="chat">chat</span>
+<span class="font-label-caps text-label-caps">Chat</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for input focus
+        const input = document.querySelector('input');
+        const sendBtn = document.querySelector('[data-icon="send"]').parentElement;
+        
+        input.addEventListener('input', (e) => {
+            if(e.target.value.length > 0) {
+                sendBtn.style.opacity = '1';
+                sendBtn.style.transform = 'scale(1)';
+            } else {
+                sendBtn.style.opacity = '0.8';
+            }
+        });
+
+        // Background Atmosphere Script (Lightweight pulse)
+        document.addEventListener('DOMContentLoaded', () => {
+            const bubbles = document.querySelectorAll('.message-bubble');
+            bubbles.forEach((bubble, index) => {
+                bubble.style.opacity = '0';
+                bubble.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    bubble.style.transition = 'all 0.4s ease-out';
+                    bubble.style.opacity = '1';
+                    bubble.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body></html>

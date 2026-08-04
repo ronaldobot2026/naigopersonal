@@ -1,0 +1,282 @@
+<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@600&amp;family=Hanken+Grotesk:wght@700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .inner-glow {
+            box-shadow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#b8b5ae",
+                        "tertiary-fixed-dim": "#cbc4cc",
+                        "outline-variant": "#49473f",
+                        "on-surface-variant": "#cbc6bc",
+                        "primary-fixed-dim": "#cbc6b8",
+                        "primary-fixed": "#e7e2d4",
+                        "on-tertiary": "#332f35",
+                        "on-primary-fixed-variant": "#49473c",
+                        "on-primary-fixed": "#1d1c13",
+                        "on-tertiary-container": "#e5dde5",
+                        "inverse-on-surface": "#31302f",
+                        "primary": "#cbc6b8",
+                        "error-container": "#93000a",
+                        "surface-tint": "#cbc6b8",
+                        "inverse-surface": "#e5e2df",
+                        "surface-container-highest": "#353533",
+                        "error": "#ffb4ab",
+                        "secondary-fixed": "#e6e2db",
+                        "secondary": "#c9c6bf",
+                        "surface-container": "#201f1e",
+                        "surface-container-low": "#1c1b1a",
+                        "on-error": "#690005",
+                        "outline": "#949087",
+                        "secondary-container": "#484741",
+                        "on-tertiary-fixed-variant": "#4a454c",
+                        "secondary-fixed-dim": "#c9c6bf",
+                        "tertiary-fixed": "#e8e0e8",
+                        "surface": "#141312",
+                        "on-primary-container": "#e5e0d1",
+                        "background": "#141312",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#1c1c17",
+                        "on-background": "#e5e2df",
+                        "on-tertiary-fixed": "#1e1a20",
+                        "tertiary-container": "#666168",
+                        "on-secondary": "#31302c",
+                        "tertiary": "#cbc4cc",
+                        "surface-bright": "#3a3937",
+                        "on-secondary-fixed-variant": "#484741",
+                        "surface-variant": "#353533",
+                        "surface-dim": "#141312",
+                        "surface-container-lowest": "#0e0e0d",
+                        "on-surface": "#e5e2df",
+                        "on-primary": "#323127",
+                        "inverse-primary": "#615e53",
+                        "primary-container": "#666358",
+                        "surface-container-high": "#2b2a28"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container-max": "1200px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "stat-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "headline-xl": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "stat-lg": ["48px", {"lineHeight": "48px", "fontWeight": "800"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col items-center">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full z-50 bg-background dark:bg-background border-b border-outline-variant fixed top-0">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-primary" onclick="history.back()">arrow_back</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tight text-primary">FATURAMENTO</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a fit personal trainer in a high-end gym setting. The lighting is moody and high-contrast, emphasizing a professional and elite coaching persona. The background features weathered gunmetal exercise equipment and a warm-industrial dark aesthetic, matching the corporate modern style of the fitness facility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqomMc_DwI8v_8Ns2S4C3P7tQ6I2eyfxsr4AlVDwsuDYNaMX2bjn7287QzSjkYPUA315dAIatQOqPSiMdkZPZ2dhxfiDRNShZopb6OURJpoL_RhXOi7dI___I4V2BgLcg3uyrJSokowMdXYuXeAKdyklDUwJ0Knq45EtOrqX9Ue-auqFSptZmMT4ILN9crY2PZUwKNlbaSYVj-E6MpF5P8ImbqrDAKGk6j9wBxW_IHi0s-VyuOXH5M_dBdUBd4LAuFjrgnAQBzMJY">
+</div>
+</div>
+</header>
+<main class="w-full max-w-container-max px-margin-mobile pt-24 pb-32 flex flex-col gap-8">
+<!-- Próxima Fatura Section -->
+<section class="w-full">
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6 inner-glow flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Próxima Fatura</p>
+<h2 class="font-stat-lg text-stat-lg text-primary">R$ 289,90</h2>
+</div>
+<div class="bg-primary-container/20 px-3 py-1 rounded-full border border-primary/30">
+<p class="font-label-caps text-label-caps text-primary">VENCE EM 12 DIAS</p>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Vencimento</span>
+<span class="text-on-surface font-semibold">15 de Outubro, 2023</span>
+</div>
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Plano</span>
+<span class="text-on-surface font-semibold">Premium • Semestral</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+<button class="bg-primary text-on-primary font-label-caps text-label-caps h-12 rounded flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/5">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">qr_code_2</span>
+                        PAGAR COM PIX
+                    </button>
+<button class="border border-outline text-on-surface font-label-caps text-label-caps h-12 rounded flex items-center justify-center gap-2 hover:bg-surface-variant/20 active:scale-95 transition-all">
+<span class="material-symbols-outlined">credit_card</span>
+                        CARTÃO DE CRÉDITO
+                    </button>
+</div>
+</div>
+</section>
+<!-- Payment Methods & Security -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Active Card -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-5 inner-glow flex flex-col justify-between h-48 relative overflow-hidden">
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="flex justify-between items-start z-10">
+<span class="material-symbols-outlined text-primary text-4xl">contactless</span>
+<p class="font-label-caps text-label-caps text-on-surface-variant">PADRÃO</p>
+</div>
+<div class="z-10">
+<p class="font-label-caps text-label-caps text-primary mb-1">•••• •••• •••• 4492</p>
+<p class="text-body-sm text-on-surface-variant uppercase tracking-widest">João Silva</p>
+</div>
+</div>
+<!-- Auto-Pay Status -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-6 inner-glow flex flex-col justify-center items-center text-center gap-3">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</div>
+<div>
+<h3 class="font-body-md text-on-surface font-bold">Débito Automático Ativo</h3>
+<p class="text-body-sm text-on-surface-variant max-w-[200px]">Suas faturas são processadas com segurança todo dia 15.</p>
+</div>
+<button class="text-primary font-label-caps text-[10px] underline tracking-widest">GERENCIAR</button>
+</div>
+</section>
+<!-- Payment History -->
+<section class="w-full">
+<div class="flex items-center justify-between mb-4 px-2">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Histórico de Pagamentos</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">filter_list</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant rounded-xl divide-y divide-outline-variant overflow-hidden">
+<!-- Row 1 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-variant/10 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<p class="text-body-md font-semibold text-on-surface">Setembro 2023</p>
+<p class="text-body-sm text-on-surface-variant">Pago via Cartão • 15/09</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-body-md font-bold text-on-surface">R$ 289,90</p>
+<button class="text-[10px] font-label-caps text-primary tracking-tighter uppercase">RECIBO</button>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-variant/10 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<p class="text-body-md font-semibold text-on-surface">Agosto 2023</p>
+<p class="text-body-sm text-on-surface-variant">Pago via PIX • 14/08</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-body-md font-bold text-on-surface">R$ 289,90</p>
+<button class="text-[10px] font-label-caps text-primary tracking-tighter uppercase">RECIBO</button>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="p-4 flex items-center justify-between hover:bg-surface-variant/10 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<p class="text-body-md font-semibold text-on-surface">Julho 2023</p>
+<p class="text-body-sm text-on-surface-variant">Pago via Cartão • 15/07</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-body-md font-bold text-on-surface">R$ 289,90</p>
+<button class="text-[10px] font-label-caps text-primary tracking-tighter uppercase">RECIBO</button>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 py-3 border border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-caps text-label-caps hover:border-primary/50 hover:text-primary transition-all">VER HISTÓRICO COMPLETO</button>
+</section>
+<!-- Help Section -->
+<section class="mt-4 p-6 rounded-xl bg-gradient-to-br from-surface-container to-surface-container-low border border-outline-variant flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<p class="text-body-md font-bold text-on-surface">Dúvidas sobre cobrança?</p>
+<p class="text-body-sm text-on-surface-variant">Fale diretamente com o financeiro.</p>
+</div>
+<button class="w-12 h-12 rounded-full border border-primary flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</section>
+</main>
+<!-- Navigation suppressed per relevance check for specific task page (Back action implies temporary departure) -->
+<!-- However, providing the BottomNavBar as specified in the blueprint for main ecosystem presence, 
+         but technically this is a sub-page. I will follow the "Suppression" rule but ensure identity is maintained. -->
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.add('scale-95');
+                setTimeout(() => this.classList.remove('scale-95'), 150);
+            });
+        });
+
+        // Subtle parallax effect on card
+        const card = document.querySelector('.bg-surface-container-low');
+        if (card) {
+            window.addEventListener('mousemove', (e) => {
+                const x = (window.innerWidth / 2 - e.pageX) / 50;
+                const y = (window.innerHeight / 2 - e.pageY) / 50;
+                // card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+            });
+        }
+    </script>
+
+
+</body></html>

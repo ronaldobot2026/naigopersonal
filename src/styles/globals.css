@@ -1,0 +1,229 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.material-symbols-outlined.icon-filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-text-primary font-body min-h-dvh antialiased;
+  }
+
+  /**
+   * Camada atmosférica: gradientes radiais muito sutis atrás de todo o app.
+   *
+   * Não é decoração gratuita — é pré-requisito do vidro. `backdrop-filter` desfoca
+   * o que está atrás; sobre uma cor chapada não há nada para desfocar e o material
+   * fica indistinguível de uma superfície opaca comum. Estes gradientes dão ao
+   * vidro algo que ele possa refratar quando o conteúdo rola por baixo.
+   */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(55rem 55rem at 8% -12%, rgba(203, 198, 184, 0.07), transparent 62%),
+      radial-gradient(48rem 48rem at 104% 4%, rgba(156, 175, 124, 0.05), transparent 58%),
+      radial-gradient(40rem 40rem at 46% 112%, rgba(242, 202, 80, 0.035), transparent 60%);
+  }
+
+  /* Tracking específico por tamanho: títulos grandes pedem tracking negativo,
+   * texto corrido fica perto de zero. Ver docs/DESIGN_SYSTEM.md. */
+  h1,
+  h2 {
+    letter-spacing: -0.021em;
+  }
+
+  h3,
+  h4 {
+    letter-spacing: -0.012em;
+  }
+
+  ::selection {
+    @apply bg-action-primary text-action-primary-foreground;
+  }
+
+  :focus-visible {
+    @apply outline-action-primary outline-2 outline-offset-2;
+  }
+}
+
+@layer utilities {
+  /**
+   * Materiais translúcidos.
+   *
+   * `saturate` acompanha o `blur` de propósito: desfocar sozinho lava a cor do que
+   * está atrás, e a saturação devolve a vivacidade que faz o material parecer vidro
+   * e não névoa. Superfícies maiores levam blur mais forte e sombra mais profunda —
+   * material grande lê como material mais espesso.
+   */
+  .glass {
+    background-color: var(--color-glass);
+    backdrop-filter: blur(18px) saturate(170%);
+    box-shadow:
+      inset 0 1px 0 0 var(--color-glass-edge),
+      var(--shadow-glass-sm);
+  }
+
+  .glass-high {
+    background-color: var(--color-glass-high);
+    backdrop-filter: blur(24px) saturate(180%);
+    box-shadow:
+      inset 0 1px 0 0 var(--color-glass-edge),
+      var(--shadow-glass);
+  }
+
+  /** Chrome estrutural (barras, sidebar): material mais escuro e mais espesso. */
+  .glass-chrome {
+    background-color: var(--color-glass-chrome);
+    backdrop-filter: blur(28px) saturate(190%);
+    box-shadow: inset 0 1px 0 0 var(--color-glass-edge);
+  }
+
+  /**
+   * Borda de rolagem: em vez de um divisor de 1px sob o chrome fixo, um degradê
+   * curto onde o conteúdo encontra a barra. A separação aparece só onde a UI
+   * flutuante realmente sobrepõe o conteúdo.
+   */
+  .scroll-edge-top::after {
+    content: '';
+    position: absolute;
+    inset: 100% 0 auto 0;
+    height: 1.25rem;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(20, 19, 18, 0.5), transparent);
+  }
+
+  .scroll-edge-bottom::before {
+    content: '';
+    position: absolute;
+    inset: auto 0 100% 0;
+    height: 1.25rem;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(20, 19, 18, 0.5), transparent);
+  }
+
+  /**
+   * Realce que segue o ponteiro. As coordenadas chegam por `--spot-x`/`--spot-y`
+   * (ver usePointerSpotlight); só a opacidade anima, então o efeito fica no
+   * compositor e não força layout.
+   */
+  .spotlight {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .spotlight::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 260ms var(--ease-out-quint);
+    background: radial-gradient(
+      16rem 16rem at var(--spot-x, 50%) var(--spot-y, 50%),
+      rgba(203, 198, 184, 0.11),
+      transparent 68%
+    );
+  }
+
+  .spotlight:hover::after,
+  .spotlight:focus-within::after {
+    opacity: 1;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-border;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .atmospheric-overlay {
+    background: radial-gradient(circle, transparent 20%, rgba(20, 19, 18, 0.9) 100%);
+  }
+}
+
+/**
+ * Preferências de acessibilidade. Reduzir transparência não é o mesmo que reduzir
+ * movimento, e cada uma tem seu ajuste próprio: material mais sólido num caso,
+ * ausência de deslocamento no outro.
+ */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-high,
+  .glass-chrome {
+    backdrop-filter: none;
+  }
+
+  .glass {
+    background-color: var(--color-surface-elevated);
+  }
+
+  .glass-high {
+    background-color: var(--color-surface-high);
+  }
+
+  .glass-chrome {
+    background-color: var(--color-background);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass,
+  .glass-high,
+  .glass-chrome {
+    backdrop-filter: none;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-text-secondary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight::after {
+    display: none;
+  }
+
+  /* Mantém realces de cor/opacidade, que ajudam a compreensão, e remove
+   * deslocamento e escala, que são os gatilhos vestibulares. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

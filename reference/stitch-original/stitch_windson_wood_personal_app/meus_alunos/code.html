@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Windsom Wood - Meus Alunos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#4a454c",
+                    "on-primary-fixed-variant": "#49473c",
+                    "background": "#141312",
+                    "outline-variant": "#49473f",
+                    "on-primary": "#323127",
+                    "primary-fixed": "#e7e2d4",
+                    "inverse-primary": "#615e53",
+                    "inverse-surface": "#e5e2df",
+                    "surface-container-high": "#2b2a28",
+                    "surface-bright": "#3a3937",
+                    "on-surface": "#e5e2df",
+                    "on-primary-fixed": "#1d1c13",
+                    "on-secondary-fixed": "#1c1c17",
+                    "tertiary-container": "#666168",
+                    "on-background": "#e5e2df",
+                    "secondary": "#c9c6bf",
+                    "surface": "#141312",
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#cbc4cc",
+                    "on-tertiary-container": "#e5dde5",
+                    "on-secondary-container": "#b8b5ae",
+                    "surface-tint": "#cbc6b8",
+                    "secondary-fixed-dim": "#c9c6bf",
+                    "secondary-container": "#484741",
+                    "primary-container": "#666358",
+                    "surface-container-highest": "#353533",
+                    "on-error": "#690005",
+                    "tertiary-fixed": "#e8e0e8",
+                    "surface-container": "#201f1e",
+                    "surface-container-lowest": "#0e0e0d",
+                    "on-secondary": "#31302c",
+                    "error-container": "#93000a",
+                    "primary": "#cbc6b8",
+                    "on-tertiary": "#332f35",
+                    "on-primary-container": "#e5e0d1",
+                    "surface-variant": "#353533",
+                    "surface-dim": "#141312",
+                    "on-surface-variant": "#cbc6bc",
+                    "tertiary": "#cbc4cc",
+                    "secondary-fixed": "#e6e2db",
+                    "primary-fixed-dim": "#cbc6b8",
+                    "inverse-on-surface": "#31302f",
+                    "on-tertiary-fixed": "#1e1a20",
+                    "on-secondary-fixed-variant": "#484741",
+                    "outline": "#949087",
+                    "error": "#ffb4ab",
+                    "surface-container-low": "#1c1b1a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "gutter": "16px",
+                    "container-max": "1200px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px"
+            },
+            "fontFamily": {
+                    "stat-lg": ["Hanken Grotesk"],
+                    "label-caps": ["JetBrains Mono"],
+                    "headline-xl": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "body-sm": ["Inter"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "stat-lg": ["48px", {"lineHeight": "48px", "fontWeight": "800"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        background-color: #141312;
+        color: #e5e2df;
+        -webkit-font-smoothing: antialiased;
+      }
+      .progress-ring__circle {
+        transition: stroke-dashoffset 0.35s;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #49473f;
+        border-radius: 2px;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="dark overflow-hidden h-screen flex flex-col md:flex-row">
+<!-- Navigation Drawer (Desktop/Tablet) -->
+<aside class="hidden md:flex flex-col h-full py-gutter bg-surface-container-low border-r border-outline-variant w-72 shrink-0">
+<div class="px-gutter mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a professional fitness lead coach, mid-40s, with a focused and determined expression. The lighting is moody and dramatic with high-contrast shadows typical of a luxury gym setting. The background is a blurred high-end personal training studio with weathered steel accents and premium equipment. Deep blacks and warm metallic tones define the palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBVFopq_eFBnLamTMa661FaK-4FDAGqvolWIaG1xtY_G0ZylHAvcFY3WGlI6IUZ_DeN3TOfYrvfZMngjyk-x9gwX-SWOdzqgRMcDSXtQAyZvu4jkjaLI9XjPzkqPhRolIoY8_BeFa33yN0xMdjdrB7P7MUi3gb9iBFhwzP4Ir3s7sifHKU_qOwpq0arqIJQVuYSOstj9VuftKASqFgeqbFeC-f7KXTOuIqHKINcwWSw5u-MmxCxrA-_-FQ5UDCgjveiV22G5QRhqI"/>
+</div>
+<div>
+<h2 class="font-headline-lg text-body-md font-bold text-primary">Trainer Area</h2>
+<p class="font-body-sm text-on-surface-variant">Lead Coach</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 px-4 py-3 flex items-center gap-3 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="bg-primary-container text-on-primary-container rounded-full mx-2 px-4 py-3 flex items-center gap-3 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md">Students</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 px-4 py-3 flex items-center gap-3 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">show_chart</span>
+<span class="font-body-md">Evolution</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-full mx-2 px-4 py-3 flex items-center gap-3 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-body-md">Chat</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col relative overflow-hidden h-full">
+<!-- TopAppBar (Mobile/Desktop Header) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface text-primary border-b border-outline-variant md:static md:px-margin-desktop md:h-20">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined font-headline-lg-mobile text-primary">fitness_center</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold md:text-headline-lg">Meus Alunos</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined">search</span>
+</button>
+<div class="w-8 h-8 rounded-full border border-outline-variant overflow-hidden md:w-10 md:h-10">
+<img class="w-full h-full object-cover" data-alt="A small circular avatar of a professional trainer in a dark, high-end gym environment. The lighting is focused and warm, highlighting metallic gym equipment in the background. The aesthetic is corporate yet gritty, with a palette of deep grays, charcoal, and warm steel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPdwOdm7-z_MJesef0ryV5mJXJqXSmM39NvTnWuxccysxSEeTq7J6Z4mnni1L3CtLRnU6o3GHyzxgJ4oqgSK5KW3JoTDVOGW3NXJEw3BeDl1mZ_TrhF3i3zpV8IE1cXRHLZ1fPjhY5BgdIIXbnJRyVyGU6pmwFbNvOlmm7lCF5GOkgCJcAAxTajuKhspR0a1mR8gZ3wvlICWErRcwYApYzAX5qdVShnksG-a0yIQwRWf-fvyfEMTWyx9YRiqtDOj5aSdt3uUQijFU"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="flex-1 overflow-y-auto custom-scrollbar pt-14 pb-20 md:pt-0 md:pb-0 px-margin-mobile md:px-margin-desktop bg-background">
+<!-- Hero Stats / Bento Header -->
+<section class="mt-8 mb-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="p-4 bg-surface-container border border-outline-variant rounded-lg flex flex-col justify-between h-32">
+<span class="font-label-caps text-on-surface-variant">TOTAL ALUNOS</span>
+<span class="font-stat-lg text-stat-lg text-primary">24</span>
+</div>
+<div class="p-4 bg-surface-container border border-outline-variant rounded-lg flex flex-col justify-between h-32">
+<span class="font-label-caps text-on-surface-variant">ATIVOS HOJE</span>
+<span class="font-stat-lg text-stat-lg text-primary">12</span>
+</div>
+<div class="p-4 bg-surface-container border border-outline-variant rounded-lg flex flex-col justify-between h-32 col-span-2">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant">META MENSAL</span>
+<span class="font-body-sm text-primary">85%</span>
+</div>
+<div class="h-2 w-full bg-surface-variant rounded-full overflow-hidden mt-4">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+<span class="font-body-sm text-on-surface-variant mt-2">Próximo de atingir o objetivo trimestral.</span>
+</div>
+</section>
+<!-- Actions Bar -->
+<div class="flex items-center justify-between mb-6">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface md:text-headline-lg">Listagem Ativa</h2>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-body-md font-semibold flex items-center gap-2 hover:bg-opacity-90 transition-all active:scale-95 duration-200 shadow-lg">
+<span class="material-symbols-outlined">person_add</span>
+<span>Novo Aluno</span>
+</button>
+</div>
+<!-- Students List (Asymmetric/Card Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter mb-margin-desktop">
+<!-- Student Card 1 -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-4 flex items-center justify-between hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a young athlete, female, sweating after an intense workout. Moody atmospheric lighting in a luxury dark-mode gym, high contrast, industrial weathered steel background. Color palette: charcoal, deep grays, and warm metallic highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBywR8mNZyJEnECXF77Fsz7jnA3ORegbFdp_KAkbhKwdpv1x3ONWJsuBF2mf8dxaJQKYBrSNGVBy-tKbKrPaIH31PU51EEy2lNXoDWL-UK81hoPrWzQQHaNfE8rte0de_-E35qz6t6LWdeE8rA4R3_uolCFlB6OzLX3pfaPr5fNOiFAm1e_J16YbeSoG9hjUw0Kd9pLXckFtAxuMPaLdQiYME7bHG3OXyevz4sLR6HDnJ-ADSQLEE_n9zo5-dzfL5NAIkmyYbCr1hU"/>
+</div>
+<div>
+<h3 class="font-headline-lg-mobile text-lg font-bold text-on-surface group-hover:text-primary transition-colors">Beatriz Silva</h3>
+<p class="font-body-sm text-on-surface-variant">Último treino: Hoje, 08:30</p>
+<div class="flex gap-2 mt-1">
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">HIPERTROFIA</span>
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">AVANÇADO</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="relative w-14 h-14 flex items-center justify-center">
+<svg class="w-full h-full progress-ring" viewbox="0 0 100 100">
+<circle class="text-surface-variant" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="37.6" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute font-label-caps text-[10px] text-on-surface">85%</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant">PROGRESSO</span>
+</div>
+</div>
+<!-- Student Card 2 -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-4 flex items-center justify-between hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of a muscular man, mid-30s, looking focused. Professional studio lighting with a dark, cinematic high-contrast look. The background is a high-end private training facility with iron and gunmetal textures. Sophisticated earthy metallics and dark gray tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBIm8B588Qr5upPmYVTmi6qYxuVRpjMIlj4sin154GOb5s7VjOjTvFR9DoWG710ft3jq4i3g9UNTKBeAzCHNrRzDhkYdsKSDqz2sqJyXm_3TOrqal4M50e8M_4i55Cg7eZA8A4h8SQzdp-9msyS0iUd7QLXOhG4-h-fOoTrrOmwQ_BdoduuzPtV4Hhv8KpvcvTGQ9G87IcFYKsvqOjDhtY6GgLB6gy2WDpmt-gr-cZahRKQK2KCAcB75NbbdgXUpIi6VFsnttmsQA"/>
+</div>
+<div>
+<h3 class="font-headline-lg-mobile text-lg font-bold text-on-surface group-hover:text-primary transition-colors">Ricardo Matos</h3>
+<p class="font-body-sm text-on-surface-variant">Último treino: Ontem, 19:15</p>
+<div class="flex gap-2 mt-1">
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">PERFORMANCE</span>
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">PRO</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="relative w-14 h-14 flex items-center justify-center">
+<svg class="w-full h-full progress-ring" viewbox="0 0 100 100">
+<circle class="text-surface-variant" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="100.4" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute font-label-caps text-[10px] text-on-surface">60%</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant">PROGRESSO</span>
+</div>
+</div>
+<!-- Student Card 3 -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-4 flex items-center justify-between hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="Close up of a senior male athlete, 60s, looking strong and fit. Soft but purposeful lighting. Cinematic gym background with high-end machinery and dark metallic textures. Aesthetic is corporate modern with tactile accents. Warm-industrial dark atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPJIXF1HyeIPct0DsWX_jKQTs10vyZRFq1nnuXg3RRh-NviJzd4K8mkkcsSoA3lCSxS_Az20OyrEBE-Fo2s3_v2laGYn3sbsdpxBuynwbtyqeq4VOvlzhgbEjipYorn8X1vP6EZZGi0kjxx9KENe1ykwmBq2ZW-qSf0uXiPKXOdBQTg94_aJZqyB_qhgZJcFfJkB8yjksWBt9MK0ce9IHJi_w9fY1LkkEL9m-bGznjOnx_I78WAIx1c-yLxzYdtQDDCLySxoQCRUQ"/>
+</div>
+<div>
+<h3 class="font-headline-lg-mobile text-lg font-bold text-on-surface group-hover:text-primary transition-colors">Fernando Gomes</h3>
+<p class="font-body-sm text-on-surface-variant">Último treino: 02 Abr, 10:00</p>
+<div class="flex gap-2 mt-1">
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">REABILITAÇÃO</span>
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">BÁSICO</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="relative w-14 h-14 flex items-center justify-center">
+<svg class="w-full h-full progress-ring" viewbox="0 0 100 100">
+<circle class="text-surface-variant" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="180.8" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute font-label-caps text-[10px] text-on-surface">28%</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant">PROGRESSO</span>
+</div>
+</div>
+<!-- Student Card 4 -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-4 flex items-center justify-between hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young woman doing yoga, calm expression. Minimalist and elite fitness setting. Muted lighting, deep blacks and silver metallics. Professional coaching atmosphere. High-contrast and moody." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBBxxrt2aZf-Hi2WeUpOOsh8xdr1aUJl5axVBetB46XVuNePcZfK8-zPzX79nOfJVvw2ss5jx5ub9L9p_oZ3OeODSk4ig_Gy8FaINOz6qjKVsu1s3NTji1-aRRSEs_Rk-QXYSK28DSwAyJqvwvJA8yfs5vdNbyst434x7FFpjYDbaYafqoZW1T78ycvWeObJiciUpW75CVkXs89TXAvlhojoeUQ64AYqSK3z8T4x-cHSwPn_O0h67R3e0m6RC6gVX0iA6etCQBrFY"/>
+</div>
+<div>
+<h3 class="font-headline-lg-mobile text-lg font-bold text-on-surface group-hover:text-primary transition-colors">Julia Paiva</h3>
+<p class="font-body-sm text-on-surface-variant">Último treino: Hoje, 14:20</p>
+<div class="flex gap-2 mt-1">
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">FLEXIBILIDADE</span>
+<span class="bg-background px-2 py-0.5 rounded text-[10px] font-label-caps text-on-surface-variant border border-outline-variant">INTERM.</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="relative w-14 h-14 flex items-center justify-center">
+<svg class="w-full h-full progress-ring" viewbox="0 0 100 100">
+<circle class="text-surface-variant" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="12.5" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute font-label-caps text-[10px] text-on-surface">95%</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant">PROGRESSO</span>
+</div>
+</div>
+</div>
+<!-- Empty space to clear bottom nav on mobile -->
+<div class="h-12 md:hidden"></div>
+</div>
+<!-- FAB for Mobile (Suppressed on Details, but here as it's a main screen) -->
+<button class="md:hidden fixed bottom-20 right-4 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">person_add</span>
+</button>
+<!-- BottomNavBar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-unit bg-surface-container border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary hover:bg-surface-container-highest transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-[10px]">Workouts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-caps text-[10px]">Evolution</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-caps text-[10px]">Library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-caps text-[10px]">Chat</span>
+</a>
+</nav>
+</main>
+<script>
+        // Micro-interactions and effects
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.bg-surface-container');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    // Subtle hover effect logic if needed
+                });
+            });
+
+            // Initialize progress rings
+            const rings = document.querySelectorAll('.progress-ring__circle');
+            rings.forEach(ring => {
+                const radius = ring.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                ring.style.strokeDasharray = `${circumference} ${circumference}`;
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WINDSON WOOD - Dashboard do Aluno</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"primary-fixed-dim": "#cbc6b9", "inverse-surface": "#e6e2e0", outline: "#949087", "on-secondary-fixed": "#1d1c17", "secondary-fixed-dim": "#cac6bf", "surface-dim": "#141312", "tertiary-fixed-dim": "#cbc4cc", "primary-fixed": "#e7e2d4", "on-primary-container": "#e5e0d2", "surface-container-high": "#2b2a29", tertiary: "#cbc4cc", "on-primary-fixed": "#1d1c13", "on-primary": "#323027", "on-tertiary-container": "#e5dde5", "on-background": "#e6e2e0", "on-secondary": "#32302c", "on-tertiary": "#332f35", "primary-container": "#666358", "on-error": "#690005", surface: "#141312", "inverse-primary": "#615e53", "on-surface": "#e6e2e0", "on-surface-variant": "#cbc6bc", "on-tertiary-fixed-variant": "#4a454c", error: "#ffb4ab", background: "#141312", "outline-variant": "#49473f", "surface-bright": "#3a3938", "on-primary-fixed-variant": "#49473d", "on-tertiary-fixed": "#1e1a20", "on-secondary-container": "#b8b5ae", "surface-container-low": "#1c1b1a", "inverse-on-surface": "#31302f", "tertiary-container": "#666168", "on-secondary-fixed-variant": "#484742", "tertiary-fixed": "#e8e0e8", "surface-tint": "#cbc6b9", "secondary-fixed": "#e6e2db", secondary: "#cac6bf", "surface-variant": "#363433", "surface-container": "#201f1e", primary: "#cbc6b9", "surface-container-lowest": "#0f0e0d", "error-container": "#93000a", "secondary-container": "#484742", "surface-container-highest": "#363433", "on-error-container": "#ffdad6"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {"margin-desktop": "32px", gutter: "16px", "container-max": "1200px", "margin-mobile": "16px", unit: "4px"}, fontFamily: {"label-caps": ["JetBrains Mono"], "body-sm": ["Inter"], "headline-xl": ["Hanken Grotesk"], "body-md": ["Inter"], "headline-lg-mobile": ["Hanken Grotesk"], "headline-lg": ["Hanken Grotesk"], "stat-lg": ["Hanken Grotesk"], headline: ["Hanken Grotesk"], display: ["Hanken Grotesk"], body: ["Inter"], label: ["Jetbrains Mono"]}, fontSize: {"label-caps": ["12px", {lineHeight: "16px", letterSpacing: "0.1em", fontWeight: "600"}], "body-sm": ["14px", {lineHeight: "20px", fontWeight: "400"}], "headline-xl": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "800"}], "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-lg-mobile": ["24px", {lineHeight: "32px", fontWeight: "700"}], "headline-lg": ["32px", {lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "700"}], "stat-lg": ["48px", {lineHeight: "48px", fontWeight: "800"}]}}}};</script>
+<style>
+        body {
+            background-color: #000000;
+            color: #e5e2e1;
+            -webkit-font-smoothing: antialiased;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .metallic-border {
+            border: 1px solid #1A1A1A;
+            box-shadow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(242, 202, 80, 0.15);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background selection:bg-primary selection:text-black">
+<!-- Top AppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-md flex justify-between items-center px-margin-mobile h-16 border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional studio headshot of a fitness coach" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGHzqzpv5FcB31GFeYrl8SrHKJg0HcxAuttQf-Y869uCMVOlgDm6sEoghJCpyFXeuWTCJdWERAHNdfMZ82JSM0AtynCl43Aq0tpGSzGE5gfdjQM_-9V8ZFTpMCXq9Ox4ZXgI1a_4lvfz_BvpJJdgFw7R9vlKA0XLAj64ykOxG4eiy_Bs13-ebMmxufQjDq1pIQZDWN7ql84KoOsL6GheMDczoNc-zps1EQxm0pSgyaX9oF8HOWQY8suyQ7_b2up5d36TQS1LCuirc"/>
+</div>
+<img alt="WINDSON WOOD" class="h-8 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAwDsQyG4ilxDUOC0BK7QParK6D7Ra-k6w0cXVJtDD1oaLRc4eseIVAbDHzauPTi70QB3si-ctv0i-OMebKGJq3gbFMqoRTt3_wH3zD6J32WMiNK24QoO852Ar0STmcMzLGgLUZI2FQH_2YnZMgagO-dodqi0AA6B_m5RHAdXtUomXoygjqU6snDF9OE3-6U2WeMzLn1k_r0jiN5wuwDlwknjoBjyyJbkHm4wOXts3dlIolj_QCTApawCWtyYTLn4dcX47bOX-feo"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</header>
+<main class="pt-20 pb-24 px-margin-mobile max-w-container-max mx-auto">
+<!-- Welcome Section -->
+<section class="mb-8">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Olá, João!</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Seja bem-vindo de volta.</p>
+</section>
+<div class="space-y-6">
+<!-- Today's Workout Card -->
+<div class="bg-surface-container-low rounded-xl metallic-border overflow-hidden relative">
+<div class="absolute inset-0 opacity-20 grayscale pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="Athlete training in gym" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXc-aeY8Qj_HBYE9M04LUfeyngTkE-26cgRCczrYCLPv-_SwKpeAygIHafTwaejqLDf-l4CpnZiIOKGaThMwMxUk6RyvCZeihTqTUomhNdc5Nl6tTYHyOBG_zogGlunwpQ08yMExA0LRb_CSy1GzFx4m8o6ZPbWFFT05GXDKxGBFgHgnWasbLhNw1XsaSV3TMkRUlUmB4EEZ-55Y7H3n-paz0Dtp1DTGSPne0fxW2zWAVCdibsiad2FyDd7Jga3ZOXb8J7A-75SNM"/>
+</div>
+<div class="relative p-6">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="font-label-caps text-label-caps text-primary px-2 py-1 bg-primary/10 rounded border border-primary/20">TREINO DO DIA</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mt-2">Treino A - Peito e Tríceps</h2>
+</div>
+<span class="material-symbols-outlined text-primary text-3xl">fitness_center</span>
+</div>
+<button class="w-full bg-primary text-on-primary font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span class="material-symbols-outlined">play_arrow</span>
+                    VER TREINO
+                </button>
+</div>
+</div>
+<!-- Postural Correction Card -->
+<div class="bg-surface-container-low rounded-xl metallic-border p-5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-variant flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">accessibility_new</span>
+</div>
+<div>
+<h3 class="font-body-md text-body-md font-bold text-on-surface">Correção Postural</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sessão 1: Mobilidade e Ativação</p>
+</div>
+</div>
+<button class="text-primary hover:text-primary-fixed-dim p-2">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Evolution Summary (Bento Style) -->
+<section>
+<div class="flex justify-between items-end mb-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant">EVOLUÇÃO ATUAL</h3>
+<button class="font-label-caps text-label-caps text-primary">HISTÓRICO</button>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant flex flex-col items-center justify-center text-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1">Peso</span>
+<p class="font-stat-lg text-2xl text-on-surface">78,4 <span class="text-xs">kg</span></p>
+<span class="font-label-caps text-[10px] text-primary mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">arrow_drop_up</span> 1,2%
+                    </span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant flex flex-col items-center justify-center text-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1">% Gordura</span>
+<p class="font-stat-lg text-2xl text-on-surface">14,2 <span class="text-xs">%</span></p>
+<span class="font-label-caps text-[10px] text-error mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">arrow_drop_down</span> 0,8%
+                    </span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant flex flex-col items-center justify-center text-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1">Massa Magra</span>
+<p class="font-stat-lg text-2xl text-on-surface">67,3 <span class="text-xs">kg</span></p>
+<span class="font-label-caps text-[10px] text-primary mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">arrow_drop_up</span> 2,1%
+                    </span>
+</div>
+</div>
+</section>
+<!-- Progress Bar Section -->
+<div class="bg-surface-container-low rounded-xl p-5 border border-outline-variant">
+<div class="flex justify-between items-center mb-3">
+<h3 class="font-body-md text-body-md font-bold text-on-surface">Próxima Avaliação</h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant">20/06/2024</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 65%;"></div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3 italic text-center">Faltam 12 dias para sua nova evolução.</p>
+</div>
+<!-- Quick Access Links -->
+<div class="grid grid-cols-2 gap-4">
+<a class="bg-surface-container-low p-4 rounded-xl border border-outline-variant flex flex-col items-center gap-2 group hover:bg-surface-variant/20 transition-all" href="#">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">restaurant</span>
+<span class="font-label-caps text-label-caps text-on-surface">Plano Alimentar</span>
+</a>
+<a class="bg-surface-container-low p-4 rounded-xl border border-outline-variant flex flex-col items-center gap-2 group hover:bg-surface-variant/20 transition-all" href="#">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">payments</span>
+<span class="font-label-caps text-label-caps text-on-surface">Financeiro</span>
+</a>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest dark:bg-surface-container-lowest flex justify-around items-center px-2 py-3 border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-caps text-label-caps mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-container hover:bg-surface-variant/10 p-1 rounded transition-colors" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps text-label-caps mt-1">Treinos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-container hover:bg-surface-variant/10 p-1 rounded transition-colors" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-caps text-label-caps mt-1">Evolução</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-container hover:bg-surface-variant/10 p-1 rounded transition-colors" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-caps text-label-caps mt-1">Biblioteca</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-container hover:bg-surface-variant/10 p-1 rounded transition-colors" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-caps text-label-caps mt-1">Chat</span>
+</a>
+</nav>
+<!-- Micro-interaction Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.bg-surface-container-low');
+        cards.forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.classList.add('opacity-80');
+            });
+            card.addEventListener('touchend', () => {
+                card.classList.remove('opacity-80');
+            });
+        });
+    });
+</script>
+</body></html>
