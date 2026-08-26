@@ -1,19 +1,6 @@
-export interface WorkoutExerciseEntry {
-  /** Id no catálogo de exercícios (`public/data/exercises.json`), ex.: "0025". */
-  exerciseId: string
-  sets: number
-  reps: string
-  loadKg?: number
-}
+import type { WorkoutSession } from '@/features/workouts/domain/workout.types'
 
-export interface WorkoutSession {
-  id: string
-  name: string
-  focusTag: string
-  durationMinutes: number
-  progressPercent: number
-  exercises: WorkoutExerciseEntry[]
-}
+export type { WorkoutExerciseEntry, WorkoutSession } from '@/features/workouts/domain/workout.types'
 
 /**
  * Dados fictícios — o programa de treino ainda não persiste em backend real. Os `exerciseId`
@@ -23,7 +10,7 @@ export interface WorkoutSession {
 export const MOCK_WORKOUTS: WorkoutSession[] = [
   {
     id: 'treino-a',
-    name: 'Peito & Tríceps',
+    name: 'Peito & Tríceps — Hipertrofia com Ênfase em Amplitude',
     focusTag: 'HIPERTROFIA',
     durationMinutes: 65,
     progressPercent: 85,

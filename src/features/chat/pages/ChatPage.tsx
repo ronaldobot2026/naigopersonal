@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ErrorState } from '@/components/feedback/ErrorState'
+import { LoadingState } from '@/components/feedback/LoadingState'
 import { Icon } from '@/components/ui/Icon'
-import { MOCK_CHAT_MESSAGES, type ChatMessage } from '@/mocks/chat'
+import { chatRepository } from '../repositories/chatRepository'
+import type { ChatMessage } from '../domain/chatMessage.types'
 
 type ChatPageProps = {
   /** Quem está "logado" nesta tela — decide alinhamento das mensagens enviadas/recebidas. */
@@ -9,12 +12,29 @@ type ChatPageProps = {
 }
 
 /**
- * Chat local, sem backend real — mensagens seguem apenas em memória durante a sessão
- * (ver docs/DECISIONS.md, fase de dados demo).
+ * Chat local, sem backend real — o histórico vem do repositório mas o envio segue apenas em
+ * memória durante a sessão (ver docs/DECISIONS.md; realtime/persistência real é a Fase 12 do
+ * roadmap).
  */
 export function ChatPage({ selfRole, counterpartName }: ChatPageProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>(MOCK_CHAT_MESSAGES)
+  const [messages, setMessages] = useState<ChatMessage[]>()
+  const [loadFailed, setLoadFailed] = useState(false)
   const [draft, setDraft] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    chatRepository
+      .findMessages()
+      .then((loaded) => {
+        if (!cancelled) setMessages(loaded)
+      })
+      .catch(() => {
+        if (!cancelled) setLoadFailed(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function handleSend(): void {
     const text = draft.trim()
@@ -25,8 +45,21 @@ export function ChatPage({ selfRole, counterpartName }: ChatPageProps) {
       text,
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     }
-    setMessages((current) => [...current, message])
+    setMessages((current) => [...(current ?? []), message])
     setDraft('')
+  }
+
+  if (loadFailed) {
+    return (
+      <ErrorState
+        title="Não foi possível carregar a conversa"
+        description="Verifique sua conexão e recarregue a página."
+      />
+    )
+  }
+
+  if (!messages) {
+    return <LoadingState label="Carregando conversa…" />
   }
 
   return (
@@ -43,7 +76,7 @@ export function ChatPage({ selfRole, counterpartName }: ChatPageProps) {
           return (
             <div
               key={message.id}
-              className={`flex max-w-[85%] flex-col ${isSelf ? 'self-end items-end' : 'items-start'}`}
+              className={`flex min-w-0 max-w-[85%] flex-col ${isSelf ? 'self-end items-end' : 'items-start'}`}
             >
               {!isSelf && (
                 <span className="mb-1 ml-1 font-mono text-[10px] text-action-primary">
@@ -57,7 +90,11 @@ export function ChatPage({ selfRole, counterpartName }: ChatPageProps) {
                     : 'border-border bg-surface-elevated text-text-primary'
                 }`}
               >
-                <p>{message.text}</p>
+                {/* overflow-wrap:anywhere (não `break-words`/overflow-wrap:break-word — esse
+                    valor é ignorado no cálculo de min/max-content por spec, então a bolha ainda
+                    calcula a largura como se a palavra não quebrasse e só quebra a linha depois,
+                    tarde demais). Mensagem pode conter link/token longo sem espaço. */}
+                <p className="[overflow-wrap:anywhere]">{message.text}</p>
               </div>
               <span className="mt-1 ml-1 font-mono text-[10px] text-text-secondary">
                 {message.time}

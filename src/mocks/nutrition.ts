@@ -1,19 +1,9 @@
-export interface MealItem {
-  label: string
-  macro: string
-}
+import type { DailyTargets, Meal } from '@/features/nutrition/domain/nutrition.types'
 
-export interface Meal {
-  id: string
-  name: string
-  time: string
-  kcal: number
-  icon: string
-  items: MealItem[]
-}
+export type { DailyTargets, Meal, MealItem } from '@/features/nutrition/domain/nutrition.types'
 
 /** Dados fictícios — plano alimentar ainda não vem de um nutricionista/backend real. */
-export const MOCK_DAILY_TARGETS = {
+export const MOCK_DAILY_TARGETS: DailyTargets = {
   calories: 2450,
   calorieProgressPercent: 75,
   proteinG: 180,
@@ -23,13 +13,13 @@ export const MOCK_DAILY_TARGETS = {
 export const MOCK_MEALS: Meal[] = [
   {
     id: 'cafe-manha',
-    name: 'Café da Manhã',
+    name: 'Café da Manhã Reforçado Pré-Treino',
     time: '07:30',
     kcal: 450,
     icon: 'light_mode',
     items: [
-      { label: 'Ovos Mexidos (3 un)', macro: '18g Prot' },
-      { label: 'Pão Integral (2 fatias)', macro: '24g Carb' },
+      { label: 'Ovos Mexidos com Espinafre e Queijo Cottage (3 un)', macro: '18g Prot' },
+      { label: 'Pão Integral Multigrãos com Sementes (2 fatias)', macro: '24g Carb' },
       { label: 'Abacate (50g)', macro: '7g Gord' },
     ],
   },

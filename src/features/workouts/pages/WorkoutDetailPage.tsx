@@ -6,38 +6,47 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
-import { MOCK_WORKOUTS } from '@/mocks/workouts'
+import { useAsyncData } from '@/hooks/useAsyncData'
 import { ExerciseAttribution } from '../components/ExerciseAttribution'
 import { ExerciseMedia } from '../components/ExerciseMedia'
 import { useExerciseCatalog } from '../hooks/useExerciseCatalog'
+import { workoutRepository } from '../repositories/workoutRepository'
 
 export function WorkoutDetailPage() {
   const { workoutId } = useParams<{ workoutId: string }>()
   const { status, catalog, errorMessage } = useExerciseCatalog()
-  const workout = MOCK_WORKOUTS.find((item) => item.id === workoutId)
+  const {
+    status: workoutStatus,
+    data: workout,
+    errorMessage: workoutErrorMessage,
+  } = useAsyncData(() => workoutRepository.findById(workoutId ?? ''), [workoutId])
 
-  if (!workout) {
+  if (workoutStatus === 'ready' && !workout) {
     return <EmptyState title="Treino não encontrado" description="Volte para a lista de treinos." />
   }
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
-      <PageHeader
-        eyebrow={workout.focusTag}
-        title={workout.name}
-        description={`${workout.durationMinutes} minutos estimados`}
-      />
-
-      {status === 'loading' && <LoadingState label="Carregando exercícios do treino…" />}
-
-      {status === 'error' && (
-        <ErrorState
-          title="Não foi possível carregar os exercícios"
-          description={errorMessage ?? 'Verifique sua conexão e recarregue a página.'}
+      {workout && (
+        <PageHeader
+          eyebrow={workout.focusTag}
+          title={workout.name}
+          description={`${workout.durationMinutes} minutos estimados`}
         />
       )}
 
-      {status === 'ready' && catalog && (
+      {(status === 'loading' || workoutStatus === 'loading') && (
+        <LoadingState label="Carregando exercícios do treino…" />
+      )}
+
+      {(status === 'error' || workoutStatus === 'error') && (
+        <ErrorState
+          title="Não foi possível carregar os exercícios"
+          description={errorMessage ?? workoutErrorMessage ?? 'Verifique sua conexão e recarregue a página.'}
+        />
+      )}
+
+      {status === 'ready' && workoutStatus === 'ready' && catalog && workout && (
         <>
           <div className="flex flex-col gap-3">
             {workout.exercises.map((entry) => {

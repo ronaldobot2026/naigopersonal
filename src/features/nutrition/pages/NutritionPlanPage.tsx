@@ -1,12 +1,24 @@
 import { useState } from 'react'
+import { ErrorState } from '@/components/feedback/ErrorState'
+import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
-import { MOCK_DAILY_TARGETS, MOCK_MEALS } from '@/mocks/nutrition'
+import { useAsyncData } from '@/hooks/useAsyncData'
+import { nutritionRepository } from '../repositories/nutritionRepository'
 
 export function NutritionPlanPage() {
   const [checkedMeals, setCheckedMeals] = useState<Set<string>>(new Set())
+  const {
+    status: targetsStatus,
+    data: dailyTargets,
+    errorMessage: targetsError,
+  } = useAsyncData(() => nutritionRepository.getDailyTargets(), [])
+  const { status: mealsStatus, data: meals, errorMessage: mealsError } = useAsyncData(
+    () => nutritionRepository.getMeals(),
+    [],
+  )
 
   function toggleMeal(mealId: string): void {
     setCheckedMeals((current) => {
@@ -15,6 +27,19 @@ export function NutritionPlanPage() {
       else next.add(mealId)
       return next
     })
+  }
+
+  if (targetsStatus === 'loading' || mealsStatus === 'loading') {
+    return <LoadingState label="Carregando plano alimentar…" />
+  }
+
+  if (targetsStatus === 'error' || mealsStatus === 'error' || !dailyTargets || !meals) {
+    return (
+      <ErrorState
+        title="Não foi possível carregar o plano alimentar"
+        description={targetsError ?? mealsError ?? 'Verifique sua conexão e recarregue a página.'}
+      />
+    )
   }
 
   return (
@@ -29,31 +54,31 @@ export function NutritionPlanPage() {
           <span className="font-mono text-xs uppercase text-action-primary">Calorias totais</span>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-4xl font-extrabold text-text-primary">
-              {MOCK_DAILY_TARGETS.calories.toLocaleString('pt-BR')}
+              {dailyTargets.calories.toLocaleString('pt-BR')}
             </span>
             <span className="text-text-secondary">kcal</span>
           </div>
           <ProgressBar
-            value={MOCK_DAILY_TARGETS.calorieProgressPercent}
+            value={dailyTargets.calorieProgressPercent}
             label="Progresso calórico do dia"
           />
         </Card>
         <Card className="flex flex-col justify-between gap-2">
           <span className="font-mono text-xs uppercase text-text-secondary">Proteínas</span>
           <span className="font-display text-2xl font-bold text-text-primary">
-            {MOCK_DAILY_TARGETS.proteinG}g
+            {dailyTargets.proteinG}g
           </span>
         </Card>
         <Card className="flex flex-col justify-between gap-2">
           <span className="font-mono text-xs uppercase text-text-secondary">Carboidratos</span>
           <span className="font-display text-2xl font-bold text-text-primary">
-            {MOCK_DAILY_TARGETS.carbsG}g
+            {dailyTargets.carbsG}g
           </span>
         </Card>
       </div>
 
       <div className="flex flex-col gap-4">
-        {MOCK_MEALS.map((meal) => {
+        {meals.map((meal) => {
           const isChecked = checkedMeals.has(meal.id)
           return (
             <Card key={meal.id} tone="elevated" className="flex flex-col gap-3">

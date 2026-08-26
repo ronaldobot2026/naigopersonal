@@ -88,9 +88,12 @@ export function PersonalDashboardPage() {
           <ul className="divide-y divide-border">
             {students.map((student) => (
               <li key={student.id} className="flex items-center justify-between gap-4 py-4">
-                <Link to={buildStudentDetailPath(student.id)} className="hover:text-action-primary">
-                  <p className="font-bold text-text-primary">{student.name}</p>
-                  <p className="text-sm text-text-secondary">{student.email}</p>
+                <Link
+                  to={buildStudentDetailPath(student.id)}
+                  className="min-w-0 flex-1 hover:text-action-primary"
+                >
+                  <p className="truncate font-bold text-text-primary">{student.name}</p>
+                  <p className="truncate text-sm text-text-secondary">{student.email}</p>
                 </Link>
                 <Link
                   to={buildNewAssessmentPath(student.id)}

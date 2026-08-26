@@ -1,17 +1,13 @@
-export interface Invoice {
-  id: string
-  monthLabel: string
-  amount: number
-  paidVia: string
-  paidOn: string
-}
+import type { Invoice, NextInvoice } from '@/features/billing/domain/billing.types'
+
+export type { Invoice, NextInvoice } from '@/features/billing/domain/billing.types'
 
 /** Dados fictícios — faturamento ainda não integra um gateway de pagamento real. */
-export const MOCK_NEXT_INVOICE = {
+export const MOCK_NEXT_INVOICE: NextInvoice = {
   amount: 289.9,
   dueDateLabel: '15 de Outubro',
   daysLeft: 12,
-  plan: 'Premium • Semestral',
+  plan: 'Plano Premium Elite • Semestral com Acompanhamento Nutricional',
   cardLast4: '4492',
 }
 

@@ -14,7 +14,7 @@ export function GeneralDataStep({ student, assessment }: GeneralDataStepProps) {
       <div>
         <p className="font-mono text-xs uppercase tracking-widest text-text-secondary">Aluno</p>
         <p className="font-display text-xl font-bold text-text-primary">{student.name}</p>
-        <p className="text-sm text-text-secondary">{student.email}</p>
+        <p className="text-sm text-text-secondary [overflow-wrap:anywhere]">{student.email}</p>
       </div>
       <div>
         <p className="font-mono text-xs uppercase tracking-widest text-text-secondary">

@@ -8,8 +8,8 @@ export const MOCK_CURRENT_STUDENT_ID = 'student-maria-santos'
 export const MOCK_STUDENTS: Student[] = [
   {
     id: 'student-maria-santos',
-    name: 'Maria Santos',
-    email: 'maria.santos@example.com',
+    name: 'Maria Eduarda Nascimento Bittencourt Santos',
+    email: 'maria.eduarda.bittencourt.santos@example.com',
     trainerId: MOCK_TRAINER_ID,
   },
   {

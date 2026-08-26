@@ -57,10 +57,14 @@ Nomenclatura oficial adotada em toda a Fase 1+: **Windson Wood Personal**.
 - **Fase 0 — Auditoria**: concluída (este documento).
 - **Fase 1 — Fundação**: scaffold Vite+React+TS, Tailwind local, tokens, router, shells, componentes fundamentais, ESLint/Prettier/Vitest, mocks, migração de Login + Dashboard do Personal + estrutura em etapas da Nova Avaliação Física.
 - **Fase 2 — Vertical slice postural**: consentimento, câmera/upload, Pose Landmarker, skeleton overlay, captura frontal, quality gate, inclinação de ombros/quadris, rascunho em IndexedDB, testes de geometria.
-- **Fase 3 — Fluxo completo** (fora do escopo desta execução): capturas lateral/posterior, revisão das 3 vistas, validação do treinador, histórico e comparação.
-- **Fase 4 — Demais telas** (fora do escopo desta execução): Home do aluno, Meus Treinos, Detalhes do Exercício, Plano Alimentar, Chat, Pagamentos, Correção Postural (exercícios), Meus Alunos, Biblioteca de Exercícios, Criador de Treinos.
+- **Fase 3 — Fluxo completo**: **parcial**. As 4 vistas posturais e a validação do treinador já existem; histórico, comparação entre avaliações e o bloco postural no PDF ficam para a Fase 14 do `ROADMAP.md`.
+- **Fase 4 — Demais telas**: **concluída** — todas as rotas do app (Home do aluno, Meus Treinos, Detalhes do Exercício, Plano Alimentar, Chat, Pagamentos, Correção Postural, Meus Alunos, Biblioteca de Exercícios, Criador de Treinos) já têm página real, com dados mockados.
+
+> Este documento cobre só a migração do export Stitch para o scaffold do app (Fases 0–4). Para o
+> caminho até o app atender 100% do PRD (backend real, auth, pagamentos, chat, notificações,
+> etc.), ver **`docs/ROADMAP.md`** (Fases 5–19) e **`docs/BACKEND_PLAN.md`**.
 
 ## Pendências explícitas desta entrega
 
-- Imagens: usamos placeholders locais neutros (SVG/gradiente) em vez de baixar as URLs `googleusercontent.com` do export — elas não pertencem a este repositório e podem expirar. Migrar assets reais é tarefa da Fase 4.
-- Autenticação real, backend, pagamentos, chat funcional, PDF de relatório: fora do escopo.
+- Imagens: usamos placeholders locais neutros (SVG/gradiente) em vez de baixar as URLs `googleusercontent.com` do export — elas não pertencem a este repositório e podem expirar.
+- Autenticação real, backend, pagamentos, chat funcional, PDF de relatório: ver `docs/ROADMAP.md`.

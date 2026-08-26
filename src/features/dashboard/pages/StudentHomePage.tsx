@@ -1,17 +1,49 @@
 import { Link } from 'react-router-dom'
 import { ROUTES, buildWorkoutDetailPath } from '@/app/router/routes'
+import { ErrorState } from '@/components/feedback/ErrorState'
+import { LoadingState } from '@/components/feedback/LoadingState'
 import { Reveal } from '@/components/motion/Reveal'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { ProgressBar } from '@/components/ui/ProgressBar'
-import { MOCK_STUDENTS } from '@/mocks/students'
-import { MOCK_WORKOUTS } from '@/mocks/workouts'
-
-const currentStudent = MOCK_STUDENTS[0]
-const todaysWorkout = MOCK_WORKOUTS[0]
+import { useAsyncData } from '@/hooks/useAsyncData'
+import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
+import { MOCK_CURRENT_STUDENT_ID } from '@/mocks/students'
+import { workoutRepository } from '@/features/workouts/repositories/workoutRepository'
 
 export function StudentHomePage() {
+  const {
+    status: studentStatus,
+    data: currentStudent,
+    errorMessage: studentError,
+  } = useAsyncData(() => indexedDbStudentRepository.findById(MOCK_CURRENT_STUDENT_ID), [])
+  const {
+    status: workoutsStatus,
+    data: workouts,
+    errorMessage: workoutsError,
+  } = useAsyncData(() => workoutRepository.findAll(), [])
+
+  if (studentStatus === 'loading' || workoutsStatus === 'loading') {
+    return <LoadingState label="Carregando sua Home…" />
+  }
+
+  if (
+    studentStatus === 'error' ||
+    workoutsStatus === 'error' ||
+    !currentStudent ||
+    !workouts?.length
+  ) {
+    return (
+      <ErrorState
+        title="Não foi possível carregar sua Home"
+        description={studentError ?? workoutsError ?? 'Verifique sua conexão e recarregue a página.'}
+      />
+    )
+  }
+
+  const todaysWorkout = workouts[0]
+
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
       <div className="mb-8">

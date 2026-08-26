@@ -1,11 +1,13 @@
-export interface ChatMessage {
-  id: string
-  from: 'trainer' | 'student'
-  text: string
-  time: string
-}
+import type { ChatMessage } from '@/features/chat/domain/chatMessage.types'
 
-/** Conversa fictícia — chat ainda não é conectado a um backend de mensagens real. */
+export type { ChatMessage } from '@/features/chat/domain/chatMessage.types'
+
+/**
+ * Conversa fictícia — chat ainda não é conectado a um backend de mensagens real. Inclui
+ * propositalmente uma mensagem com token longo sem espaços (link) e uma mensagem de uma palavra
+ * só: são os dois casos clássicos que vazam de bolha de chat quando falta `break-words`/
+ * `overflow-wrap` no container.
+ */
 export const MOCK_CHAT_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
@@ -24,5 +26,17 @@ export const MOCK_CHAT_MESSAGES: ChatMessage[] = [
     from: 'trainer',
     text: 'Vamos reduzir uma série no agachamento e focar na execução. Qualidade acima de quantidade.',
     time: '14:28',
+  },
+  {
+    id: 'msg-4',
+    from: 'trainer',
+    text: 'Segue o vídeo da execução correta: https://exemplo.com/videos/agachamento-tecnica-completa-explicacao-detalhada-2026',
+    time: '14:31',
+  },
+  {
+    id: 'msg-5',
+    from: 'student',
+    text: 'Perfeito!',
+    time: '14:32',
   },
 ]

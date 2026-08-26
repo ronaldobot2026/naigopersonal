@@ -1,15 +1,41 @@
+import { ErrorState } from '@/components/feedback/ErrorState'
+import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
-import { MOCK_INVOICE_HISTORY, MOCK_NEXT_INVOICE } from '@/mocks/billing'
+import { useAsyncData } from '@/hooks/useAsyncData'
+import { billingRepository } from '../repositories/billingRepository'
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 export function BillingPage() {
+  const {
+    status: nextInvoiceStatus,
+    data: nextInvoice,
+    errorMessage: nextInvoiceError,
+  } = useAsyncData(() => billingRepository.getNextInvoice(), [])
+  const { status: historyStatus, data: history, errorMessage: historyError } = useAsyncData(
+    () => billingRepository.getInvoiceHistory(),
+    [],
+  )
+
+  if (nextInvoiceStatus === 'loading' || historyStatus === 'loading') {
+    return <LoadingState label="Carregando dados financeiros…" />
+  }
+
+  if (nextInvoiceStatus === 'error' || historyStatus === 'error' || !nextInvoice || !history) {
+    return (
+      <ErrorState
+        title="Não foi possível carregar seus dados financeiros"
+        description={nextInvoiceError ?? historyError ?? 'Verifique sua conexão e recarregue a página.'}
+      />
+    )
+  }
+
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
       <PageHeader title="Financeiro" description="Faturas, meios de pagamento e histórico." />
@@ -19,21 +45,19 @@ export function BillingPage() {
           <div>
             <p className="font-mono text-xs uppercase text-text-secondary">Próxima fatura</p>
             <h2 className="font-display text-4xl font-extrabold text-action-primary">
-              {formatCurrency(MOCK_NEXT_INVOICE.amount)}
+              {formatCurrency(nextInvoice.amount)}
             </h2>
           </div>
-          <Badge tone="warning">Vence em {MOCK_NEXT_INVOICE.daysLeft} dias</Badge>
+          <Badge tone="warning">Vence em {nextInvoice.daysLeft} dias</Badge>
         </div>
         <div className="flex flex-col gap-2 text-sm">
           <div className="flex justify-between">
             <span className="text-text-secondary">Vencimento</span>
-            <span className="font-semibold text-text-primary">
-              {MOCK_NEXT_INVOICE.dueDateLabel}
-            </span>
+            <span className="font-semibold text-text-primary">{nextInvoice.dueDateLabel}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-text-secondary">Plano</span>
-            <span className="font-semibold text-text-primary">{MOCK_NEXT_INVOICE.plan}</span>
+            <span className="font-semibold text-text-primary">{nextInvoice.plan}</span>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -56,7 +80,7 @@ export function BillingPage() {
           </div>
           <div>
             <p className="font-mono text-action-primary">
-              •••• •••• •••• {MOCK_NEXT_INVOICE.cardLast4}
+              •••• •••• •••• {nextInvoice.cardLast4}
             </p>
           </div>
         </Card>
@@ -74,7 +98,7 @@ export function BillingPage() {
       </h3>
       <Card>
         <ul className="divide-y divide-border">
-          {MOCK_INVOICE_HISTORY.map((invoice) => (
+          {history.map((invoice) => (
             <li key={invoice.id} className="flex items-center justify-between gap-4 py-4">
               <div className="flex items-center gap-4">
                 <Icon name="check_circle" filled className="text-success" />

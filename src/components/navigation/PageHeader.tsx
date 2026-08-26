@@ -21,7 +21,11 @@ export function PageHeader({ eyebrow, title, description, actions }: PageHeaderP
         </h2>
         {actions}
       </div>
-      {description && <p className="max-w-2xl text-text-secondary">{description}</p>}
+      {description && (
+        // overflow-wrap:anywhere — description às vezes é um e-mail (StudentDetailPage) ou outro
+        // token sem espaço; sem isso ele vaza da caixa em telas estreitas em vez de quebrar linha.
+        <p className="max-w-2xl [overflow-wrap:anywhere] text-text-secondary">{description}</p>
+      )}
     </div>
   )
 }
