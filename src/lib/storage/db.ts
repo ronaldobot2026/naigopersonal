@@ -2,18 +2,19 @@
  * Wrapper mínimo e promisificado sobre a IndexedDB nativa do navegador.
  *
  * Deliberadamente não usamos uma biblioteca de terceiros aqui: o esquema é pequeno
- * (3 object stores) e a API nativa promisificada cobre 100% da necessidade do protótipo.
+ * (4 object stores) e a API nativa promisificada cobre 100% da necessidade do protótipo.
  * Repositórios de domínio (StudentRepository, PhysicalAssessmentRepository, ...) usam este
  * módulo por baixo — nenhuma página ou componente deve importar `db.ts` diretamente.
  */
 
 const DB_NAME = 'windson-wood-personal'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 export const STORE_NAMES = {
   students: 'students',
   physicalAssessments: 'physicalAssessments',
   assessmentPhotos: 'assessmentPhotos',
+  workoutPlans: 'workoutPlans',
 } as const
 
 export type StoreName = (typeof STORE_NAMES)[keyof typeof STORE_NAMES]
@@ -34,6 +35,10 @@ function upgrade(db: IDBDatabase): void {
   }
   if (!db.objectStoreNames.contains(STORE_NAMES.assessmentPhotos)) {
     db.createObjectStore(STORE_NAMES.assessmentPhotos, { keyPath: 'key' })
+  }
+  if (!db.objectStoreNames.contains(STORE_NAMES.workoutPlans)) {
+    const store = db.createObjectStore(STORE_NAMES.workoutPlans, { keyPath: 'id' })
+    store.createIndex(INDEX_NAMES.studentId, 'studentId', { unique: false })
   }
 }
 

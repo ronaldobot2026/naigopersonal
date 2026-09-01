@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { buildNewAssessmentPath, buildStudentAssessmentsPath } from '@/app/router/routes'
+import {
+  buildNewAssessmentPath,
+  buildStudentAssessmentsPath,
+  buildWorkoutBuilderPath,
+} from '@/app/router/routes'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Card } from '@/components/ui/Card'
+import { Icon } from '@/components/ui/Icon'
 import { indexedDbStudentRepository } from '../repositories/indexedDbStudentRepository'
 import type { Student } from '@/types/domain'
 
@@ -49,10 +54,21 @@ export function StudentDetailPage() {
       {loadState === 'ready' && student && (
         <>
           <PageHeader eyebrow="Perfil do aluno" title={student.name} description={student.email} />
+
+          <Card className="mb-4">
+            <Link
+              to={buildWorkoutBuilderPath(student.id)}
+              className="flex items-center justify-center gap-2 rounded-md bg-action-primary px-6 py-4 text-center font-mono text-sm font-semibold uppercase tracking-wider text-action-primary-foreground hover:opacity-90"
+            >
+              <Icon name="fitness_center" />
+              Montar treino
+            </Link>
+          </Card>
+
           <Card className="flex flex-col gap-3 sm:flex-row">
             <Link
               to={buildNewAssessmentPath(student.id)}
-              className="flex-1 rounded-md bg-action-primary px-6 py-3 text-center font-mono text-xs font-semibold uppercase tracking-wider text-action-primary-foreground hover:opacity-90"
+              className="flex-1 rounded-md border border-border px-6 py-3 text-center font-mono text-xs font-semibold uppercase tracking-wider text-text-primary hover:bg-surface-elevated"
             >
               Nova avaliação física
             </Link>
