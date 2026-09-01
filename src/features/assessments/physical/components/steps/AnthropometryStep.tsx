@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Card } from '@/components/ui/Card'
 import { NumberInput } from '@/components/ui/NumberInput'
 import type { Anthropometry } from '@/types/domain'
+import { useSyncValidValues } from '../../hooks/useSyncValidValues'
 import {
   anthropometrySchema,
   setValueAsNullableNumber,
@@ -27,9 +27,8 @@ export function AnthropometryStep({ value, onChange }: AnthropometryStepProps) {
 
   const watched = watch()
 
-  useEffect(() => {
-    if (!formState.isValid) return
-    onChange({
+  useSyncValidValues<Anthropometry>(
+    {
       chestCm: watched.chestCm,
       waistCm: watched.waistCm,
       hipCm: watched.hipCm,
@@ -38,19 +37,10 @@ export function AnthropometryStep({ value, onChange }: AnthropometryStepProps) {
       rightThighCm: watched.rightThighCm,
       leftThighCm: watched.leftThighCm,
       calvesCm: watched.calvesCm,
-    })
-  }, [
-    watched.chestCm,
-    watched.waistCm,
-    watched.hipCm,
-    watched.rightArmCm,
-    watched.leftArmCm,
-    watched.rightThighCm,
-    watched.leftThighCm,
-    watched.calvesCm,
+    },
     formState.isValid,
     onChange,
-  ])
+  )
 
   return (
     <Card>
