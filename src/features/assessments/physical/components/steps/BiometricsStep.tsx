@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Card } from '@/components/ui/Card'
 import { NumberInput } from '@/components/ui/NumberInput'
 import type { Biometrics } from '@/types/domain'
+import { useSyncValidValues } from '../../hooks/useSyncValidValues'
 import {
   biometricsSchema,
   setValueAsNullableNumber,
@@ -27,22 +27,16 @@ export function BiometricsStep({ value, onChange }: BiometricsStepProps) {
 
   const watched = watch()
 
-  useEffect(() => {
-    if (!formState.isValid) return
-    onChange({
+  useSyncValidValues<Biometrics>(
+    {
       weightKg: watched.weightKg,
       heightCm: watched.heightCm,
       bodyFatPercent: watched.bodyFatPercent,
       muscleMassKg: watched.muscleMassKg,
-    })
-  }, [
-    watched.weightKg,
-    watched.heightCm,
-    watched.bodyFatPercent,
-    watched.muscleMassKg,
+    },
     formState.isValid,
     onChange,
-  ])
+  )
 
   return (
     <Card>

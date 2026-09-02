@@ -1,60 +1,96 @@
 import { useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
-import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { Input } from '@/components/ui/Input'
-import type { WorkoutExerciseEntry } from '../domain/workout.types'
+import { NumberInput } from '@/components/ui/NumberInput'
+import { Tabs } from '@/components/ui/Tabs'
 import { ExerciseAttribution } from '../components/ExerciseAttribution'
-import { ExerciseMedia } from '../components/ExerciseMedia'
 import { ExercisePicker } from '../components/ExercisePicker'
-import type { Exercise } from '../domain/exercise.types'
+import { WorkoutEntryCard } from '../components/WorkoutEntryCard'
+import {
+  createEmptyDivision,
+  createEntry,
+  duplicateEntry,
+  moveEntry,
+  nextDivisionId,
+} from '../domain/createWorkoutPlan'
 import { useExerciseCatalog } from '../hooks/useExerciseCatalog'
-
-const DEFAULT_SETS = 3
-const DEFAULT_REPS = '10-12'
-const ESTIMATED_MINUTES_PER_SET = 3
+import { useWorkoutPlanDraft } from '../hooks/useWorkoutPlanDraft'
+import type { Exercise } from '../domain/exercise.types'
+import type { WorkoutDivisionId, WorkoutExerciseEntry } from '../domain/workout.types'
 
 export function WorkoutBuilderPage() {
+  const { studentId } = useParams<{ studentId: string }>()
   const { status, catalog, errorMessage } = useExerciseCatalog()
-  const [name, setName] = useState('')
-  const [entries, setEntries] = useState<WorkoutExerciseEntry[]>([])
-  const [saved, setSaved] = useState(false)
+  const { plan, loadState, updatePlan, save, saving, savedAt } = useWorkoutPlanDraft(studentId ?? '')
+  const [divisaoAtiva, setDivisaoAtiva] = useState<WorkoutDivisionId>('A')
 
   const exercisesById = useMemo(
     () => new Map((catalog?.exercises ?? []).map((exercise) => [exercise.id, exercise])),
     [catalog],
   )
 
-  const totalSets = entries.reduce((sum, entry) => sum + entry.sets, 0)
-  const estimatedMinutes = totalSets * ESTIMATED_MINUTES_PER_SET
-
-  const muscleFocus = useMemo(() => {
-    const targets = entries.map((entry) => exercisesById.get(entry.exerciseId)?.target)
-    return [...new Set(targets.filter((target): target is string => Boolean(target)))]
-  }, [entries, exercisesById])
-
-  function addExercise(exercise: Exercise): void {
-    setEntries((current) => [
-      ...current,
-      { exerciseId: exercise.id, sets: DEFAULT_SETS, reps: DEFAULT_REPS },
-    ])
-    setSaved(false)
+  if (!studentId) {
+    return <ErrorState title="Aluno não informado" description="Volte para a lista de alunos." />
   }
 
-  function removeExercise(index: number): void {
-    setEntries((current) => current.filter((_, i) => i !== index))
-    setSaved(false)
+  /** Aplica uma transformação na lista de exercícios da divisão ativa. */
+  function alterarEntradas(
+    transformar: (entries: WorkoutExerciseEntry[]) => WorkoutExerciseEntry[],
+  ): void {
+    if (!plan) return
+    updatePlan({
+      divisions: plan.divisions.map((division) =>
+        division.id === divisaoAtiva
+          ? { ...division, entries: transformar(division.entries) }
+          : division,
+      ),
+    })
   }
+
+  function renomearDivisao(id: WorkoutDivisionId, label: string): void {
+    if (!plan) return
+    updatePlan({ divisions: plan.divisions.map((d) => (d.id === id ? { ...d, label } : d)) })
+  }
+
+  function adicionarExercicio(exercise: Exercise): void {
+    alterarEntradas((entries) => [...entries, createEntry(exercise.id)])
+  }
+
+  function adicionarDivisao(): void {
+    if (!plan) return
+    const proxima = nextDivisionId(plan)
+    if (!proxima) return
+    updatePlan({ divisions: [...plan.divisions, createEmptyDivision(proxima)] })
+    setDivisaoAtiva(proxima)
+  }
+
+  const totalExercicios = plan?.divisions.reduce((sum, d) => sum + d.entries.length, 0) ?? 0
+  const podeAdicionarDivisao = plan ? nextDivisionId(plan) !== null : false
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
-      <PageHeader eyebrow="Área do personal" title="Criar Novo Treino" />
+      <PageHeader
+        eyebrow="Área do personal"
+        title="Montar treino"
+        description={plan ? `Ficha de ${plan.studentName}` : undefined}
+      />
 
-      {status === 'loading' && <LoadingState label="Carregando biblioteca de exercícios…" />}
+      {(loadState === 'loading' || status === 'loading') && (
+        <LoadingState label="Carregando ficha e biblioteca de exercícios…" />
+      )}
+
+      {loadState === 'error' && (
+        <ErrorState
+          title="Não foi possível carregar a ficha"
+          description="Verifique se o aluno existe e tente novamente."
+        />
+      )}
 
       {status === 'error' && (
         <ErrorState
@@ -63,99 +99,127 @@ export function WorkoutBuilderPage() {
         />
       )}
 
-      {status === 'ready' && catalog && (
-        <div className="grid grid-cols-1 gap-gutter md:grid-cols-12">
-          <div className="flex flex-col gap-6 md:col-span-8">
-            <Card>
+      {loadState === 'ready' && status === 'ready' && plan && catalog && (
+        <div className="flex flex-col gap-6">
+          <Card className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
+            <Input label="Aluno" value={plan.studentName} readOnly />
+            <Input
+              label="Objetivo"
+              placeholder="Ex: hipertrofia, emagrecimento, condicionamento"
+              value={plan.objective}
+              onChange={(event) => updatePlan({ objective: event.target.value })}
+            />
+            <NumberInput
+              label="Frequência semanal"
+              unit="x/semana"
+              min="1"
+              max="7"
+              value={plan.weeklyFrequency === null ? '' : String(plan.weeklyFrequency)}
+              onChange={(event) =>
+                updatePlan({
+                  weeklyFrequency: event.target.value === '' ? null : Number(event.target.value),
+                })
+              }
+            />
+            <div className="md:col-span-3">
               <Input
-                label="Nome do treino"
-                placeholder="Ex: Treino A - Superior"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
+                label="Observações"
+                placeholder="Orientações gerais da ficha"
+                value={plan.notes}
+                onChange={(event) => updatePlan({ notes: event.target.value })}
               />
-            </Card>
+            </div>
+          </Card>
 
-            <div className="flex flex-col gap-3">
-              <h3 className="px-2 font-mono text-xs uppercase tracking-widest text-text-secondary">
-                Exercícios adicionados ({entries.length})
-              </h3>
+          <Tabs
+            value={divisaoAtiva}
+            onValueChange={(value) => setDivisaoAtiva(value as WorkoutDivisionId)}
+          >
+            <Tabs.List className="mb-4">
+              {plan.divisions.map((division) => (
+                <Tabs.Trigger key={division.id} value={division.id}>
+                  {division.label ? `${division.id} · ${division.label}` : `Treino ${division.id}`}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
 
-              {entries.map((entry, index) => {
-                const exercise = exercisesById.get(entry.exerciseId)
-                if (!exercise) return null
+            {plan.divisions.map((division) => (
+              <Tabs.Panel key={division.id} value={division.id}>
+                <div className="flex flex-col gap-3">
+                  <Input
+                    label={`Foco do treino ${division.id}`}
+                    placeholder="Ex: Superior, Membros inferiores, Push"
+                    value={division.label}
+                    onChange={(event) => renomearDivisao(division.id, event.target.value)}
+                  />
 
-                return (
-                  <Card
-                    key={`${entry.exerciseId}-${index}`}
-                    tone="elevated"
-                    className="flex items-center justify-between gap-4"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded border border-border">
-                        <ExerciseMedia exercise={exercise} />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="truncate font-bold text-text-primary">{exercise.name}</h4>
-                        <p className="font-mono text-xs text-text-secondary">
-                          {entry.sets} séries × {entry.reps}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeExercise(index)}
-                      aria-label={`Remover ${exercise.name}`}
-                      className="p-2 text-text-secondary hover:text-error"
-                    >
-                      <Icon name="delete" />
-                    </button>
+                  {division.entries.map((entry, index) => {
+                    const exercise = exercisesById.get(entry.exerciseId)
+                    if (!exercise) return null
+                    return (
+                      <WorkoutEntryCard
+                        key={`${entry.exerciseId}-${index}`}
+                        entry={entry}
+                        exercise={exercise}
+                        index={index}
+                        total={division.entries.length}
+                        onChange={(patch) =>
+                          alterarEntradas((entries) =>
+                            entries.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+                          )
+                        }
+                        onRemove={() =>
+                          alterarEntradas((entries) => entries.filter((_, i) => i !== index))
+                        }
+                        onDuplicate={() =>
+                          alterarEntradas((entries) => duplicateEntry(entries, index))
+                        }
+                        onMove={(direction) =>
+                          alterarEntradas((entries) => moveEntry(entries, index, index + direction))
+                        }
+                      />
+                    )
+                  })}
+
+                  {division.entries.length === 0 && (
+                    <p className="px-2 text-sm text-text-secondary">
+                      Nenhum exercício no treino {division.id} ainda. Adicione pela biblioteca
+                      abaixo.
+                    </p>
+                  )}
+
+                  <Card className="border-dashed">
+                    <ExercisePicker exercises={catalog.exercises} onAdd={adicionarExercicio} />
                   </Card>
-                )
-              })}
+                </div>
+              </Tabs.Panel>
+            ))}
+          </Tabs>
 
-              <Card className="border-dashed">
-                <ExercisePicker exercises={catalog.exercises} onAdd={addExercise} />
-              </Card>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Button variant="secondary" onClick={adicionarDivisao} disabled={!podeAdicionarDivisao}>
+              <Icon name="add" />
+              {podeAdicionarDivisao ? 'Adicionar divisão' : 'Divisões A–E completas'}
+            </Button>
+
+            <div className="flex items-center gap-3">
+              {savedAt && (
+                <span className="font-mono text-xs text-text-secondary">
+                  Salva em {new Date(savedAt).toLocaleString('pt-BR')}
+                </span>
+              )}
+              <Button onClick={() => void save()} disabled={saving || totalExercicios === 0}>
+                <Icon name="save" />
+                {saving ? 'Salvando…' : 'Salvar ficha'}
+              </Button>
             </div>
           </div>
 
-          <div className="md:col-span-4">
-            <Card className="flex flex-col gap-4">
-              <h5 className="font-mono text-xs uppercase tracking-widest text-action-primary">
-                Resumo do plano
-              </h5>
-              <div className="flex justify-between border-b border-border pb-2 text-sm">
-                <span className="text-text-secondary">Tempo estimado</span>
-                <span className="font-mono text-text-primary">~{estimatedMinutes} min</span>
-              </div>
-              <div className="flex justify-between border-b border-border pb-2 text-sm">
-                <span className="text-text-secondary">Volume total</span>
-                <span className="font-mono text-text-primary">{totalSets} séries</span>
-              </div>
-              <div className="flex flex-wrap justify-end gap-1">
-                {muscleFocus.map((target) => (
-                  <Badge key={target}>{target}</Badge>
-                ))}
-              </div>
-              <Button onClick={() => setSaved(true)} disabled={!name || entries.length === 0}>
-                <Icon name="save" />
-                Salvar treino
-              </Button>
-              {saved && (
-                <p className="text-center text-sm text-success">
-                  Treino salvo (demonstração — ainda não persiste).
-                </p>
-              )}
-            </Card>
-          </div>
-
-          <div className="md:col-span-12">
-            <ExerciseAttribution
-              attribution={catalog.mediaAttribution}
-              source={catalog.source}
-              className="text-center"
-            />
-          </div>
+          <ExerciseAttribution
+            attribution={catalog.mediaAttribution}
+            source={catalog.source}
+            className="text-center"
+          />
         </div>
       )}
     </div>

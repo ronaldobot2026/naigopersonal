@@ -75,6 +75,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.trainer.viewAssessment, element: <NewPhysicalAssessmentPage /> },
       { path: ROUTES.trainer.library, element: <ExerciseLibraryPage /> },
       { path: ROUTES.trainer.newWorkout, element: <WorkoutBuilderPage /> },
+      { path: ROUTES.trainer.studentWorkoutBuilder, element: <WorkoutBuilderPage /> },
       {
         path: ROUTES.trainer.chat,
         element: <ChatPage selfRole="trainer" counterpartName="Aluno" />,

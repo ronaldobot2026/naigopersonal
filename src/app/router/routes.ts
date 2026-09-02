@@ -20,6 +20,7 @@ export const ROUTES = {
     viewAssessment: '/personal/alunos/:studentId/avaliacoes/:assessmentId',
     library: '/personal/biblioteca',
     newWorkout: '/personal/treinos/novo',
+    studentWorkoutBuilder: '/personal/alunos/:studentId/treino',
     chat: '/personal/chat',
   },
 } as const
@@ -46,4 +47,8 @@ export function buildWorkoutDetailPath(workoutId: string): string {
 
 export function buildExerciseDetailPath(exerciseId: string): string {
   return `/aluno/exercicios/${exerciseId}`
+}
+
+export function buildWorkoutBuilderPath(studentId: string): string {
+  return `/personal/alunos/${studentId}/treino`
 }
