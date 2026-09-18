@@ -49,6 +49,19 @@ export function openDatabase(): Promise<IDBDatabase> {
       request.onupgradeneeded = () => upgrade(request.result)
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(request.error ?? new Error('Falha ao abrir o IndexedDB.'))
+      // Outra aba com a versão anterior do banco segura o upgrade. Sem este handler a
+      // promise não resolve NEM rejeita, e a tela fica travada sem dizer o porquê.
+      request.onblocked = () =>
+        reject(
+          new Error(
+            'Há outra aba deste app aberta com uma versão antiga dos dados. ' +
+              'Feche as outras abas e recarregue a página.',
+          ),
+        )
+    })
+    // Uma falha ao abrir nunca deve ficar em cache: a próxima tentativa reabre do zero.
+    dbPromise.catch(() => {
+      dbPromise = null
     })
   }
   return dbPromise

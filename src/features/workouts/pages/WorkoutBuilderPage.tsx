@@ -27,7 +27,9 @@ import type { WorkoutDivisionId, WorkoutExerciseEntry } from '../domain/workout.
 export function WorkoutBuilderPage() {
   const { studentId } = useParams<{ studentId: string }>()
   const { status, catalog, errorMessage } = useExerciseCatalog()
-  const { plan, loadState, updatePlan, save, saving, savedAt } = useWorkoutPlanDraft(studentId ?? '')
+  const { plan, loadState, updatePlan, save, saving, savedAt, saveError } = useWorkoutPlanDraft(
+    studentId ?? '',
+  )
   const [divisaoAtiva, setDivisaoAtiva] = useState<WorkoutDivisionId>('A')
 
   const exercisesById = useMemo(
@@ -196,23 +198,45 @@ export function WorkoutBuilderPage() {
             ))}
           </Tabs>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Button variant="secondary" onClick={adicionarDivisao} disabled={!podeAdicionarDivisao}>
-              <Icon name="add" />
-              {podeAdicionarDivisao ? 'Adicionar divisão' : 'Divisões A–E completas'}
-            </Button>
-
-            <div className="flex items-center gap-3">
-              {savedAt && (
-                <span className="font-mono text-xs text-text-secondary">
-                  Salva em {new Date(savedAt).toLocaleString('pt-BR')}
-                </span>
-              )}
-              <Button onClick={() => void save()} disabled={saving || totalExercicios === 0}>
-                <Icon name="save" />
-                {saving ? 'Salvando…' : 'Salvar ficha'}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Button
+                variant="secondary"
+                onClick={adicionarDivisao}
+                disabled={!podeAdicionarDivisao}
+              >
+                <Icon name="add" />
+                {podeAdicionarDivisao ? 'Adicionar divisão' : 'Divisões A–E completas'}
               </Button>
+
+              <div className="flex items-center gap-3">
+                {savedAt && !saveError && (
+                  <span className="font-mono text-xs text-success">
+                    Salva em {new Date(savedAt).toLocaleString('pt-BR')}
+                  </span>
+                )}
+                <Button onClick={() => void save()} disabled={saving || totalExercicios === 0}>
+                  <Icon name="save" />
+                  {saving ? 'Salvando…' : 'Salvar ficha'}
+                </Button>
+              </div>
             </div>
+
+            {totalExercicios === 0 && (
+              <p className="text-right text-xs text-text-secondary">
+                Adicione ao menos um exercício para poder salvar.
+              </p>
+            )}
+
+            {saveError && (
+              <Card tone="elevated" className="flex items-start gap-2 border-error">
+                <Icon name="error" className="text-error" />
+                <div>
+                  <p className="font-bold text-error">Não foi possível salvar a ficha</p>
+                  <p className="text-sm text-text-secondary">{saveError}</p>
+                </div>
+              </Card>
+            )}
           </div>
 
           <ExerciseAttribution

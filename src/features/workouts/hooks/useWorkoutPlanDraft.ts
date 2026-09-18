@@ -14,6 +14,8 @@ interface UseWorkoutPlanDraftResult {
   save: () => Promise<void>
   saving: boolean
   savedAt: string | null
+  /** Mensagem da última falha ao salvar; `null` quando o último salvamento deu certo. */
+  saveError: string | null
 }
 
 /**
@@ -28,6 +30,7 @@ export function useWorkoutPlanDraft(studentId: string, planId?: string): UseWork
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const planRef = useRef<WorkoutPlan | null>(null)
 
   useEffect(() => {
@@ -71,15 +74,22 @@ export function useWorkoutPlanDraft(studentId: string, planId?: string): UseWork
     const atual = planRef.current
     if (!atual) return
     setSaving(true)
+    setSaveError(null)
     try {
       const salvo = await indexedDbWorkoutPlanRepository.save(atual)
       planRef.current = salvo
       setPlan(salvo)
       setSavedAt(salvo.updatedAt)
+    } catch (erro: unknown) {
+      // Sem este catch a rejeição virava unhandled: o professor clicava em salvar,
+      // nada acontecia na tela, e a ficha se perdia ao sair da página.
+      const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido ao salvar.'
+      console.error('Falha ao salvar a ficha de treino:', erro)
+      setSaveError(mensagem)
     } finally {
       setSaving(false)
     }
   }, [])
 
-  return { plan, loadState, updatePlan, save, saving, savedAt }
+  return { plan, loadState, updatePlan, save, saving, savedAt, saveError }
 }
