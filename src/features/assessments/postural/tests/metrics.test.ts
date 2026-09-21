@@ -7,11 +7,21 @@ import {
   FORWARD_HEAD_SIDE_POSE,
   GOOD_FRONTAL_POSE,
   GOOD_RIGHT_SIDE_POSE,
+  KNEE_AND_PELVIS_DEVIATION_SIDE_POSE,
+  KNEE_LATERAL_DEVIATION_FRONTAL_POSE,
+  LOW_VISIBILITY_KNEE_SIDE_POSE,
   LOW_VISIBILITY_SHOULDERS_POSE,
   TILTED_SHOULDERS_POSE,
 } from './fixtures/landmarks.fixtures'
 
 const PASSING_QUALITY = { passed: true, score: 0.9, reasons: [] }
+
+/** Busca uma métrica pelo sufixo do id (a parte após `${view}.`), independente da ordem no array. */
+function findMetric(metrics: ReturnType<typeof computeMetricsForView>, suffix: string) {
+  const metric = metrics.find((item) => item.id.endsWith(`.${suffix}`))
+  if (!metric) throw new Error(`Métrica "${suffix}" não encontrada entre: ${metrics.map((m) => m.id).join(', ')}`)
+  return metric
+}
 
 describe('computeMetricsForView — frente e costas', () => {
   it('marca ombros e quadris nivelados como "within_expected_range"', () => {
@@ -44,6 +54,8 @@ describe('computeMetricsForView — frente e costas', () => {
     expect(metrics.map((metric) => metric.id)).toEqual([
       'back.shoulderInclination',
       'back.hipInclination',
+      'back.kneeTrackingDeviationLeft',
+      'back.kneeTrackingDeviationRight',
     ])
     expect(metrics.every((metric) => metric.view === 'back')).toBe(true)
   })
@@ -77,13 +89,18 @@ describe('computeMetricsForView — vistas laterais', () => {
     expect(metrics.map((metric) => metric.id)).toEqual([
       'right_side.headAlignment',
       'right_side.trunkAlignment',
+      'right_side.kneeAngle',
+      'right_side.pelvicTilt',
     ])
     for (const metric of metrics) {
       expect(metric.view).toBe('right_side')
       expect(metric.status).toBe('within_expected_range')
       expect(metric.value).toBeCloseTo(0, 1)
-      expect(metric.automaticObservation).toMatch(/vertical/i)
     }
+    expect(findMetric(metrics, 'headAlignment').automaticObservation).toMatch(/vertical/i)
+    expect(findMetric(metrics, 'trunkAlignment').automaticObservation).toMatch(/vertical/i)
+    expect(findMetric(metrics, 'kneeAngle').automaticObservation).toMatch(/alinhamento esperado/i)
+    expect(findMetric(metrics, 'pelvicTilt').automaticObservation).toMatch(/alinhamento esperado/i)
   })
 
   it('marca a cabeça projetada à frente do ombro como "attention"', () => {
@@ -102,8 +119,89 @@ describe('computeMetricsForView — vistas laterais', () => {
     expect(metrics.map((metric) => metric.id)).toEqual([
       'left_side.headAlignment',
       'left_side.trunkAlignment',
+      'left_side.kneeAngle',
+      'left_side.pelvicTilt',
     ])
     expect(metrics.every((metric) => metric.view === 'left_side')).toBe(true)
+  })
+})
+
+describe('computeMetricsForView — joelho e pelve (ângulo de três pontos)', () => {
+  it('marca o ângulo do joelho como "attention" quando o alinhamento quadril–joelho–tornozelo se rompe', () => {
+    const landmarks = toDomainLandmarks(KNEE_AND_PELVIS_DEVIATION_SIDE_POSE)
+    const quality = evaluateCaptureQuality(landmarks, 'right_side')
+    const metrics = computeMetricsForView(landmarks, quality, 'right_side')
+    const kneeAngle = findMetric(metrics, 'kneeAngle')
+
+    expect(kneeAngle.status).toBe('attention')
+    expect(kneeAngle.value ?? 0).toBeGreaterThan(5)
+    expect(kneeAngle.automaticObservation).toMatch(/hiperextensão ou flexão/i)
+    // Não-conclusivo: não afirma qual das duas direções é.
+    expect(kneeAngle.automaticObservation).not.toMatch(/diagnóstico|lesão/i)
+  })
+
+  it('marca a inclinação da pelve como "attention" quando o alinhamento ombro–quadril–joelho se rompe', () => {
+    const landmarks = toDomainLandmarks(KNEE_AND_PELVIS_DEVIATION_SIDE_POSE)
+    const quality = evaluateCaptureQuality(landmarks, 'right_side')
+    const metrics = computeMetricsForView(landmarks, quality, 'right_side')
+    const pelvicTilt = findMetric(metrics, 'pelvicTilt')
+
+    expect(pelvicTilt.status).toBe('attention')
+    expect(pelvicTilt.value ?? 0).toBeGreaterThan(10)
+    expect(pelvicTilt.automaticObservation).toMatch(/inclinação da pelve/i)
+  })
+
+  it('marca "low_confidence" quando a visibilidade do joelho está abaixo do mínimo, mesmo se a captura for considerada aprovada', () => {
+    const landmarks = toDomainLandmarks(LOW_VISIBILITY_KNEE_SIDE_POSE)
+    const metrics = computeMetricsForView(landmarks, PASSING_QUALITY, 'right_side')
+    const kneeAngle = findMetric(metrics, 'kneeAngle')
+
+    expect(kneeAngle.status).toBe('low_confidence')
+    expect(kneeAngle.automaticObservation).toMatch(/não conclusivo/i)
+  })
+
+  it('retorna "not_available" quando a captura não passa no quality gate', () => {
+    const landmarks = toDomainLandmarks(GOOD_RIGHT_SIDE_POSE)
+    const failedQuality = { passed: false, score: 0.2, reasons: ['motivo qualquer'] }
+    const metrics = computeMetricsForView(landmarks, failedQuality, 'right_side')
+
+    expect(findMetric(metrics, 'kneeAngle').status).toBe('not_available')
+    expect(findMetric(metrics, 'pelvicTilt').status).toBe('not_available')
+  })
+})
+
+describe('computeMetricsForView — rastreamento do joelho (valgo/varo)', () => {
+  it('marca "within_expected_range" quando o joelho está alinhado com quadril e tornozelo', () => {
+    const landmarks = toDomainLandmarks(GOOD_FRONTAL_POSE)
+    const metrics = computeMetricsForView(landmarks, PASSING_QUALITY, 'front')
+
+    expect(findMetric(metrics, 'kneeTrackingDeviationLeft').status).toBe('within_expected_range')
+    expect(findMetric(metrics, 'kneeTrackingDeviationRight').status).toBe('within_expected_range')
+  })
+
+  it('marca "attention" quando o joelho se desvia lateralmente da linha quadril–tornozelo', () => {
+    const landmarks = toDomainLandmarks(KNEE_LATERAL_DEVIATION_FRONTAL_POSE)
+    const quality = evaluateCaptureQuality(landmarks, 'front')
+    const metrics = computeMetricsForView(landmarks, quality, 'front')
+    const rightKnee = findMetric(metrics, 'kneeTrackingDeviationRight')
+    const leftKnee = findMetric(metrics, 'kneeTrackingDeviationLeft')
+
+    expect(rightKnee.status).toBe('attention')
+    expect(rightKnee.value ?? 0).toBeGreaterThan(0.03)
+    expect(rightKnee.unit).toBe('ratio')
+    expect(rightKnee.automaticObservation).toMatch(/valgo.*varo/i)
+    // O joelho esquerdo não foi alterado nesta fixture — não deve ser afetado.
+    expect(leftKnee.status).toBe('within_expected_range')
+  })
+
+  it('retorna "not_available" para os dois joelhos quando a captura não passa no quality gate', () => {
+    const landmarks = toDomainLandmarks(GOOD_FRONTAL_POSE)
+    const failedQuality = { passed: false, score: 0.2, reasons: ['motivo qualquer'] }
+    const metrics = computeMetricsForView(landmarks, failedQuality, 'front')
+
+    expect(findMetric(metrics, 'kneeTrackingDeviationLeft').status).toBe('not_available')
+    expect(findMetric(metrics, 'kneeTrackingDeviationRight').status).toBe('not_available')
+    expect(findMetric(metrics, 'kneeTrackingDeviationLeft').value).toBeNull()
   })
 })
 
