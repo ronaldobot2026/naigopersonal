@@ -38,11 +38,8 @@ export function NewPhysicalAssessmentPage() {
     }
   }, [studentId])
 
-  const { assessment, loadState, updateAssessment, complete } = usePhysicalAssessmentDraft(
-    studentId ?? '',
-    evaluatorId ?? '',
-    assessmentId,
-  )
+  const { assessment, loadState, updateAssessment, save, saving, savedAt, saveError, complete } =
+    usePhysicalAssessmentDraft(studentId ?? '', evaluatorId ?? '', assessmentId)
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
@@ -91,6 +88,10 @@ export function NewPhysicalAssessmentPage() {
             student={student}
             assessment={assessment}
             onUpdate={updateAssessment}
+            onSave={save}
+            saving={saving}
+            savedAt={savedAt}
+            saveError={saveError}
             onComplete={complete}
           />
         )}

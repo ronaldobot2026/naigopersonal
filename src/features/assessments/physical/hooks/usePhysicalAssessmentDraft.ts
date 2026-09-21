@@ -9,6 +9,12 @@ interface UsePhysicalAssessmentDraftResult {
   assessment: PhysicalAssessment | null
   loadState: LoadState
   updateAssessment: (patch: Partial<PhysicalAssessment>) => void
+  /** Salvamento explícito (botão "Salvar ficha") — usa o mesmo estado saving/savedAt/saveError do auto-save. */
+  save: () => Promise<void>
+  saving: boolean
+  savedAt: string | null
+  /** Mensagem da última falha ao salvar ou concluir; `null` quando o último salvamento deu certo. */
+  saveError: string | null
   complete: () => Promise<void>
 }
 
@@ -32,11 +38,16 @@ export function usePhysicalAssessmentDraft(
 ): UsePhysicalAssessmentDraftResult {
   const [assessment, setAssessment] = useState<PhysicalAssessment | null>(null)
   const [loadState, setLoadState] = useState<LoadState>('loading')
+  const [saving, setSaving] = useState(false)
+  const [savedAt, setSavedAt] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const assessmentRef = useRef<PhysicalAssessment | null>(null)
 
   useEffect(() => {
     let cancelled = false
     setLoadState('loading')
+    setSavedAt(null)
+    setSaveError(null)
 
     if (!studentId || !evaluatorId) {
       return
@@ -48,6 +59,7 @@ export function usePhysicalAssessmentDraft(
       if (cancelled) return
       assessmentRef.current = existing
       setAssessment(existing)
+      setSavedAt(existing.updatedAt)
       setLoadState('ready')
     }
 
@@ -64,6 +76,7 @@ export function usePhysicalAssessmentDraft(
       if (cancelled) return
       assessmentRef.current = draft
       setAssessment(draft)
+      setSavedAt(draft.updatedAt)
       setLoadState('ready')
     }
 
@@ -77,23 +90,71 @@ export function usePhysicalAssessmentDraft(
     }
   }, [studentId, evaluatorId, assessmentId])
 
-  const updateAssessment = useCallback((patch: Partial<PhysicalAssessment>) => {
+  /**
+   * Usada tanto pelo auto-save (a cada alteração de `updateAssessment`) quanto pelo botão
+   * "Salvar ficha" — mesmo saving/savedAt/saveError para as duas origens, é o que alimenta o
+   * indicador no topo do wizard. Só adota o retorno do servidor se nada mudou localmente
+   * enquanto a gravação estava em voo (`assessmentRef.current` ainda é a mesma referência que foi
+   * enviada) — senão a resposta de uma tecla antiga sobrescreveria uma edição mais nova que já
+   * disparou seu próprio save depois.
+   */
+  const persistDraft = useCallback(async (toSave: PhysicalAssessment) => {
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const saved = await physicalAssessmentRepository.saveDraft(toSave)
+      if (assessmentRef.current === toSave) {
+        assessmentRef.current = saved
+        setAssessment(saved)
+      }
+      setSavedAt(saved.updatedAt)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido ao salvar.'
+      console.error('Falha ao salvar a avaliação física:', error)
+      setSaveError(message)
+    } finally {
+      setSaving(false)
+    }
+  }, [])
+
+  const updateAssessment = useCallback(
+    (patch: Partial<PhysicalAssessment>) => {
+      const current = assessmentRef.current
+      if (!current) return
+
+      const updated: PhysicalAssessment = { ...current, ...patch }
+      assessmentRef.current = updated
+      setAssessment(updated)
+      void persistDraft(updated)
+    },
+    [persistDraft],
+  )
+
+  const save = useCallback(async () => {
     const current = assessmentRef.current
     if (!current) return
-
-    const updated: PhysicalAssessment = { ...current, ...patch }
-    assessmentRef.current = updated
-    setAssessment(updated)
-    void physicalAssessmentRepository.saveDraft(updated)
-  }, [])
+    await persistDraft(current)
+  }, [persistDraft])
 
   const complete = useCallback(async () => {
     const current = assessmentRef.current
     if (!current) return
-    const completed = await physicalAssessmentRepository.complete(current)
-    assessmentRef.current = completed
-    setAssessment(completed)
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const completed = await physicalAssessmentRepository.complete(current)
+      assessmentRef.current = completed
+      setAssessment(completed)
+      setSavedAt(completed.updatedAt)
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido ao concluir a avaliação.'
+      console.error('Falha ao concluir a avaliação física:', error)
+      setSaveError(message)
+    } finally {
+      setSaving(false)
+    }
   }, [])
 
-  return { assessment, loadState, updateAssessment, complete }
+  return { assessment, loadState, updateAssessment, save, saving, savedAt, saveError, complete }
 }

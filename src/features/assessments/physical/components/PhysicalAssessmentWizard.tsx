@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Tabs } from '@/components/ui/Tabs'
 import { PosturalAssessmentFlow } from '@/features/assessments/postural/components/PosturalAssessmentFlow'
@@ -15,13 +16,61 @@ type PhysicalAssessmentWizardProps = {
   student: Student
   assessment: PhysicalAssessment
   onUpdate: (patch: Partial<PhysicalAssessment>) => void
+  onSave: () => Promise<void>
+  saving: boolean
+  savedAt: string | null
+  saveError: string | null
   onComplete: () => Promise<void>
+}
+
+/** Indicador do estado do auto-save (e do botão "Salvar ficha" do ReviewStep) — mesmo estado. */
+function SaveStatus({
+  saving,
+  savedAt,
+  saveError,
+}: {
+  saving: boolean
+  savedAt: string | null
+  saveError: string | null
+}) {
+  if (saving) {
+    return (
+      <span className="flex items-center gap-1 font-mono text-xs text-text-secondary">
+        <Icon name="progress_activity" className="animate-spin" />
+        Salvando…
+      </span>
+    )
+  }
+
+  if (saveError) {
+    return (
+      <span role="alert" className="flex items-center gap-1 font-mono text-xs text-error">
+        <Icon name="error" />
+        Falha ao salvar: {saveError}
+      </span>
+    )
+  }
+
+  if (savedAt) {
+    return (
+      <span className="flex items-center gap-1 font-mono text-xs text-success">
+        <Icon name="check_circle" filled />
+        Salvo ✓ · {new Date(savedAt).toLocaleTimeString('pt-BR')}
+      </span>
+    )
+  }
+
+  return null
 }
 
 export function PhysicalAssessmentWizard({
   student,
   assessment,
   onUpdate,
+  onSave,
+  saving,
+  savedAt,
+  saveError,
   onComplete,
 }: PhysicalAssessmentWizardProps) {
   const [activeStep, setActiveStep] = useState<WizardStepId>('general')
@@ -29,10 +78,14 @@ export function PhysicalAssessmentWizard({
 
   return (
     <div className="flex flex-col gap-6">
-      <ProgressBar
-        value={((stepIndex + 1) / WIZARD_STEPS.length) * 100}
-        label="Progresso da avaliação"
-      />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <ProgressBar
+          value={((stepIndex + 1) / WIZARD_STEPS.length) * 100}
+          label="Progresso da avaliação"
+          className="sm:flex-1"
+        />
+        <SaveStatus saving={saving} savedAt={savedAt} saveError={saveError} />
+      </div>
 
       <Tabs value={activeStep} onValueChange={(value) => setActiveStep(value as WizardStepId)}>
         <Tabs.List className="mb-4">
@@ -80,7 +133,13 @@ export function PhysicalAssessmentWizard({
           />
         </Tabs.Panel>
         <Tabs.Panel value="review">
-          <ReviewStep assessment={assessment} student={student} onComplete={onComplete} />
+          <ReviewStep
+            assessment={assessment}
+            student={student}
+            onSave={onSave}
+            saving={saving}
+            onComplete={onComplete}
+          />
         </Tabs.Panel>
       </Tabs>
     </div>

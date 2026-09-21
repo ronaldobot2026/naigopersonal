@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Icon } from '@/components/ui/Icon'
 import type { PosturalMetric } from '@/features/assessments/postural/domain/posturalAssessment.types'
 import {
   getCapturedViews,
@@ -15,6 +16,8 @@ import type { PhysicalAssessment, Student } from '@/types/domain'
 type ReviewStepProps = {
   assessment: PhysicalAssessment
   student: Student
+  onSave: () => Promise<void>
+  saving: boolean
   onComplete: () => Promise<void>
 }
 
@@ -33,7 +36,7 @@ function formatValidation(metric: PosturalMetric): string {
   return metric.trainerValidation === 'pending' ? 'Pendente de validação' : metric.trainerValidation
 }
 
-export function ReviewStep({ assessment, student, onComplete }: ReviewStepProps) {
+export function ReviewStep({ assessment, student, onSave, saving, onComplete }: ReviewStepProps) {
   const postural = assessment.posturalAssessment
   const capturedViews = getCapturedViews(postural)
 
@@ -110,9 +113,17 @@ export function ReviewStep({ assessment, student, onComplete }: ReviewStepProps)
           Avaliação concluída
         </Badge>
       ) : (
-        <Button onClick={() => void onComplete()} className="self-end">
-          Concluir avaliação
-        </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          {/* Só aparece antes de concluir: salvar depois disso chamaria saveDraft, que sempre
+              grava status "draft" — reabriria uma avaliação já concluída por engano. */}
+          <Button variant="secondary" onClick={() => void onSave()} disabled={saving}>
+            <Icon name="save" />
+            {saving ? 'Salvando…' : 'Salvar ficha'}
+          </Button>
+          <Button onClick={() => void onComplete()} disabled={saving}>
+            Concluir avaliação
+          </Button>
+        </div>
       )}
     </div>
   )
