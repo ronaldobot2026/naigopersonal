@@ -85,16 +85,18 @@ describe('selectCorrectiveExercises — filtro, prioridade e diversificação', 
     expect(result.fallback).toBe('none')
   })
 
-  it('prioriza peso corporal, depois sinergia via secondaryMuscles, depois menos passos, e diversifica muscleGroup', () => {
+  it('prioriza sinergia via secondaryMuscles, depois menos passos, e diversifica muscleGroup (peso corporal NÃO é prioridade — seção 3.2 atualizada)', () => {
     const result = selectCorrectiveExercises(SHOULDER_ELEVATION_FINDING, catalog, {
       availableEquipment: ['Elástico'],
       perFinding: 3,
     })
 
-    // 0001 (peso corporal + sinergia) > 0005 (peso corporal, sem sinergia, menos passos que 0003)
-    // > 0004 (não é peso corporal, mas diversifica o muscleGroup); 0003 fica de fora porque
-    // repetiria o muscleGroup "Ombros" já coberto por 0001 e ainda há alternativa (0004).
-    expect(result.exercises.map((exercise) => exercise.id)).toEqual(['0001', '0005', '0004'])
+    // 0004 (sinergia com Trapézio, 1 passo) > 0001 (sinergia com Deltoides, 2 passos) > 0005
+    // (sem sinergia, 1 passo, diversifica para "Costas"); 0003 fica de fora porque repetiria o
+    // muscleGroup "Ombros" já coberto por 0001 e ainda há alternativa (0005). Equipamento (peso
+    // corporal de 0001/0005 vs. elástico de 0004) não entra mais na prioridade, só na
+    // disponibilidade — já aplicada no filtro anterior.
+    expect(result.exercises.map((exercise) => exercise.id)).toEqual(['0004', '0001', '0005'])
   })
 
   it('corta no perFinding informado', () => {
@@ -104,7 +106,7 @@ describe('selectCorrectiveExercises — filtro, prioridade e diversificação', 
     })
 
     expect(result.exercises).toHaveLength(2)
-    expect(result.exercises.map((exercise) => exercise.id)).toEqual(['0001', '0005'])
+    expect(result.exercises.map((exercise) => exercise.id)).toEqual(['0004', '0001'])
   })
 
   it('usa 3 como perFinding padrão quando não informado', () => {

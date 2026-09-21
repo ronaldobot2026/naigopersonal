@@ -44,14 +44,49 @@ function hasSynergy(exercise: Exercise, translatedTargets: ReadonlySet<string>):
   return exercise.secondaryMuscles.some((muscle) => translatedTargets.has(muscle))
 }
 
+/** Palavras (inglês, `originalName`) que identificam o padrão de puxada/encolhimento. */
+const PULLING_PATTERN_KEYWORDS = ['row', 'shrug', 'pull']
+
 /**
- * Ordena por prioridade (seção 3.2.3): peso corporal primeiro, depois sinergia via
- * `secondaryMuscles`, depois menos passos. Desempate final por `id` — garante uma ordem total e
- * portanto determinismo mesmo quando dois exercícios empatam em tudo o mais.
+ * Padrão de puxada/encolhimento (remada, encolhimento, puxada) — verificado contra `originalName`
+ * pelo mesmo motivo do passo 0 (a tradução pt-BR pode não preservar a palavra-chave).
+ *
+ * Existe porque `sinergia` (via `secondaryMuscles`) sozinha NÃO distingue remada alta/encolhimento
+ * de isolamentos de deltoide (elevação frontal/lateral): ambos os grupos costumam listar o mesmo
+ * músculo secundário (ex.: trapézio) e as elevações de isolamento em geral têm menos `steps`, então
+ * venciam o desempate — confirmado rodando contra o catálogo real de 1324 exercícios, onde nenhuma
+ * combinação de sinergia+steps+id colocava remada alta/encolhimento no top 3 de "ombro elevado".
+ * Puxada/encolhimento é o padrão de movimento que efetivamente retrai/deprime a escápula — o
+ * mecanismo corretivo que o Windson pediu no áudio — por isso entra como critério antes da sinergia.
+ */
+function isPullingPattern(exercise: Exercise): boolean {
+  const original = exercise.originalName.toLowerCase()
+  return PULLING_PATTERN_KEYWORDS.some((keyword) => original.includes(keyword))
+}
+
+/**
+ * Passo 0 da seção 3.2: exclui alongamento e salto/impacto ANTES de qualquer outro filtro.
+ * Checa `originalName` (inglês) porque a tradução pt-BR pode não conter essas palavras — ex.:
+ * "rear deltoid stretch" traduzido pode perder o radical "stretch" que identifica o alongamento.
+ * Alongamento é outra etapa do protocolo (não substitui o corretivo) e salto é contraindicado
+ * para achado de joelho (impacto em articulação já desalinhada).
+ */
+function isStrengtheningExercise(exercise: Exercise): boolean {
+  const original = exercise.originalName.toLowerCase()
+  return !original.includes('stretch') && !original.includes('jump')
+}
+
+/**
+ * Ordena por prioridade (seção 3.2.3, ATUALIZADA): padrão de puxada/encolhimento primeiro (ver
+ * `isPullingPattern`), depois sinergia via `secondaryMuscles`, depois menos passos. Peso corporal
+ * SAIU da prioridade — é critério de disponibilidade (filtrado antes), não de qualidade corretiva;
+ * colocá-lo primeiro fazia o motor preferir alongamentos de peso corporal a remadas altas com
+ * barra/halteres para o mesmo achado (ver seção 3.2, passo 0). Desempate final por `id` — garante
+ * uma ordem total e portanto determinismo mesmo quando dois exercícios empatam em tudo o mais.
  */
 function compareByPriority(a: Exercise, b: Exercise, translatedTargets: ReadonlySet<string>): number {
-  const bodyWeightRank = (isBodyWeight(a) ? 0 : 1) - (isBodyWeight(b) ? 0 : 1)
-  if (bodyWeightRank !== 0) return bodyWeightRank
+  const pullRank = (isPullingPattern(a) ? 0 : 1) - (isPullingPattern(b) ? 0 : 1)
+  if (pullRank !== 0) return pullRank
 
   const synergyRank =
     (hasSynergy(a, translatedTargets) ? 0 : 1) - (hasSynergy(b, translatedTargets) ? 0 : 1)
@@ -121,7 +156,10 @@ export function selectCorrectiveExercises(
   const translatedTargets = new Set(finding.targetMuscles.map(translateMuscle))
   const translatedBodyParts = new Set(finding.targetMuscles.map(translateBodyPart))
 
-  const byTarget = catalog.filter((exercise) => translatedTargets.has(exercise.target))
+  // Passo 0 (seção 3.2): fora alongamento/salto antes de qualquer outro filtro, inclusive fallback.
+  const strengtheningCatalog = catalog.filter(isStrengtheningExercise)
+
+  const byTarget = strengtheningCatalog.filter((exercise) => translatedTargets.has(exercise.target))
   const byTargetAndEquipment = byTarget.filter((exercise) => isEquipmentAvailable(exercise, availableEquipment))
 
   if (byTargetAndEquipment.length > 0) {
@@ -139,7 +177,7 @@ export function selectCorrectiveExercises(
   }
 
   // Fallback 2: relaxa para `bodyPart` em vez de `target`, ainda preferindo equipamento disponível.
-  const byBodyPart = catalog.filter((exercise) => translatedBodyParts.has(exercise.bodyPart))
+  const byBodyPart = strengtheningCatalog.filter((exercise) => translatedBodyParts.has(exercise.bodyPart))
   const byBodyPartAndEquipment = byBodyPart.filter((exercise) => isEquipmentAvailable(exercise, availableEquipment))
   const bodyPartCandidates = byBodyPartAndEquipment.length > 0 ? byBodyPartAndEquipment : byBodyPart
 

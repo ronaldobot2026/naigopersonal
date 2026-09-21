@@ -163,9 +163,18 @@ selectCorrectiveExercises(finding, catalog, { availableEquipment, perFinding = 3
    disponível). Equipamento é critério de **disponibilidade, nunca de prioridade**: peso corporal
    não é melhor para corrigir postura, é apenas mais acessível.
 3. **Priorizar** (ordem decrescente):
-   a. exercícios cujo `secondaryMuscles` também tocam os alvos do achado (sinergia)
-   b. exercícios com `steps` mais curtos (mais simples de executar sozinho)
-   c. desempate final pelo `id` — estável, garante determinismo
+   a. **padrão de puxada/encolhimento** — nome original (inglês) contém `row`, `shrug` ou `pull`
+   b. exercícios cujo `secondaryMuscles` também tocam os alvos do achado (sinergia)
+   c. exercícios com `steps` mais curtos (mais simples de executar sozinho)
+   d. desempate final pelo `id` — estável, garante determinismo
+   > **Por que o critério (a) existe** (achado na validação de 21/09, rodando contra o catálogo
+   > real): sinergia + steps sozinhas **não** bastam para eleger remada alta/encolhimento. Dezenas
+   > de isolamentos de deltoide (elevação frontal, elevação lateral) tocam o mesmo `secondaryMuscles`
+   > (trapézio) e têm menos `steps`, então venciam o desempate — mesmo depois de tirar peso corporal
+   > da prioridade e excluir alongamento/salto (passo 0). Puxada/encolhimento é o padrão de
+   > movimento que de fato retrai/deprime a escápula — o mecanismo corretivo pedido no áudio —
+   > por isso entra como critério antes da sinergia genérica, do mesmo jeito que o passo 0 já
+   > classifica exercício por palavra-chave no nome original.
 4. **Diversificar**: não repetir o mesmo `muscleGroup` no mesmo achado, se houver alternativa.
 5. **Cortar** em `perFinding` (padrão **3**).
 6. **Fallback**, nesta ordem, se o resultado for vazio:
