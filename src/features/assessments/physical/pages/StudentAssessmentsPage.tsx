@@ -7,6 +7,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { physicalAssessmentRepository } from '../repositories/physicalAssessmentRepository'
 import type { PhysicalAssessment } from '@/types/domain'
 
@@ -16,9 +17,10 @@ export function StudentAssessmentsPage() {
   const { studentId } = useParams<{ studentId: string }>()
   const [assessments, setAssessments] = useState<PhysicalAssessment[]>([])
   const [loadState, setLoadState] = useState<LoadState>('loading')
+  const { status: authStatus } = useAuthUser()
 
   useEffect(() => {
-    if (!studentId) return
+    if (!studentId || authStatus !== 'authenticated') return
     let cancelled = false
     setLoadState('loading')
 
@@ -36,10 +38,19 @@ export function StudentAssessmentsPage() {
     return () => {
       cancelled = true
     }
-  }, [studentId])
+  }, [studentId, authStatus])
 
   if (!studentId) {
     return <ErrorState title="Aluno não informado" description="Volte para a lista de alunos." />
+  }
+
+  if (authStatus === 'unauthenticated') {
+    return (
+      <ErrorState
+        title="Sessão expirada"
+        description="Faça login novamente para ver as avaliações deste aluno."
+      />
+    )
   }
 
   return (
@@ -57,20 +68,22 @@ export function StudentAssessmentsPage() {
         }
       />
 
-      {loadState === 'loading' && <LoadingState label="Carregando avaliações…" />}
-      {loadState === 'error' && (
+      {(authStatus === 'loading' || loadState === 'loading') && (
+        <LoadingState label="Carregando avaliações…" />
+      )}
+      {authStatus === 'authenticated' && loadState === 'error' && (
         <ErrorState
           title="Não foi possível carregar as avaliações"
           description="Tente novamente."
         />
       )}
-      {loadState === 'ready' && assessments.length === 0 && (
+      {authStatus === 'authenticated' && loadState === 'ready' && assessments.length === 0 && (
         <EmptyState
           title="Nenhuma avaliação registrada"
           description="Inicie a primeira avaliação física deste aluno."
         />
       )}
-      {loadState === 'ready' && assessments.length > 0 && (
+      {authStatus === 'authenticated' && loadState === 'ready' && assessments.length > 0 && (
         <Card>
           <ul className="divide-y divide-border">
             {assessments.map((assessment) => {
