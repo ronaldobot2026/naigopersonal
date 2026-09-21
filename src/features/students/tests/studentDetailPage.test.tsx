@@ -15,6 +15,10 @@ vi.mock('../repositories/studentRepository', () => ({
   },
 }))
 
+vi.mock('@/lib/supabase/useAuthUser', () => ({
+  useAuthUser: () => ({ userId: 'personal-1', status: 'authenticated' }),
+}))
+
 import { StudentDetailPage } from '../pages/StudentDetailPage'
 
 function renderizar() {

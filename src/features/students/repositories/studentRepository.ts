@@ -1,24 +1,19 @@
 import { getSupabase } from '@/lib/supabase/client'
+import type { Database } from '@/lib/supabase/database.types'
 import type { Student } from '@/types/domain'
 
 /**
- * Formato das linhas do Supabase (snake_case) — espelha as migrations
- * `identity_foundation.sql` (`profiles` + `students`). Mapeado à mão até existir
- * `database.types.ts` (gerado via `supabase gen types`). Nunca vaza para fora deste
+ * Formato das linhas do Supabase (snake_case), a partir de `database.types.ts` (gerado via
+ * `supabase gen types typescript --linked` — regenerar depois de toda migration nova). `Pick`
+ * reflete só as colunas de fato pedidas no `.select(...)` abaixo. Nunca vaza para fora deste
  * arquivo: só o tipo `Student` de `src/types/domain.ts` sai daqui, via `toDomain`.
  */
-interface StudentRow {
-  id: string
-  trainer_id: string
-  status: string
-}
+type StudentRow = Pick<Database['public']['Tables']['students']['Row'], 'id' | 'trainer_id' | 'status'>
 
-interface ProfileRow {
-  id: string
-  full_name: string
-  email: string
-  avatar_url: string | null
-}
+type ProfileRow = Pick<
+  Database['public']['Tables']['profiles']['Row'],
+  'id' | 'full_name' | 'email' | 'avatar_url'
+>
 
 function toDomain(studentRow: StudentRow, profile: ProfileRow): Student {
   return {

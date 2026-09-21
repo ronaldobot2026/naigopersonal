@@ -7,32 +7,51 @@ import { PageHeader } from '@/components/navigation/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { useAsyncData } from '@/hooks/useAsyncData'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { studentRepository } from '../repositories/studentRepository'
 
+/**
+ * Sem sessão, a RLS de `students` devolve lista vazia — sem essa guarda, a tela mostrava
+ * "Nenhum aluno cadastrado" pra quem simplesmente não estava logado, indistinguível de um
+ * personal com zero alunos de verdade. Só busca quando `authStatus` é `authenticated`.
+ */
 export function StudentsListPage() {
+  const { status: authStatus } = useAuthUser()
   const { status, data: students, errorMessage } = useAsyncData(
-    () => studentRepository.findAll(),
-    [],
+    () => (authStatus === 'authenticated' ? studentRepository.findAll() : Promise.resolve([])),
+    [authStatus],
   )
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
       <PageHeader title="Meus Alunos" description="Todos os alunos vinculados a você." />
 
-      {status === 'loading' && <LoadingState label="Carregando alunos…" />}
-      {status === 'error' && (
+      {authStatus === 'unauthenticated' && (
+        <ErrorState
+          title="Sessão expirada"
+          description="Faça login novamente para ver seus alunos."
+        />
+      )}
+
+      {authStatus !== 'unauthenticated' && (authStatus === 'loading' || status === 'loading') && (
+        <LoadingState label="Carregando alunos…" />
+      )}
+
+      {authStatus === 'authenticated' && status === 'error' && (
         <ErrorState
           title="Não foi possível carregar os alunos"
           description={errorMessage ?? 'Verifique sua conexão e tente novamente.'}
         />
       )}
-      {status === 'ready' && students?.length === 0 && (
+
+      {authStatus === 'authenticated' && status === 'ready' && students?.length === 0 && (
         <EmptyState
           title="Nenhum aluno cadastrado"
           description="Seus alunos aparecerão aqui assim que forem vinculados a você."
         />
       )}
-      {status === 'ready' && students && students.length > 0 && (
+
+      {authStatus === 'authenticated' && status === 'ready' && students && students.length > 0 && (
         <Card>
           <ul className="divide-y divide-border">
             {students.map((student) => (

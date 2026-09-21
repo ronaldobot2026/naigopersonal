@@ -87,6 +87,15 @@ Fases 6, 7 e 17.
       reais (personal + aluno) via `service_role key` — passada só na hora de rodar o script,
       nunca armazenada. Teste de isolamento entre alunos (aluno A não lê dado de aluno B) segue
       pendente — só dá para escrever com um segundo aluno real, que ainda não existe.
+- [~] Fase 8 (parcial) — **leitura concluída**: `studentRepository.ts` (Supabase) substitui o
+      antigo `indexedDbStudentRepository.ts`/`MOCK_STUDENTS`; `StudentsListPage.tsx` lista e
+      `StudentDetailPage.tsx`/`NewPhysicalAssessmentPage.tsx` leem pelo `id` real. A RLS
+      (`students_all_trainer`, Fase 6) já garante o isolamento: um personal só vê os próprios
+      alunos, sem filtro extra no cliente. **Falta para a Fase 8 completa**: cadastro/convite de
+      aluno pela UI — o diálogo mockado de "Adicionar aluno" foi removido junto com o corte para
+      Supabase (criar usuário real exige `auth.admin.inviteUserByEmail`, que precisa de
+      `service_role key`/Edge Function, não do cliente) — e o vínculo trainer↔aluno continua só
+      via `scripts/seed-demo-users.mjs` ou SQL manual.
 - [x] Fase 9 (parcial) — Avaliação Física com salvamento real, concluída em 2026-09-21. Migration
       `supabase/migrations/20260921140000_physical_assessment_backend.sql`: tabelas
       `physical_assessments`, `body_metrics`, `assessment_photos` + RLS + policy de `update` no
@@ -103,4 +112,5 @@ Fases 6, 7 e 17.
       nas tabelas normalizadas do `BACKEND_PLAN.md` (`postural_assessments`/`postural_captures`/
       `postural_metrics`) — isso é Fase 14; fila local de upload pendente de foto (offline-first,
       citada no `BACKEND_PLAN.md`) não foi construída, upload é direto; `indexedDbPosturalAssessmentRepository.ts`
-      ficou órfão (sem nenhum consumidor desde antes desta entrega — não foi tocado).
+      ficou órfão (sem nenhum consumidor desde antes desta entrega) — removido em 2026-09-21 por
+      já não ter nenhum uso.

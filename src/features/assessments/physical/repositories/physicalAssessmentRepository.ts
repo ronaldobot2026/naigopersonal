@@ -1,4 +1,5 @@
 import { getSupabase } from '@/lib/supabase/client'
+import type { Database, Json } from '@/lib/supabase/database.types'
 import type { PosturalAssessment } from '@/features/assessments/postural/domain/posturalAssessment.types'
 import {
   createEmptyAnthropometry,
@@ -12,45 +13,27 @@ import {
 } from '@/types/domain'
 
 /**
- * Formato das linhas do Supabase (snake_case) — espelha a migration
- * `supabase/migrations/20260921140000_physical_assessment_backend.sql`. `database.types.ts`
- * (gerado via `supabase gen types typescript`) deve substituir isto assim que existir; até lá,
- * mapeado à mão. Nunca vaza para fora deste arquivo — só os tipos de `src/types/domain.ts` saem
- * daqui, via `toDomain`.
+ * Formato das linhas do Supabase (snake_case), a partir de `database.types.ts` (gerado via
+ * `supabase gen types typescript --linked` — regenerar depois de toda migration nova). O
+ * Postgres não tem enum para `status`/`view` (só `check` constraint) nem tipo estruturado para o
+ * `jsonb` de `postural_assessment`, então o gerador devolve `string`/`Json`; as duas linhas
+ * abaixo estreitam de volta para os tipos de domínio que a migration garante na prática. Nunca
+ * vaza para fora deste arquivo — só os tipos de `src/types/domain.ts` saem daqui, via `toDomain`.
  */
-interface PhysicalAssessmentRow {
-  id: string
-  student_id: string
-  evaluator_id: string
+type PhysicalAssessmentRow = Omit<
+  Database['public']['Tables']['physical_assessments']['Row'],
+  'status' | 'postural_assessment'
+> & {
   status: PhysicalAssessmentStatus
-  general_notes: string | null
   postural_assessment: PosturalAssessment | null
-  created_at: string
-  updated_at: string
 }
 
-interface BodyMetricsRow {
-  assessment_id: string | null
-  student_id: string
-  weight_kg: number | null
-  height_cm: number | null
-  body_fat_percent: number | null
-  muscle_mass_kg: number | null
-  chest_cm: number | null
-  waist_cm: number | null
-  hip_cm: number | null
-  right_arm_cm: number | null
-  left_arm_cm: number | null
-  right_thigh_cm: number | null
-  left_thigh_cm: number | null
-  calves_cm: number | null
-}
+type BodyMetricsRow = Database['public']['Tables']['body_metrics']['Row']
 
-interface AssessmentPhotoRow {
-  assessment_id: string
-  view: VisualRecordView
-  storage_path: string
-}
+type AssessmentPhotoRow = Omit<
+  Pick<Database['public']['Tables']['assessment_photos']['Row'], 'assessment_id' | 'view' | 'storage_path'>,
+  'view'
+> & { view: VisualRecordView }
 
 function toBiometrics(row: BodyMetricsRow | undefined): Biometrics {
   if (!row) return createEmptyBiometrics()
@@ -140,7 +123,9 @@ async function persist(
     evaluator_id: assessment.evaluatorId,
     status,
     general_notes: assessment.generalNotes ?? null,
-    postural_assessment: assessment.posturalAssessment ?? null,
+    // `PosturalAssessment` não tem index signature (é um tipo de domínio estruturado), então o
+    // TS não o vê como subtipo estrutural de `Json` mesmo sendo serializável — daí o cast.
+    postural_assessment: (assessment.posturalAssessment ?? null) as unknown as Json | null,
     updated_at: updatedAt,
   })
   if (assessmentError) throw assessmentError

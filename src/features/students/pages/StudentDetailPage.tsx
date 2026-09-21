@@ -10,6 +10,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { studentRepository } from '../repositories/studentRepository'
 import type { Student } from '@/types/domain'
 
@@ -19,9 +20,10 @@ export function StudentDetailPage() {
   const { studentId } = useParams<{ studentId: string }>()
   const [student, setStudent] = useState<Student | null>(null)
   const [loadState, setLoadState] = useState<LoadState>('loading')
+  const { status: authStatus } = useAuthUser()
 
   useEffect(() => {
-    if (!studentId) return
+    if (!studentId || authStatus !== 'authenticated') return
     let cancelled = false
     setLoadState('loading')
 
@@ -39,19 +41,30 @@ export function StudentDetailPage() {
     return () => {
       cancelled = true
     }
-  }, [studentId])
+  }, [studentId, authStatus])
 
   if (!studentId) {
     return <ErrorState title="Aluno não informado" description="Volte para a lista de alunos." />
   }
 
+  if (authStatus === 'unauthenticated') {
+    return (
+      <ErrorState
+        title="Sessão expirada"
+        description="Faça login novamente para ver este aluno."
+      />
+    )
+  }
+
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
-      {loadState === 'loading' && <LoadingState label="Carregando aluno…" />}
-      {loadState === 'error' && (
+      {(authStatus === 'loading' || loadState === 'loading') && (
+        <LoadingState label="Carregando aluno…" />
+      )}
+      {authStatus === 'authenticated' && loadState === 'error' && (
         <ErrorState title="Aluno não encontrado" description="Verifique se o link está correto." />
       )}
-      {loadState === 'ready' && student && (
+      {authStatus === 'authenticated' && loadState === 'ready' && student && (
         <>
           <PageHeader eyebrow="Perfil do aluno" title={student.name} description={student.email} />
 
