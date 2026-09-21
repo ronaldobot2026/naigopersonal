@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { indexedDbPhysicalAssessmentRepository } from '@/features/assessments/physical/repositories/indexedDbPhysicalAssessmentRepository'
+import { physicalAssessmentRepository } from '@/features/assessments/physical/repositories/physicalAssessmentRepository'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { MOCK_CURRENT_STUDENT_ID } from '@/mocks/students'
 import type { PhysicalAssessment } from '@/types/domain'
@@ -32,7 +32,7 @@ function pickLatestWithPosture(assessments: PhysicalAssessment[]): PhysicalAsses
  */
 export function usePosturalFindings(): UsePosturalFindingsResult {
   const { status, data, errorMessage } = useAsyncData(
-    () => indexedDbPhysicalAssessmentRepository.findByStudentId(MOCK_CURRENT_STUDENT_ID),
+    () => physicalAssessmentRepository.findByStudentId(MOCK_CURRENT_STUDENT_ID),
     [],
   )
 

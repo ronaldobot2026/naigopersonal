@@ -15,4 +15,10 @@ function requireEnv(name: string): string {
 export const env = {
   supabaseUrl: (): string => requireEnv('VITE_SUPABASE_URL'),
   supabasePublishableKey: (): string => requireEnv('VITE_SUPABASE_PUBLISHABLE_KEY'),
+  /**
+   * UUID real do aluno de demonstração no Supabase (gerado por `scripts/seed-demo-users.mjs`).
+   * Opcional: sem ele, `mocks/students.ts` cai de volta no id mockado antigo — o app continua
+   * rodando, só que a Avaliação Física não encontra uma linha real para salvar.
+   */
+  demoStudentId: (): string | undefined => import.meta.env.VITE_DEMO_STUDENT_ID || undefined,
 }

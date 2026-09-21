@@ -1,21 +1,44 @@
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRole } from '@/app/providers/useRole'
 import { ROUTES } from '@/app/router/routes'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
-import type { Role } from '@/types/domain'
+import { Input } from '@/components/ui/Input'
+import { signInAndFetchRole } from '@/lib/supabase/auth'
+
+type SubmitState = 'idle' | 'submitting' | 'error'
 
 /**
- * Tela de entrada. Substitui os botões OAuth do export original (Google/Apple) por uma
- * troca de papel mockada — ver docs/DECISIONS.md. Autenticação real é trabalho futuro.
+ * Login real (fatia mínima da Fase 7, ver docs/ROADMAP.md), o suficiente para `auth.uid()`
+ * existir e a RLS da Avaliação Física (Fase 9) funcionar de ponta a ponta. Ainda faltam Google,
+ * Apple e recuperação de senha — isso é a Fase 7 completa.
+ *
+ * Sem instant-login mockado: o e-mail/senha precisam ser reais porque o navegador realmente
+ * autentica contra o Supabase e recebe um token com acesso a dados de aluno (mesmo que hoje só
+ * dados de demonstração). Ver `scripts/seed-demo-users.mjs` para criar as duas contas.
  */
 export function LoginPage() {
   const { setRole } = useRole()
   const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [state, setState] = useState<SubmitState>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  function handleEnter(role: Role): void {
-    setRole(role)
-    navigate(role === 'trainer' ? ROUTES.trainer.dashboard : ROUTES.student.home)
+  async function handleSubmit(event: FormEvent): Promise<void> {
+    event.preventDefault()
+    setState('submitting')
+    setErrorMessage('')
+
+    try {
+      const { role } = await signInAndFetchRole(email, password)
+      setRole(role)
+      navigate(role === 'trainer' ? ROUTES.trainer.dashboard : ROUTES.student.home)
+    } catch (error) {
+      setState('error')
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível entrar.')
+    }
   }
 
   return (
@@ -34,19 +57,37 @@ export function LoginPage() {
         </div>
       </header>
 
-      <section className="flex w-full flex-col gap-4">
-        <p className="text-center text-sm text-text-secondary">
-          Autenticação real ainda não implementada. Escolha um papel para explorar o protótipo:
-        </p>
-        <Button onClick={() => handleEnter('trainer')}>Entrar como Personal</Button>
-        <Button variant="secondary" onClick={() => handleEnter('student')}>
-          Entrar como Aluno
+      <form onSubmit={(event) => void handleSubmit(event)} className="flex w-full flex-col gap-4">
+        <Input
+          label="E-mail"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
+        <Input
+          label="Senha"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          required
+        />
+        {state === 'error' && (
+          <p role="alert" className="text-sm text-error">
+            {errorMessage}
+          </p>
+        )}
+        <Button type="submit" disabled={state === 'submitting'}>
+          {state === 'submitting' ? 'Entrando…' : 'Entrar'}
         </Button>
-      </section>
+      </form>
 
       <footer className="w-full px-8 text-center">
         <p className="text-[10px] uppercase leading-relaxed text-text-secondary/70">
-          Protótipo de desenvolvimento — nenhum dado real de aluno é utilizado nesta etapa.
+          Login conectado ao Supabase — Google, Apple e recuperação de senha ainda não
+          implementados (Fase 7 completa, ver docs/ROADMAP.md).
         </p>
       </footer>
     </main>

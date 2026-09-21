@@ -41,7 +41,7 @@ export type VisualRecordView = 'front' | 'left_side' | 'right_side' | 'back'
 
 export interface VisualRecordEntry {
   view: VisualRecordView
-  /** Chave da imagem no IndexedDB (store `assessmentPhotos`) — nunca Base64. */
+  /** Caminho do arquivo no bucket privado `assessment-photos` do Supabase Storage. */
   imageStorageKey?: string
 }
 

@@ -4,7 +4,7 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
-import { MOCK_TRAINER_ID } from '@/mocks/trainers'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import type { Student } from '@/types/domain'
 import { PhysicalAssessmentWizard } from '../components/PhysicalAssessmentWizard'
 import { usePhysicalAssessmentDraft } from '../hooks/usePhysicalAssessmentDraft'
@@ -15,6 +15,7 @@ export function NewPhysicalAssessmentPage() {
   const { studentId, assessmentId } = useParams<{ studentId: string; assessmentId?: string }>()
   const [student, setStudent] = useState<Student | null>(null)
   const [studentLoadState, setStudentLoadState] = useState<LoadState>('loading')
+  const { userId: evaluatorId, status: authStatus } = useAuthUser()
 
   useEffect(() => {
     if (!studentId) return
@@ -39,7 +40,7 @@ export function NewPhysicalAssessmentPage() {
 
   const { assessment, loadState, updateAssessment, complete } = usePhysicalAssessmentDraft(
     studentId ?? '',
-    MOCK_TRAINER_ID,
+    evaluatorId ?? '',
     assessmentId,
   )
 
@@ -58,18 +59,30 @@ export function NewPhysicalAssessmentPage() {
         />
       )}
 
-      {studentId && (studentLoadState === 'loading' || loadState === 'loading') && (
-        <LoadingState label="Carregando avaliação…" />
-      )}
-
-      {studentId && (studentLoadState === 'error' || loadState === 'error') && (
+      {studentId && authStatus === 'unauthenticated' && (
         <ErrorState
-          title="Não foi possível carregar a avaliação"
-          description="Verifique o aluno selecionado e tente novamente."
+          title="Sessão expirada"
+          description="Faça login novamente para continuar avaliando este aluno."
         />
       )}
 
       {studentId &&
+        authStatus !== 'unauthenticated' &&
+        (authStatus === 'loading' || studentLoadState === 'loading' || loadState === 'loading') && (
+          <LoadingState label="Carregando avaliação…" />
+        )}
+
+      {studentId &&
+        authStatus === 'authenticated' &&
+        (studentLoadState === 'error' || loadState === 'error') && (
+          <ErrorState
+            title="Não foi possível carregar a avaliação"
+            description="Verifique o aluno selecionado e tente novamente."
+          />
+        )}
+
+      {studentId &&
+        authStatus === 'authenticated' &&
         studentLoadState === 'ready' &&
         loadState === 'ready' &&
         student &&
