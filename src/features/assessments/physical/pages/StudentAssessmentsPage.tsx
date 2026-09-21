@@ -7,7 +7,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
-import { indexedDbPhysicalAssessmentRepository } from '../repositories/indexedDbPhysicalAssessmentRepository'
+import { physicalAssessmentRepository } from '../repositories/physicalAssessmentRepository'
 import type { PhysicalAssessment } from '@/types/domain'
 
 type LoadState = 'loading' | 'error' | 'ready'
@@ -22,7 +22,7 @@ export function StudentAssessmentsPage() {
     let cancelled = false
     setLoadState('loading')
 
-    indexedDbPhysicalAssessmentRepository
+    physicalAssessmentRepository
       .findByStudentId(studentId)
       .then((result) => {
         if (cancelled) return

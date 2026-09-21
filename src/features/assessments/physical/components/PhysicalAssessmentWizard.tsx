@@ -61,6 +61,7 @@ export function PhysicalAssessmentWizard({
         <Tabs.Panel value="visual">
           <VisualRecordStep
             assessmentId={assessment.id}
+            studentId={assessment.studentId}
             value={assessment.visualRecords}
             onChange={(visualRecords) => onUpdate({ visualRecords })}
           />

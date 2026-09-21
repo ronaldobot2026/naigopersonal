@@ -78,6 +78,29 @@ Fases 6, 7 e 17.
       aluno B). Nenhum repositório fez cutover ainda — app continua 100% em cima dos repositórios
       mock, como o DoD pede. A `service_role key` do projeto não foi solicitada nem armazenada
       pelo agente (só entra em secret de Edge Function, mais adiante).
-- [ ] Fase 7 — próxima. Precisa: provedor de e-mail transacional (Resend/Postmark) + DNS, OAuth
-      client do Google Cloud, e decisão sobre Apple Sign In (US$99/ano) — ou seguir só com
-      e-mail/senha + Google no lançamento e adicionar Apple depois.
+- [~] Fase 7 — **só a fatia mínima**, para destravar a Fase 9 (abaixo): `LoginPage.tsx` agora
+      autentica de verdade (`supabase.auth.signInWithPassword`, sem mais botão de "entrar como
+      X" instantâneo) e `useAuthUser` expõe `auth.uid()` para quem precisa. **Falta para a Fase 7
+      completa**: Google/Apple OAuth, recuperação de senha, convite, `RequireRole` como guarda de
+      rota (hoje `RoleShell`/`RoleProvider` continuam como troca de papel mockada, decorativa —
+      quem autoriza de verdade é só a RLS). `scripts/seed-demo-users.mjs` cria as duas contas
+      reais (personal + aluno) via `service_role key` — passada só na hora de rodar o script,
+      nunca armazenada. Teste de isolamento entre alunos (aluno A não lê dado de aluno B) segue
+      pendente — só dá para escrever com um segundo aluno real, que ainda não existe.
+- [x] Fase 9 (parcial) — Avaliação Física com salvamento real, concluída em 2026-09-21. Migration
+      `supabase/migrations/20260921140000_physical_assessment_backend.sql`: tabelas
+      `physical_assessments`, `body_metrics`, `assessment_photos` + RLS + policy de `update` no
+      bucket `assessment-photos` (upsert de foto). `indexedDbPhysicalAssessmentRepository.ts`
+      deletado; `physicalAssessmentRepository.ts` (mesmas assinaturas) + `assessmentPhotoRepository.ts`
+      (Storage, signed URL) tomam o lugar. Rascunho continua salvando a cada alteração (agora no
+      Supabase) e resume ao voltar — validado de ponta a ponta contra um Supabase local (Docker):
+      login real, criação/resumo de rascunho, biometria/antropometria, upload de foto com preview
+      via signed URL, conclusão, e RLS bloqueando escrita do aluno na própria avaliação.
+      **Decisões de escopo, não pedidas explicitamente mas necessárias para não quebrar nada**:
+      `usePosturalFindings.ts` (feature Treinos) also migrado, só porque consumia o repositório
+      deletado. **Fora do escopo desta entrega** (não pedido, ficou como dívida explícita):
+      avaliação postural continua como `jsonb` em `physical_assessments.postural_assessment`, não
+      nas tabelas normalizadas do `BACKEND_PLAN.md` (`postural_assessments`/`postural_captures`/
+      `postural_metrics`) — isso é Fase 14; fila local de upload pendente de foto (offline-first,
+      citada no `BACKEND_PLAN.md`) não foi construída, upload é direto; `indexedDbPosturalAssessmentRepository.ts`
+      ficou órfão (sem nenhum consumidor desde antes desta entrega — não foi tocado).
