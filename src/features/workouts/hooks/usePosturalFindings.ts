@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { physicalAssessmentRepository } from '@/features/assessments/physical/repositories/physicalAssessmentRepository'
 import { useAsyncData } from '@/hooks/useAsyncData'
-import { MOCK_CURRENT_STUDENT_ID } from '@/mocks/students'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import type { PhysicalAssessment } from '@/types/domain'
 import { derivePosturalFindings, type PosturalFinding } from '../domain/posturalPrescription'
 
@@ -27,13 +27,15 @@ function pickLatestWithPosture(assessments: PhysicalAssessment[]): PhysicalAsses
 /**
  * Achados posturais do aluno logado, prontos para direcionar as sugestões de exercício.
  *
- * Lê a Avaliação Física mais recente que tenha uma Avaliação Postural. Enquanto não existir
- * autenticação, o aluno é o mock fixo — mesma premissa da Home (`MOCK_CURRENT_STUDENT_ID`).
+ * Lê a Avaliação Física mais recente que tenha uma Avaliação Postural. O aluno é o `auth.uid()`
+ * da sessão real (Fase 8/9); sem sessão, retorna vazio em vez de assumir um aluno mockado.
  */
 export function usePosturalFindings(): UsePosturalFindingsResult {
+  const { userId } = useAuthUser()
   const { status, data, errorMessage } = useAsyncData(
-    () => physicalAssessmentRepository.findByStudentId(MOCK_CURRENT_STUDENT_ID),
-    [],
+    () =>
+      userId ? physicalAssessmentRepository.findByStudentId(userId) : Promise.resolve([] as PhysicalAssessment[]),
+    [userId],
   )
 
   const latest = useMemo(() => (data ? pickLatestWithPosture(data) : null), [data])

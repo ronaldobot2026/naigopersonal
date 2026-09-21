@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
-import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
+import { studentRepository } from '@/features/students/repositories/studentRepository'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import type { Student } from '@/types/domain'
 import { PhysicalAssessmentWizard } from '../components/PhysicalAssessmentWizard'
@@ -22,7 +22,7 @@ export function NewPhysicalAssessmentPage() {
     let cancelled = false
     setStudentLoadState('loading')
 
-    indexedDbStudentRepository
+    studentRepository
       .findById(studentId)
       .then((result) => {
         if (cancelled) return

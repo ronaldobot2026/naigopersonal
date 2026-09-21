@@ -10,7 +10,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
-import { indexedDbStudentRepository } from '../repositories/indexedDbStudentRepository'
+import { studentRepository } from '../repositories/studentRepository'
 import type { Student } from '@/types/domain'
 
 type LoadState = 'loading' | 'error' | 'ready'
@@ -25,7 +25,7 @@ export function StudentDetailPage() {
     let cancelled = false
     setLoadState('loading')
 
-    indexedDbStudentRepository
+    studentRepository
       .findById(studentId)
       .then((result) => {
         if (cancelled) return

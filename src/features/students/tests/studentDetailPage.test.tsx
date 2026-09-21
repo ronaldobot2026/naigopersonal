@@ -9,8 +9,8 @@ const ALUNO: Student = {
   email: 'ana@exemplo.com',
 } as Student
 
-vi.mock('../repositories/indexedDbStudentRepository', () => ({
-  indexedDbStudentRepository: {
+vi.mock('../repositories/studentRepository', () => ({
+  studentRepository: {
     findById: vi.fn(async () => ALUNO),
   },
 }))

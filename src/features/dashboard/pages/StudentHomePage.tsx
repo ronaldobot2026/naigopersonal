@@ -8,16 +8,20 @@ import { Icon } from '@/components/ui/Icon'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { useAsyncData } from '@/hooks/useAsyncData'
-import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
-import { MOCK_CURRENT_STUDENT_ID } from '@/mocks/students'
+import { studentRepository } from '@/features/students/repositories/studentRepository'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { workoutRepository } from '@/features/workouts/repositories/workoutRepository'
 
 export function StudentHomePage() {
+  const { userId: currentStudentId } = useAuthUser()
   const {
     status: studentStatus,
     data: currentStudent,
     errorMessage: studentError,
-  } = useAsyncData(() => indexedDbStudentRepository.findById(MOCK_CURRENT_STUDENT_ID), [])
+  } = useAsyncData(
+    () => (currentStudentId ? studentRepository.findById(currentStudentId) : Promise.resolve(null)),
+    [currentStudentId],
+  )
   const {
     status: workoutsStatus,
     data: workouts,

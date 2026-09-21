@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
+import { studentRepository } from '@/features/students/repositories/studentRepository'
 import { createWorkoutPlan } from '../domain/createWorkoutPlan'
 import { indexedDbWorkoutPlanRepository } from '../repositories/indexedDbWorkoutPlanRepository'
 import type { WorkoutPlan } from '../domain/workout.types'
@@ -38,7 +38,7 @@ export function useWorkoutPlanDraft(studentId: string, planId?: string): UseWork
     setLoadState('loading')
 
     async function carregar(): Promise<void> {
-      const aluno = await indexedDbStudentRepository.findById(studentId)
+      const aluno = await studentRepository.findById(studentId)
       if (!aluno) throw new Error(`Aluno ${studentId} não encontrado.`)
 
       const existente = planId

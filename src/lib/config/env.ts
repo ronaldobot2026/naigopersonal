@@ -1,8 +1,7 @@
 /**
  * Variáveis de ambiente públicas do frontend (prefixo `VITE_*`, embutidas no bundle — nunca um
  * segredo aqui). Valida no import, não no boot do app: só falha quando algo realmente as
- * consome, o que ainda não acontece em nenhum repositório (Fase 6 só sobe o schema; cutover de
- * repositório é a partir da Fase 8 — ver docs/ROADMAP.md).
+ * consome.
  */
 function requireEnv(name: string): string {
   const value = import.meta.env[name]
@@ -15,10 +14,4 @@ function requireEnv(name: string): string {
 export const env = {
   supabaseUrl: (): string => requireEnv('VITE_SUPABASE_URL'),
   supabasePublishableKey: (): string => requireEnv('VITE_SUPABASE_PUBLISHABLE_KEY'),
-  /**
-   * UUID real do aluno de demonstração no Supabase (gerado por `scripts/seed-demo-users.mjs`).
-   * Opcional: sem ele, `mocks/students.ts` cai de volta no id mockado antigo — o app continua
-   * rodando, só que a Avaliação Física não encontra uma linha real para salvar.
-   */
-  demoStudentId: (): string | undefined => import.meta.env.VITE_DEMO_STUDENT_ID || undefined,
 }
