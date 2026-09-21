@@ -1,13 +1,16 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { buildStudentDetailPath } from '@/app/router/routes'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
+import { InviteStudentForm } from '../components/InviteStudentForm'
 import { studentRepository } from '../repositories/studentRepository'
 
 /**
@@ -17,14 +20,40 @@ import { studentRepository } from '../repositories/studentRepository'
  */
 export function StudentsListPage() {
   const { status: authStatus } = useAuthUser()
+  const [isInviteOpen, setInviteOpen] = useState(false)
+  // Incrementado após um convite bem-sucedido para o `useAsyncData` abaixo refazer o `findAll()`
+  // sem precisar de uma dependência real de cache (ver comentário do hook).
+  const [refreshKey, setRefreshKey] = useState(0)
   const { status, data: students, errorMessage } = useAsyncData(
     () => (authStatus === 'authenticated' ? studentRepository.findAll() : Promise.resolve([])),
-    [authStatus],
+    [authStatus, refreshKey],
   )
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
-      <PageHeader title="Meus Alunos" description="Todos os alunos vinculados a você." />
+      <PageHeader
+        title="Meus Alunos"
+        description="Todos os alunos vinculados a você."
+        actions={
+          authStatus === 'authenticated' && (
+            <Button variant="secondary" onClick={() => setInviteOpen((open) => !open)}>
+              <Icon name={isInviteOpen ? 'close' : 'person_add'} />
+              {isInviteOpen ? 'Cancelar' : 'Adicionar aluno'}
+            </Button>
+          )
+        }
+      />
+
+      {authStatus === 'authenticated' && isInviteOpen && (
+        <div className="mb-8">
+          <InviteStudentForm
+            onInvited={() => {
+              setInviteOpen(false)
+              setRefreshKey((key) => key + 1)
+            }}
+          />
+        </div>
+      )}
 
       {authStatus === 'unauthenticated' && (
         <ErrorState

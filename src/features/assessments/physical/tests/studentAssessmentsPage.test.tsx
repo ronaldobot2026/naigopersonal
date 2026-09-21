@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuthUserState } from '@/lib/supabase/useAuthUser'
 import type { PhysicalAssessment } from '@/types/domain'
 
 const AVALIACAO_CONCLUIDA: PhysicalAssessment = {
@@ -24,7 +25,7 @@ vi.mock('../repositories/physicalAssessmentRepository', () => ({
   },
 }))
 
-const useAuthUserMock = vi.fn(() => ({ userId: 'personal-1', status: 'authenticated' as const }))
+const useAuthUserMock = vi.fn<() => AuthUserState>(() => ({ userId: 'personal-1', status: 'authenticated' }))
 
 vi.mock('@/lib/supabase/useAuthUser', () => ({
   useAuthUser: () => useAuthUserMock(),

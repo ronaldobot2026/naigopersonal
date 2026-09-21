@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from '@supabase/supabase-js'
 import { getSupabase } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 import type { Student } from '@/types/domain'
@@ -23,6 +24,33 @@ function toDomain(studentRow: StudentRow, profile: ProfileRow): Student {
     avatarUrl: profile.avatar_url ?? undefined,
     trainerId: studentRow.trainer_id,
   }
+}
+
+export interface InviteStudentInput {
+  email: string
+  fullName: string
+}
+
+interface InviteStudentResponse {
+  studentId: string
+}
+
+/**
+ * A Edge Function devolve `{ error: string }` no corpo em qualquer resposta não-2xx (ver
+ * `supabase/functions/invite-student/index.ts`) — essa mensagem já é a que a UI deve mostrar
+ * (ex.: "Só um personal pode convidar alunos.", "E-mail já cadastrado"). Sem isso o usuário só
+ * veria um `FunctionsHttpError` genérico.
+ */
+async function resolveInviteErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = (await error.context.json()) as { error?: string }
+      if (body.error) return body.error
+    } catch {
+      // corpo não era JSON — cai no fallback abaixo
+    }
+  }
+  return 'Não foi possível convidar o aluno. Tente novamente.'
 }
 
 /**
@@ -79,5 +107,20 @@ export const studentRepository = {
     if (!profile) return null
 
     return toDomain(studentRow as StudentRow, profile as ProfileRow)
+  },
+
+  /**
+   * Convida um aluno novo (Fase 8). Sempre via Edge Function — service_role nunca chega ao
+   * cliente, e é a função que valida, no servidor, que quem chama é de fato um trainer antes de
+   * criar o usuário e gravar `students.trainer_id` (ver comentário no topo da função).
+   */
+  async invite(input: InviteStudentInput): Promise<InviteStudentResponse> {
+    const supabase = getSupabase()
+    const { data, error } = await supabase.functions.invoke<InviteStudentResponse>('invite-student', {
+      body: { email: input.email, full_name: input.fullName },
+    })
+    if (error) throw new Error(await resolveInviteErrorMessage(error))
+    if (!data) throw new Error('Convite enviado, mas a resposta do servidor veio vazia.')
+    return data
   },
 }

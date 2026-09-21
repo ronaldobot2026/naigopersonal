@@ -87,15 +87,27 @@ Fases 6, 7 e 17.
       reais (personal + aluno) via `service_role key` — passada só na hora de rodar o script,
       nunca armazenada. Teste de isolamento entre alunos (aluno A não lê dado de aluno B) segue
       pendente — só dá para escrever com um segundo aluno real, que ainda não existe.
-- [~] Fase 8 (parcial) — **leitura concluída**: `studentRepository.ts` (Supabase) substitui o
-      antigo `indexedDbStudentRepository.ts`/`MOCK_STUDENTS`; `StudentsListPage.tsx` lista e
+- [x] Fase 8 — concluída em 2026-09-21. **Leitura**: `studentRepository.ts` (Supabase) substitui
+      o antigo `indexedDbStudentRepository.ts`/`MOCK_STUDENTS`; `StudentsListPage.tsx` lista e
       `StudentDetailPage.tsx`/`NewPhysicalAssessmentPage.tsx` leem pelo `id` real. A RLS
       (`students_all_trainer`, Fase 6) já garante o isolamento: um personal só vê os próprios
-      alunos, sem filtro extra no cliente. **Falta para a Fase 8 completa**: cadastro/convite de
-      aluno pela UI — o diálogo mockado de "Adicionar aluno" foi removido junto com o corte para
-      Supabase (criar usuário real exige `auth.admin.inviteUserByEmail`, que precisa de
-      `service_role key`/Edge Function, não do cliente) — e o vínculo trainer↔aluno continua só
-      via `scripts/seed-demo-users.mjs` ou SQL manual.
+      alunos, sem filtro extra no cliente. **Cadastro/convite pela UI**: Edge Function
+      `supabase/functions/invite-student/` — a única peça que pode chamar
+      `auth.admin.inviteUserByEmail` (exige `service_role`, nunca exposta ao cliente). O vínculo
+      trainer↔aluno (linha em `public.students`, `trainer_id`) não vem mais de metadata enviada
+      pelo cliente nem do trigger `handle_new_user()` — desde o hardening de segurança do commit
+      `9fa594c` (ver `docs/PENTEST_REPORT.md`), esse trigger sempre cria `profiles.role =
+      'student'` sem vínculo nenhum, de propósito. É a própria função que verifica, a partir do
+      JWT de quem chama (nunca de um campo do corpo da requisição), que `profiles.role =
+      'trainer'`, e só então grava `students.trainer_id = auth.uid()` do chamador. `StudentsListPage.tsx`
+      ganhou o formulário "Adicionar aluno" (`InviteStudentForm.tsx`) chamando
+      `studentRepository.invite()` → `supabase.functions.invoke('invite-student', ...)`. Validado
+      de ponta a ponta contra um Supabase local (Docker): convite por um trainer autenticado cria
+      `profiles`+`students` corretamente vinculados; aluno tentando convidar → 403; sem sessão →
+      401; e-mail inválido → 400; e-mail já cadastrado → 409. **Fora do escopo**: página de
+      "definir senha" para o aluno completar o convite (o e-mail de convite do Supabase aponta
+      para uma rota que ainda não existe no app — mesma lacuna que "recuperação de senha", Fase 7
+      completa) e reenvio/cancelamento de convite pendente.
 - [x] Fase 9 (parcial) — Avaliação Física com salvamento real, concluída em 2026-09-21. Migration
       `supabase/migrations/20260921140000_physical_assessment_backend.sql`: tabelas
       `physical_assessments`, `body_metrics`, `assessment_photos` + RLS + policy de `update` no
