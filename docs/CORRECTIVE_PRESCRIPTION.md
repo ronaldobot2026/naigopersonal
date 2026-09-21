@@ -148,18 +148,34 @@ export const CORRECTIVE_PRESCRIPTION_VERSION = '2026.1'
 selectCorrectiveExercises(finding, catalog, { availableEquipment, perFinding = 3 })
 ```
 
+0. **Excluir** exercícios que não são de fortalecimento — **antes de qualquer outro filtro**:
+   - alongamentos (nome original com `stretch`) — **57 no catálogo**
+   - saltos / impacto (nome original com `jump`) — **17 no catálogo**
+   O exercício corretivo prescrito é de **fortalecimento**. Alongar o músculo encurtado é *outra
+   etapa* do protocolo, não substituto do exercício corretivo — e salto é contraindicado para
+   achado de joelho (impacto em articulação já em desalinhamento).
+   > **Por que esta regra existe** (defeito encontrado na validação de 21/09): sem ela, o filtro
+   > de peso corporal escolhia `rear deltoid stretch` / `neck side stretch` para "ombro elevado",
+   > enquanto as **83 opções com barra e halteres** (incluindo as 9 variantes de *remada alta*
+   > que o Windson citou) nunca apareciam. Alongamento dominava a sugestão de fortalecimento.
 1. **Filtrar** exercícios cujo `target` ∈ `finding.targetMuscles`.
-2. **Filtrar** por `equipment` ∈ `availableEquipment` (normalizar `body weight` como sempre disponível).
+2. **Filtrar** por `equipment` ∈ `availableEquipment` (normalizar `body weight` como sempre
+   disponível). Equipamento é critério de **disponibilidade, nunca de prioridade**: peso corporal
+   não é melhor para corrigir postura, é apenas mais acessível.
 3. **Priorizar** (ordem decrescente):
-   a. `equipment === 'body weight'` (executável em qualquer lugar)
-   b. exercícios cujo `secondaryMuscles` também tocam os alvos do achado (sinergia)
-   c. exercícios com `steps` mais curtos (mais simples de executar sozinho)
+   a. exercícios cujo `secondaryMuscles` também tocam os alvos do achado (sinergia)
+   b. exercícios com `steps` mais curtos (mais simples de executar sozinho)
+   c. desempate final pelo `id` — estável, garante determinismo
 4. **Diversificar**: não repetir o mesmo `muscleGroup` no mesmo achado, se houver alternativa.
 5. **Cortar** em `perFinding` (padrão **3**).
 6. **Fallback**, nesta ordem, se o resultado for vazio:
    - relaxar `equipment` (aceitar qualquer um, marcando `origin: 'suggested'` + aviso)
    - relaxar para `bodyPart` em vez de `target`
    - **devolver vazio e dizer o motivo na tela** — nunca inventar exercício fora do catálogo.
+
+> **Critério de aceite desta seção:** para o achado `shoulder_elevation` com equipamento de casa
+> (barra, halteres, elástico, peso corporal), a sugestão **precisa incluir uma variação de remada
+> alta ou elevação puxada** — é o exemplo que o Windson deu no áudio de 21/09.
 
 ### 3.3 Prescrição padrão (ajustável pelo treinador)
 - Achado `attention` → `3 × 12-15`
@@ -241,7 +257,8 @@ corrective_plan_items   (id, plan_id, exercise_id, finding_id, target_muscles te
 
 - [ ] `FindingKind` cobre os 10 achados da tabela 2.2, com tabela de vínculo declarativa e versionada
 - [ ] `kneeAngle` implementado, com teste unitário e limiar comentado como "revisar com profissional"
-- [ ] `selectCorrectiveExercises` é função pura, determinística, com teste cobrindo: filtro por equipamento, fallback, corte em 3, catálogo vazio
+- [ ] `selectCorrectiveExercises` é função pura, determinística, com teste cobrindo: exclusão de alongamento/salto, filtro por equipamento, fallback, corte em 3, catálogo vazio
+- [ ] **Teste de aceite do cliente**: achado `shoulder_elevation` + equipamento de casa retorna uma variação de **remada alta** ou **elevação puxada** (exemplo do áudio do Windson)
 - [ ] Tela de achados + tela de revisão + plano publicado
 - [ ] Deduplicação de exercícios entre achados
 - [ ] `ExerciseAttribution` em toda tela com mídia (exigência de licença Gym visual)
