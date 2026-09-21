@@ -131,6 +131,31 @@ export interface CorrectivePlan {
 export const CORRECTIVE_PRESCRIPTION_VERSION = '2026.1'
 ```
 
+### 2.4 Padrões de movimento por achado (`movementPatterns`)
+
+O que distingue o exercício **correto** do genérico dentro do mesmo alvo muscular. Testado contra o
+`originalName` (inglês — a tradução pt-BR não preserva as palavras-chave).
+
+> É **ponto de partida técnico, não verdade clínica**. O Windson revisa e ajusta; o motor só sugere.
+> Ajustar um padrão exige atualizar **esta tabela + o teste de aceite do achado**.
+
+| `FindingKind` | `movementPatterns` | Por quê |
+|---|---|---|
+| `shoulder_elevation` | `row`, `shrug` | o padrão que o Windson indicou no áudio (remada alta, encolhimento) |
+| `shoulder_depression` | `raise`, `press`, `fly` | ombro deprimido pede elevar/sustentar a cintura escapular — **não** o mesmo de ombro elevado |
+| `hip_inclination` | `bridge`, `abduct`, `adduct`, `leg raise` | estabilização pélvica por glúteo e abdutores/adutores |
+| `head_forward` | `chin`, `neck`, `shrug`, `row` | retração cervical e fortalecimento escapular |
+| `trunk_lateral_deviation` | `plank`, `dead bug`, `pallof`, `row` | controle anti-movimento do tronco |
+| `knee_hyperextension` | `curl`, `deadlift`, `bridge`, `good morning` | cadeia posterior (isquiotibiais/glúteo) freando a extensão |
+| `knee_valgus` | `abduct`, `clamshell`, `squat`, `step` | glúteo médio controlando o joelho |
+| `knee_varus` | `adduct`, `sumo`, `squat` | adutores equilibrando o alinhamento do joelho |
+| `pelvic_tilt_anterior` | `plank`, `bridge`, `dead bug`, `crunch` | core e glúteo reduzindo a báscula anterior |
+| `pelvic_tilt_posterior` | `extension`, `hip`, `squat`, `good morning` | extensores de tronco e quadril |
+
+**Regra de segurança:** se os padrões de um achado **não casarem nenhum** exercício, o critério (a)
+é **ignorado** (não zera o resultado) e a seleção segue por sinergia/`steps`. Nunca devolver vazio
+por causa do padrão.
+
 ---
 
 ## 3. Seleção de exercícios (o algoritmo)
@@ -163,18 +188,24 @@ selectCorrectiveExercises(finding, catalog, { availableEquipment, perFinding = 3
    disponível). Equipamento é critério de **disponibilidade, nunca de prioridade**: peso corporal
    não é melhor para corrigir postura, é apenas mais acessível.
 3. **Priorizar** (ordem decrescente):
-   a. **padrão de puxada/encolhimento** — nome original (inglês) contém `row`, `shrug` ou `pull`
+   a. **padrão de movimento do achado** — `movementPatterns` declarado **por achado** na tabela 2.4,
+      testado contra o `originalName` (inglês)
    b. exercícios cujo `secondaryMuscles` também tocam os alvos do achado (sinergia)
    c. exercícios com `steps` mais curtos (mais simples de executar sozinho)
    d. desempate final pelo `id` — estável, garante determinismo
    > **Por que o critério (a) existe** (achado na validação de 21/09, rodando contra o catálogo
    > real): sinergia + steps sozinhas **não** bastam para eleger remada alta/encolhimento. Dezenas
-   > de isolamentos de deltoide (elevação frontal, elevação lateral) tocam o mesmo `secondaryMuscles`
-   > (trapézio) e têm menos `steps`, então venciam o desempate — mesmo depois de tirar peso corporal
-   > da prioridade e excluir alongamento/salto (passo 0). Puxada/encolhimento é o padrão de
-   > movimento que de fato retrai/deprime a escápula — o mecanismo corretivo pedido no áudio —
-   > por isso entra como critério antes da sinergia genérica, do mesmo jeito que o passo 0 já
-   > classifica exercício por palavra-chave no nome original.
+   > de isolamentos de deltoide (elevação frontal/lateral) tocam o mesmo `secondaryMuscles`
+   > (trapézio) e têm menos `steps`, então venciam o desempate.
+   >
+   > ⚠️ **Exigência crítica: o padrão de movimento é POR ACHADO, nunca global.** Uma tentativa com
+   > lista global (`row`/`shrug`/`pull`) foi medida contra o catálogo real e **reprovada**: o
+   > vocabulário do catálogo é inglês, então `pull` casava com `rack pull`, `snatch pull` e
+   > `leg pull` — exercícios de costas e de perna — e passou a dominar também os achados de joelho
+   > (com o critério global, `knee_varus`, que precisa de **adutores**, sugeria *"Puxada snatch"*).
+   > Pior: `shoulder_elevation` e `shoulder_depression`, que exigem correções **opostas**,
+   > devolviam a **mesma lista dos mesmos três exercícios**. Padrão de movimento é conhecimento do
+   > achado, portanto pertence à tabela de vínculos — não a uma constante global.
 4. **Diversificar**: não repetir o mesmo `muscleGroup` no mesmo achado, se houver alternativa.
 5. **Cortar** em `perFinding` (padrão **3**).
 6. **Fallback**, nesta ordem, se o resultado for vazio:
@@ -268,6 +299,9 @@ corrective_plan_items   (id, plan_id, exercise_id, finding_id, target_muscles te
 - [ ] `kneeAngle` implementado, com teste unitário e limiar comentado como "revisar com profissional"
 - [ ] `selectCorrectiveExercises` é função pura, determinística, com teste cobrindo: exclusão de alongamento/salto, filtro por equipamento, fallback, corte em 3, catálogo vazio
 - [ ] **Teste de aceite do cliente**: achado `shoulder_elevation` + equipamento de casa retorna uma variação de **remada alta** ou **elevação puxada** (exemplo do áudio do Windson)
+- [ ] `movementPatterns` declarado **por achado** (tabela 2.4), sem constante global de palavras-chave
+- [ ] `shoulder_elevation` e `shoulder_depression` devolvem listas **distintas** — correções opostas não podem compartilhar sugestão (travar com teste)
+- [ ] Nenhum achado de perna/pelve é dominado por vocabulário de puxada escapular (`row`/`shrug`/`pull`) — travar com teste
 - [ ] Tela de achados + tela de revisão + plano publicado
 - [ ] Deduplicação de exercícios entre achados
 - [ ] `ExerciseAttribution` em toda tela com mídia (exigência de licença Gym visual)
