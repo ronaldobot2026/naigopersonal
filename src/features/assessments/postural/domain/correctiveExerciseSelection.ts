@@ -9,6 +9,7 @@
  */
 import type { Exercise } from '@/features/workouts/domain/exercise.types'
 import { translateBodyPart, translateEquipment, translateMuscle } from '@/features/workouts/domain/exerciseTaxonomy'
+import { CORRECTIVE_TARGET_LINKS } from './correctivePrescription'
 import type { PosturalFinding } from './correctivePrescription.types'
 
 const DEFAULT_PER_FINDING = 3
@@ -44,24 +45,26 @@ function hasSynergy(exercise: Exercise, translatedTargets: ReadonlySet<string>):
   return exercise.secondaryMuscles.some((muscle) => translatedTargets.has(muscle))
 }
 
-/** Palavras (inglês, `originalName`) que identificam o padrão de puxada/encolhimento. */
-const PULLING_PATTERN_KEYWORDS = ['row', 'shrug', 'pull']
-
 /**
- * Padrão de puxada/encolhimento (remada, encolhimento, puxada) — verificado contra `originalName`
- * pelo mesmo motivo do passo 0 (a tradução pt-BR pode não preservar a palavra-chave).
+ * Padrão de movimento — verificado contra `originalName` (inglês) pelo mesmo motivo do passo 0 (a
+ * tradução pt-BR pode não preservar a palavra-chave). `patterns` vem de `movementPatterns` na
+ * tabela de vínculos (seção 2.4 da spec) — é conhecimento POR ACHADO, nunca uma lista global.
  *
- * Existe porque `sinergia` (via `secondaryMuscles`) sozinha NÃO distingue remada alta/encolhimento
- * de isolamentos de deltoide (elevação frontal/lateral): ambos os grupos costumam listar o mesmo
- * músculo secundário (ex.: trapézio) e as elevações de isolamento em geral têm menos `steps`, então
- * venciam o desempate — confirmado rodando contra o catálogo real de 1324 exercícios, onde nenhuma
- * combinação de sinergia+steps+id colocava remada alta/encolhimento no top 3 de "ombro elevado".
- * Puxada/encolhimento é o padrão de movimento que efetivamente retrai/deprime a escápula — o
- * mecanismo corretivo que o Windson pediu no áudio — por isso entra como critério antes da sinergia.
+ * Existe porque `sinergia` (via `secondaryMuscles`) sozinha NÃO distingue, por exemplo, remada
+ * alta/encolhimento de isolamentos de deltoide (elevação frontal/lateral) para "ombro elevado":
+ * ambos os grupos costumam listar o mesmo músculo secundário (trapézio) e as elevações de
+ * isolamento em geral têm menos `steps`, então venciam o desempate — confirmado rodando contra o
+ * catálogo real de 1324 exercícios.
+ *
+ * Uma tentativa anterior usou uma lista global (`row`/`shrug`/`pull`) aplicada a todo achado — e
+ * reprovou na validação de 21/09 contra o catálogo real: `pull` casa com `rack pull`/`snatch
+ * pull`/`leg pull` (exercícios de costas e perna) e passou a dominar achados de joelho/pelve; e
+ * `shoulder_elevation`/`shoulder_depression` (correções opostas) devolviam a mesma lista. Daí o
+ * padrão vir por achado, nunca de uma constante global.
  */
-function isPullingPattern(exercise: Exercise): boolean {
+function matchesMovementPattern(exercise: Exercise, patterns: readonly string[]): boolean {
   const original = exercise.originalName.toLowerCase()
-  return PULLING_PATTERN_KEYWORDS.some((keyword) => original.includes(keyword))
+  return patterns.some((pattern) => original.includes(pattern))
 }
 
 /**
@@ -77,16 +80,26 @@ function isStrengtheningExercise(exercise: Exercise): boolean {
 }
 
 /**
- * Ordena por prioridade (seção 3.2.3, ATUALIZADA): padrão de puxada/encolhimento primeiro (ver
- * `isPullingPattern`), depois sinergia via `secondaryMuscles`, depois menos passos. Peso corporal
- * SAIU da prioridade — é critério de disponibilidade (filtrado antes), não de qualidade corretiva;
- * colocá-lo primeiro fazia o motor preferir alongamentos de peso corporal a remadas altas com
- * barra/halteres para o mesmo achado (ver seção 3.2, passo 0). Desempate final por `id` — garante
- * uma ordem total e portanto determinismo mesmo quando dois exercícios empatam em tudo o mais.
+ * Ordena por prioridade (seção 3.2.3, ATUALIZADA): padrão de movimento do achado primeiro (ver
+ * `matchesMovementPattern`), depois sinergia via `secondaryMuscles`, depois menos passos. Peso
+ * corporal SAIU da prioridade — é critério de disponibilidade (filtrado antes), não de qualidade
+ * corretiva; colocá-lo primeiro fazia o motor preferir alongamentos de peso corporal a remadas
+ * altas com barra/halteres para o mesmo achado (ver seção 3.2, passo 0). Desempate final por `id`
+ * — garante uma ordem total e portanto determinismo mesmo quando dois exercícios empatam no resto.
+ *
+ * Regra de segurança (seção 2.4 da spec): se NENHUM candidato casa `movementPatterns`, o critério
+ * (a) não precisa de tratamento especial — `patternRank` dá empate (0) para todo par nesse caso, e
+ * a ordenação cai naturalmente para sinergia/steps. Nunca zera o resultado.
  */
-function compareByPriority(a: Exercise, b: Exercise, translatedTargets: ReadonlySet<string>): number {
-  const pullRank = (isPullingPattern(a) ? 0 : 1) - (isPullingPattern(b) ? 0 : 1)
-  if (pullRank !== 0) return pullRank
+function compareByPriority(
+  a: Exercise,
+  b: Exercise,
+  translatedTargets: ReadonlySet<string>,
+  movementPatterns: readonly string[],
+): number {
+  const patternRank =
+    (matchesMovementPattern(a, movementPatterns) ? 0 : 1) - (matchesMovementPattern(b, movementPatterns) ? 0 : 1)
+  if (patternRank !== 0) return patternRank
 
   const synergyRank =
     (hasSynergy(a, translatedTargets) ? 0 : 1) - (hasSynergy(b, translatedTargets) ? 0 : 1)
@@ -130,10 +143,11 @@ function diversifyByMuscleGroup(sortedByPriority: Exercise[], limit: number): Ex
 function selectFrom(
   candidates: Exercise[],
   translatedTargets: ReadonlySet<string>,
+  movementPatterns: readonly string[],
   perFinding: number,
 ): Exercise[] {
   return diversifyByMuscleGroup(
-    [...candidates].sort((a, b) => compareByPriority(a, b, translatedTargets)),
+    [...candidates].sort((a, b) => compareByPriority(a, b, translatedTargets, movementPatterns)),
     perFinding,
   )
 }
@@ -155,6 +169,8 @@ export function selectCorrectiveExercises(
   const availableEquipment = new Set(options.availableEquipment)
   const translatedTargets = new Set(finding.targetMuscles.map(translateMuscle))
   const translatedBodyParts = new Set(finding.targetMuscles.map(translateBodyPart))
+  // Padrão de movimento é conhecimento do achado (tabela 2.4), nunca uma constante global.
+  const movementPatterns = CORRECTIVE_TARGET_LINKS[finding.kind].movementPatterns
 
   // Passo 0 (seção 3.2): fora alongamento/salto antes de qualquer outro filtro, inclusive fallback.
   const strengtheningCatalog = catalog.filter(isStrengtheningExercise)
@@ -163,13 +179,16 @@ export function selectCorrectiveExercises(
   const byTargetAndEquipment = byTarget.filter((exercise) => isEquipmentAvailable(exercise, availableEquipment))
 
   if (byTargetAndEquipment.length > 0) {
-    return { exercises: selectFrom(byTargetAndEquipment, translatedTargets, perFinding), fallback: 'none' }
+    return {
+      exercises: selectFrom(byTargetAndEquipment, translatedTargets, movementPatterns, perFinding),
+      fallback: 'none',
+    }
   }
 
   // Fallback 1: relaxa equipamento — mantém o filtro por `target`, aceita qualquer equipamento.
   if (byTarget.length > 0) {
     return {
-      exercises: selectFrom(byTarget, translatedTargets, perFinding),
+      exercises: selectFrom(byTarget, translatedTargets, movementPatterns, perFinding),
       fallback: 'equipment_relaxed',
       notice:
         'Nenhum exercício para este achado está disponível com o equipamento informado. Sugestão inclui equipamentos fora do perfil do aluno — revise antes de publicar.',
@@ -183,7 +202,7 @@ export function selectCorrectiveExercises(
 
   if (bodyPartCandidates.length > 0) {
     return {
-      exercises: selectFrom(bodyPartCandidates, translatedTargets, perFinding),
+      exercises: selectFrom(bodyPartCandidates, translatedTargets, movementPatterns, perFinding),
       fallback: 'body_part',
       notice:
         'Nenhum exercício do catálogo tem os grupos musculares-alvo deste achado. Sugestão baseada na região do corpo relacionada — revise antes de publicar.',

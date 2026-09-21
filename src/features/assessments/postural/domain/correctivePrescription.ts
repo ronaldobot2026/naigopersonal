@@ -14,6 +14,14 @@ import type { FindingKind, FindingSide, PosturalFinding } from './correctivePres
 interface CorrectiveTargetLink {
   /** `target` do catálogo (vocabulário em inglês) — ver seção 2.2 da spec para a lista completa. */
   targetMuscles: string[]
+  /**
+   * Padrão de movimento do achado (seção 2.4 da spec), testado contra `originalName` (inglês) por
+   * `correctiveExerciseSelection.ts`. É conhecimento POR ACHADO, não global: uma lista global
+   * (`row`/`shrug`/`pull`) foi tentada e reprovada na validação de 21/09 — `pull` casava com
+   * exercícios de perna (`leg pull`, `rack pull`) e `shoulder_elevation`/`shoulder_depression`
+   * (correções opostas) devolviam a mesma sugestão. Cada achado tem seu próprio vocabulário aqui.
+   */
+  movementPatterns: string[]
   /** Justificativa em 1 linha, revisável pelo treinador — não é regra fixa. */
   rationale: string
 }
@@ -25,45 +33,55 @@ interface CorrectiveTargetLink {
 export const CORRECTIVE_TARGET_LINKS: Record<FindingKind, CorrectiveTargetLink> = {
   shoulder_elevation: {
     targetMuscles: ['traps', 'levator scapulae', 'delts'],
+    movementPatterns: ['row', 'shrug'],
     rationale:
       'Ombro elevado: fortalecer trapézio/deltoides com puxadas (ex.: remada alta, elevação puxada).',
   },
   shoulder_depression: {
     targetMuscles: ['delts', 'traps'],
+    movementPatterns: ['raise', 'press', 'fly'],
     rationale: 'Ombro deprimido: fortalecer deltoides e trapézio para sustentar a cintura escapular.',
   },
   hip_inclination: {
     targetMuscles: ['glutes', 'abs', 'adductors', 'abductors'],
+    movementPatterns: ['bridge', 'abduct', 'adduct', 'leg raise'],
     rationale: 'Quadril fora da horizontal: fortalecer glúteos/core/adutores-abdutores para estabilizar a pelve.',
   },
   head_forward: {
     // 'neck' é `bodyPart` no catálogo, não `target` — entra aqui para o fallback de bodyPart
     // (seção 3.2.6) alcançar exercícios de pescoço quando os alvos de `target` não bastarem.
     targetMuscles: ['levator scapulae', 'traps', 'neck'],
+    movementPatterns: ['chin', 'neck', 'shrug', 'row'],
     rationale: 'Cabeça anteriorizada: fortalecer musculatura cervical/escapular com retrações e encolhimentos.',
   },
   trunk_lateral_deviation: {
     targetMuscles: ['abs', 'spine', 'lats', 'upper back'],
+    movementPatterns: ['plank', 'dead bug', 'pallof', 'row'],
     rationale: 'Tronco inclinado: fortalecer core e dorsais para melhorar o controle postural do tronco.',
   },
   knee_hyperextension: {
     targetMuscles: ['hamstrings', 'glutes', 'quads'],
+    movementPatterns: ['curl', 'deadlift', 'bridge', 'good morning'],
     rationale: 'Hiperextensão de joelho: fortalecer posteriores de coxa e glúteos (ex.: flexora, stiff).',
   },
   knee_valgus: {
     targetMuscles: ['glutes', 'abductors', 'quads'],
+    movementPatterns: ['abduct', 'clamshell', 'squat', 'step'],
     rationale: 'Joelho valgo (para dentro): fortalecer glúteos/abdutores para melhorar o controle do joelho.',
   },
   knee_varus: {
     targetMuscles: ['adductors', 'quads'],
+    movementPatterns: ['adduct', 'sumo', 'squat'],
     rationale: 'Joelho varo (para fora): fortalecer adutores para equilibrar o alinhamento do joelho.',
   },
   pelvic_tilt_anterior: {
     targetMuscles: ['abs', 'glutes', 'hamstrings'],
+    movementPatterns: ['plank', 'bridge', 'dead bug', 'crunch'],
     rationale: 'Pelve anteriorizada: fortalecer core, glúteos e posteriores para reduzir a báscula anterior.',
   },
   pelvic_tilt_posterior: {
     targetMuscles: ['spine', 'quads', 'abs'],
+    movementPatterns: ['extension', 'hip', 'squat', 'good morning'],
     rationale: 'Pelve retrovertida: fortalecer extensores de tronco e quadríceps para reduzir a báscula posterior.',
   },
 }
