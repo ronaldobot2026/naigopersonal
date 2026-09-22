@@ -72,7 +72,7 @@ const JOINT_PATTERN_FINDING_KINDS = new Set<FindingKind>([
   'pelvic_tilt_posterior',
 ])
 
-function defaultSetsAndReps(kind: FindingKind): Pick<CorrectivePlanItem, 'sets' | 'reps'> {
+export function defaultSetsAndReps(kind: FindingKind): Pick<CorrectivePlanItem, 'sets' | 'reps'> {
   return JOINT_PATTERN_FINDING_KINDS.has(kind) ? { sets: 3, reps: '10-12' } : { sets: 3, reps: '12-15' }
 }
 

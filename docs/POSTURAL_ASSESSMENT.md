@@ -34,8 +34,13 @@ A avaliação exige **quatro capturas**, na ordem definida em `domain/posturalVi
 aparecem, quais instruções cada uma exibe e quais landmarks são analisados nas laterais
 (`SIDE_VIEW_LANDMARKS`). UI e domínio leem daqui — nenhuma lista literal de vistas é repetida.
 
-O componente `ViewChecklist` é o hub do fluxo: mostra o progresso (`X de 4`), o estado de cada
-vista (`Pendente` / `Refazer` / `Capturada`) e permite capturar ou rever qualquer uma delas.
+O fluxo tem três telas: consentimento → **envio das quatro fotos** (`PosturalPhotoUpload`) →
+**relatório** (`CorrectiveFindingsStep` + `PosturalViewMeasurements`). No envio, o caminho
+principal é a galeria: as quatro fotos de uma vez (entram na ordem frente → lateral esquerda →
+lateral direita → costas) ou uma a uma por vista; a câmera continua como opção por vista. Não há
+botão de "analisar": quando as quatro vistas estão cobertas, a análise roda sozinha
+(`domain/posturalBatchAnalysis.ts`), e o relatório aparece direto. Foto recusada no quality gate
+mantém o envio aberto, com o motivo naquela vista; trocar só ela reanalisa só ela.
 `domain/posturalSession.ts` concentra as regras de composição — recapturar uma vista substitui
 somente a captura e as métricas daquela vista, preservando a validação já feita nas demais.
 Uma avaliação só é considerada completa com as quatro vistas capturadas **e aprovadas** no
@@ -46,15 +51,16 @@ quality gate (`isPosturalAssessmentComplete`).
 Implementado:
 
 1. Consentimento explícito antes da câmera.
-2. Checklist das quatro vistas, com progresso e recaptura individual.
-3. Instruções de preparação específicas por vista.
-4. Permissão de câmera, com fallback de upload.
-5. Captura de um frame (foto congelada), com quality gate por vista.
-6. Processamento via Pose Landmarker (BlazePose, modo `IMAGE`).
-7. Overlay de skeleton + linhas de referência adaptadas à vista, com toggles.
-8. Métricas por vista (ver seção abaixo).
-9. Revisão/validação do treinador por métrica, agrupada por vista no resumo da avaliação.
-10. Persistência do rascunho no IndexedDB (sobrevive a reload de página).
+2. Envio das quatro fotos numa tela só (galeria em lote ou por vista; câmera opcional por vista).
+3. Análise automática das quatro fotos, sem etapa manual: quality gate por vista e reenvio só da
+   vista recusada.
+4. Processamento via Pose Landmarker (BlazePose, modo `IMAGE`).
+5. Relatório: pontos de atenção com o valor medido em destaque, exercícios sugeridos com
+   prescrição padrão, e medições completas por vista (foto com skeleton + linhas de referência,
+   quality gate e todas as métricas com valor).
+6. Métricas por vista (ver seção abaixo).
+7. Revisão/validação do treinador por métrica, dentro do relatório.
+8. Persistência do rascunho no IndexedDB (sobrevive a reload de página).
 
 Fora do escopo (Fase 3+): as demais métricas do MVP completo (simetria de joelhos/tornozelos,
 comparação bilateral entre as duas laterais, etc.), histórico e comparação entre avaliações,
@@ -87,18 +93,18 @@ tempo real (modo `VIDEO`), alguns estados foram consolidados:
 
 | Estado do enunciado           | Implementação                                                                                 |
 | ----------------------------- | --------------------------------------------------------------------------------------------- |
-| `idle`                        | Fases `consent` e `checklist` (hub das quatro vistas)                                         |
-| `loading_model`               | `usePoseLandmarker` → `status: 'loading'` (carregado em paralelo às instruções/consentimento) |
-| `requesting_permission`       | `useCameraStream` → `status: 'requesting'`, exibido via `CameraPermissionState`               |
-| `permission_denied`           | `useCameraStream` → `status: 'denied'`                                                        |
+| `idle`                        | Fases `consent` e `upload` (envio das quatro fotos)                                           |
+| `loading_model`               | `usePoseLandmarker` → `status: 'loading'`; a análise espera o modelo antes de disparar        |
+| `requesting_permission`       | Só no caminho opcional da câmera: `useCameraStream` → `status: 'requesting'`                  |
+| `permission_denied`           | `useCameraStream` → `status: 'denied'` (oferece enviar da galeria)                            |
 | `camera_unavailable`          | `useCameraStream` → `status: 'unavailable'` (sem `getUserMedia` ou sem dispositivo)           |
-| `model_ready` + `positioning` | Fase `capture`: câmera ativa, modelo pronto, usuário se posiciona com o guia de silhueta      |
-| `detecting`                   | Não existe como estado contínuo neste MVP — a detecção roda uma vez, disparada pela captura   |
-| `capturing`                   | Botão "Capturar" pressionado, frame sendo extraído do vídeo                                   |
-| `processing`                  | Fase `processing`: `detect()` + quality gate + cálculo de métricas rodando                    |
-| `low_quality`                 | Fase `review` com `quality.passed === false`: motivos exibidos, oferece "Tentar novamente"    |
-| `success`                     | Fase `review` com `quality.passed === true`: skeleton + métricas exibidos para validação      |
-| `error`                       | `ErrorState` renderizado sobre falha de carregamento do modelo ou de processamento da captura |
+| `model_ready` + `positioning` | Fase `camera` (opcional): câmera ativa com guia de silhueta                                   |
+| `detecting`                   | Não existe como estado contínuo — a detecção roda uma vez por foto                            |
+| `capturing`                   | Botão "Capturar" pressionado na fase `camera`                                                 |
+| `processing`                  | `analyzingView` no envio: lote analisado em sequência, com progresso por vista               |
+| `low_quality`                 | Vista marcada "Enviar outra" no envio, com os motivos do quality gate                         |
+| `success`                     | Fase `report`: relatório completo, aberto automaticamente                                     |
+| `error`                       | Erro por vista no envio (foto não processável) ou `ErrorState` se o modelo não carregar      |
 
 Ver `src/features/assessments/postural/components/PosturalAssessmentFlow.tsx` para a máquina de
 estados completa.

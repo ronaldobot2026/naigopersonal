@@ -1,45 +1,41 @@
-import { useCallback, useState } from 'react'
-import { ErrorState } from '@/components/feedback/ErrorState'
-import { LoadingState } from '@/components/feedback/LoadingState'
-import { savePhoto } from '@/lib/storage/photoStorage'
-import { toDomainLandmarks } from '../domain/landmarks'
-import { computeMetricsForView } from '../domain/metrics'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Button } from '@/components/ui/Button'
+import {
+  analyzePosturalPhotos,
+  assignPhotosToViews,
+  isReadyForAutomaticAnalysis,
+  type PendingPhotos,
+} from '../domain/posturalBatchAnalysis'
 import {
   POSTURAL_PROCESSING_VERSION,
   type PosturalAssessment,
-  type PosturalCapture,
-  type PosturalMetric,
   type PosturalView,
 } from '../domain/posturalAssessment.types'
-import {
-  getCaptureForView,
-  getMetricsForView,
-  replaceMetrics,
-  upsertViewCapture,
-} from '../domain/posturalSession'
-import { evaluateCaptureQuality } from '../domain/qualityGate'
+import { getCaptureForView, isPosturalAssessmentComplete } from '../domain/posturalSession'
+import { POSTURAL_VIEWS } from '../domain/posturalViews'
+import { useCorrectivePrescription } from '../hooks/useCorrectivePrescription'
 import { usePoseLandmarker } from '../hooks/usePoseLandmarker'
+import { usePublishCorrectivePlan } from '../hooks/usePublishCorrectivePlan'
+import { createPosturalPhotoAnalyzer } from '../services/posturalPhotoAnalyzer'
 import { CameraCapture } from './CameraCapture'
-import { CaptureInstructions } from './CaptureInstructions'
-import { CaptureReview } from './CaptureReview'
 import { ConsentStep } from './ConsentStep'
 import { CorrectiveFindingsStep } from './CorrectiveFindingsStep'
-import { ViewChecklist } from './ViewChecklist'
-import { useCorrectivePrescription } from '../hooks/useCorrectivePrescription'
-import { usePublishCorrectivePlan } from '../hooks/usePublishCorrectivePlan'
+import { PosturalPhotoUpload, type PhotoSlot } from './PosturalPhotoUpload'
+import { PosturalViewMeasurements } from './PosturalViewMeasurements'
 
 /**
- * Estados de UI mapeados a partir da lista completa exigida (idle, requesting_permission,
- * permission_denied, loading_model, model_ready, positioning, detecting, low_quality,
- * capturing, processing, success, error, camera_unavailable) — ver docs/POSTURAL_ASSESSMENT.md
- * para a tabela de correspondência. Alguns estados são consolidados porque este MVP processa
- * uma captura de cada vez (modo IMAGE), não um stream contínuo (modo VIDEO).
+ * Fluxo da avaliação postural em três telas (docs/POSTURAL_ASSESSMENT.md):
  *
- * O protocolo exige quatro capturas (frente, lateral esquerda, lateral direita e costas):
- * `checklist` é o hub que mostra o progresso e escolhe qual vista capturar; as demais fases
- * operam sempre sobre a vista ativa (`activeView`).
+ * - `consent`: autorização de uso da imagem;
+ * - `upload`: as quatro fotos numa tela só (galeria em lote ou por vista; câmera como opção em
+ *   `camera`). Quando as quatro vistas estão cobertas, a análise roda sozinha, sem botão;
+ * - `report`: relatório completo — pontos de atenção com o ângulo em destaque, exercícios
+ *   sugeridos, medições por vista (foto + skeleton + todas as métricas) e publicação do plano.
+ *
+ * Foto recusada no quality gate ou que falhou no processamento mantém o fluxo em `upload`,
+ * mostrando o motivo naquela vista; trocar só ela reanalisa só ela.
  */
-type Phase = 'consent' | 'checklist' | 'instructions' | 'capture' | 'processing' | 'review' | 'findings'
+type Phase = 'consent' | 'upload' | 'camera' | 'report'
 
 type PosturalAssessmentFlowProps = {
   assessmentId: string
@@ -50,6 +46,32 @@ type PosturalAssessmentFlowProps = {
   onChange: (assessment: PosturalAssessment) => void
 }
 
+function initialPhase(assessment: PosturalAssessment | undefined): Phase {
+  if (!assessment?.consentAccepted) return 'consent'
+  return isPosturalAssessmentComplete(assessment) ? 'report' : 'upload'
+}
+
+/** Miniaturas das fotos ainda não analisadas; as Object URLs são revogadas quando o lote muda. */
+function usePreviewUrls(photos: PendingPhotos): Partial<Record<PosturalView, string>> {
+  const urls = useMemo(() => {
+    const next: Partial<Record<PosturalView, string>> = {}
+    for (const view of POSTURAL_VIEWS) {
+      const photo = photos[view]
+      if (photo) next[view] = URL.createObjectURL(photo)
+    }
+    return next
+  }, [photos])
+
+  useEffect(
+    () => () => {
+      for (const url of Object.values(urls)) URL.revokeObjectURL(url)
+    },
+    [urls],
+  )
+
+  return urls
+}
+
 export function PosturalAssessmentFlow({
   assessmentId,
   studentId,
@@ -57,14 +79,20 @@ export function PosturalAssessmentFlow({
   posturalAssessment,
   onChange,
 }: PosturalAssessmentFlowProps) {
-  const [phase, setPhase] = useState<Phase>(() =>
-    posturalAssessment?.consentAccepted ? 'checklist' : 'consent',
-  )
-  const [activeView, setActiveView] = useState<PosturalView>('front')
-  const [processingError, setProcessingError] = useState<string | null>(null)
+  const [phase, setPhase] = useState<Phase>(() => initialPhase(posturalAssessment))
+  const [cameraView, setCameraView] = useState<PosturalView>('front')
+  const [pending, setPending] = useState<PendingPhotos>({})
+  const [analyzingView, setAnalyzingView] = useState<PosturalView | null>(null)
+  const [errors, setErrors] = useState<Partial<Record<PosturalView, string>>>({})
+  const analyzingRef = useRef(false)
+  const mountedRef = useRef(true)
 
   const { status: modelStatus, detect } = usePoseLandmarker()
-  const activeCapture = getCaptureForView(posturalAssessment, activeView)
+  const analyzer = useMemo(
+    () => createPosturalPhotoAnalyzer({ assessmentId, detect }),
+    [assessmentId, detect],
+  )
+  const previewUrls = usePreviewUrls(pending)
   const { status: correctiveStatus, suggestions, errorMessage: correctiveError } =
     useCorrectivePrescription(posturalAssessment)
   const {
@@ -74,153 +102,126 @@ export function PosturalAssessmentFlow({
     reset: resetPublish,
   } = usePublishCorrectivePlan()
 
-  // Cada entrada na tela de achados parte de "não publicado": as sugestões podem ter mudado
-  // (vista refeita, métrica editada) desde a última publicação, e confirmar de novo seria mentir.
-  const handleViewFindings = useCallback(() => {
-    resetPublish()
-    setPhase('findings')
-  }, [resetPublish])
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
-  const handlePublish = useCallback(() => {
-    void publish({ suggestions, assessmentId, studentId, evaluatorId })
-  }, [assessmentId, evaluatorId, publish, studentId, suggestions])
+  // Análise automática: dispara assim que as quatro vistas estão cobertas e o modelo carregou.
+  useEffect(() => {
+    if (phase !== 'upload' || modelStatus !== 'ready' || analyzingRef.current) return
+    if (!isReadyForAutomaticAnalysis(posturalAssessment, pending)) return
+
+    analyzingRef.current = true
+    void analyzePosturalPhotos(posturalAssessment, pending, analyzer, setAnalyzingView).then(
+      ({ assessment, errors: batchErrors }) => {
+        analyzingRef.current = false
+        if (!mountedRef.current) return
+        setAnalyzingView(null)
+        setPending({})
+        setErrors(batchErrors)
+        onChange(assessment)
+        if (isPosturalAssessmentComplete(assessment)) {
+          // Relatório novo parte de "não publicado": as sugestões podem ter mudado.
+          resetPublish()
+          setPhase('report')
+        }
+      },
+    )
+  }, [analyzer, modelStatus, onChange, pending, phase, posturalAssessment, resetPublish])
+
+  const selectPhotos = useCallback((assigned: PendingPhotos) => {
+    setPending((current) => ({ ...current, ...assigned }))
+    setErrors((current) => {
+      const next = { ...current }
+      for (const view of Object.keys(assigned) as PosturalView[]) delete next[view]
+      return next
+    })
+  }, [])
 
   const handleConsentAccept = useCallback(() => {
-    onChange({
+    const accepted: PosturalAssessment = {
       consentAccepted: true,
       captures: posturalAssessment?.captures ?? [],
       metrics: posturalAssessment?.metrics ?? [],
       processingVersion: POSTURAL_PROCESSING_VERSION,
       trainerSummary: posturalAssessment?.trainerSummary,
-    })
-    setPhase('checklist')
+    }
+    onChange(accepted)
+    setPhase(initialPhase(accepted))
   }, [onChange, posturalAssessment])
 
-  const handleSelectView = useCallback(
-    (view: PosturalView) => {
-      setActiveView(view)
-      setProcessingError(null)
-      setPhase(getCaptureForView(posturalAssessment, view) ? 'review' : 'instructions')
-    },
-    [posturalAssessment],
-  )
-
-  const handleCaptured = useCallback(
-    async (blob: Blob) => {
-      setPhase('processing')
-      setProcessingError(null)
-      try {
-        const bitmap = await createImageBitmap(blob)
-        const result = await detect(bitmap)
-        bitmap.close()
-
-        const landmarks = toDomainLandmarks(result.landmarks)
-        const quality = evaluateCaptureQuality(landmarks, activeView)
-        const metrics = computeMetricsForView(landmarks, quality, activeView)
-
-        const storageKey = `${assessmentId}.postural.${activeView}`
-        await savePhoto(storageKey, blob)
-
-        const capture: PosturalCapture = {
-          id: crypto.randomUUID(),
-          view: activeView,
-          imageReference: storageKey,
-          createdAt: new Date().toISOString(),
-          quality,
-          landmarks: result.landmarks,
-        }
-
-        onChange(upsertViewCapture(posturalAssessment, capture, metrics))
-        setPhase('review')
-      } catch {
-        setProcessingError(
-          'Não foi possível processar a imagem. Tente novamente com melhor iluminação e enquadramento.',
-        )
-        setPhase('capture')
-      }
-    },
-    [activeView, assessmentId, detect, onChange, posturalAssessment],
-  )
-
-  const handleMetricsChange = useCallback(
-    (metrics: PosturalMetric[]) => {
-      if (!posturalAssessment) return
-      onChange(replaceMetrics(posturalAssessment, metrics))
-    },
-    [onChange, posturalAssessment],
-  )
+  const handlePublish = useCallback(() => {
+    void publish({ suggestions, assessmentId, studentId, evaluatorId })
+  }, [assessmentId, evaluatorId, publish, studentId, suggestions])
 
   if (phase === 'consent') {
     return <ConsentStep onAccept={handleConsentAccept} />
   }
 
-  if (phase === 'checklist') {
-    return (
-      <ViewChecklist
-        assessment={posturalAssessment}
-        onSelectView={handleSelectView}
-        onViewFindings={handleViewFindings}
-      />
-    )
-  }
-
-  if (phase === 'instructions') {
-    return (
-      <CaptureInstructions
-        view={activeView}
-        onContinue={() => setPhase('capture')}
-        onBack={() => setPhase('checklist')}
-      />
-    )
-  }
-
-  if (phase === 'capture') {
+  if (phase === 'camera') {
     return (
       <div className="flex flex-col gap-4">
-        {modelStatus === 'loading' && <LoadingState label="Carregando modelo de pose…" />}
-        {modelStatus === 'error' && (
-          <ErrorState
-            title="Não foi possível carregar o modelo de pose"
-            description="Verifique sua conexão com a internet e tente novamente."
-          />
-        )}
-        {processingError && (
-          <ErrorState title="Falha ao processar a captura" description={processingError} />
-        )}
-        <CameraCapture view={activeView} onCaptured={(blob) => void handleCaptured(blob)} />
+        <CameraCapture
+          view={cameraView}
+          onCaptured={(blob) => {
+            selectPhotos({ [cameraView]: blob })
+            setPhase('upload')
+          }}
+        />
+        <Button variant="secondary" onClick={() => setPhase('upload')} className="self-center">
+          Voltar às fotos
+        </Button>
       </div>
     )
   }
 
-  if (phase === 'processing') {
-    return <LoadingState label="Processando pose…" />
-  }
-
-  if (phase === 'review' && activeCapture) {
-    return (
-      <CaptureReview
-        capture={activeCapture}
-        metrics={getMetricsForView(posturalAssessment, activeView)}
-        onMetricsChange={handleMetricsChange}
-        onRetake={() => setPhase('capture')}
-        onBack={() => setPhase('checklist')}
-      />
-    )
-  }
-
-  if (phase === 'findings') {
+  if (phase === 'report' && posturalAssessment) {
     return (
       <CorrectiveFindingsStep
         suggestions={suggestions}
         status={correctiveStatus}
         errorMessage={correctiveError}
-        onBack={() => setPhase('checklist')}
+        onRetakePhotos={() => setPhase('upload')}
         onPublish={handlePublish}
         publishStatus={publishStatus}
         publishErrorMessage={publishError}
+        measurements={
+          <PosturalViewMeasurements assessment={posturalAssessment} onMetricsChange={onChange} />
+        }
       />
     )
   }
 
-  return <LoadingState />
+  const analyzingIndex = analyzingView ? POSTURAL_VIEWS.indexOf(analyzingView) : -1
+  const slots: PhotoSlot[] = POSTURAL_VIEWS.map((view, index) => {
+    const capture = getCaptureForView(posturalAssessment, view)
+    const previewUrl = previewUrls[view]
+    if (view === analyzingView) return { view, status: 'analyzing', previewUrl }
+    if (pending[view]) {
+      // O lote roda na ordem canônica: as vistas antes da atual já foram analisadas.
+      return { view, status: index < analyzingIndex ? 'done' : 'selected', previewUrl }
+    }
+    const error = errors[view]
+    if (error) return { view, status: 'error', messages: [error] }
+    if (capture?.quality.passed) return { view, status: 'done' }
+    if (capture) return { view, status: 'low_quality', messages: capture.quality.reasons }
+    return { view, status: 'empty' }
+  })
+
+  return (
+    <PosturalPhotoUpload
+      slots={slots}
+      modelStatus={modelStatus}
+      analyzingView={analyzingView}
+      onSelectPhotos={(files) => selectPhotos(assignPhotosToViews(files, posturalAssessment, pending))}
+      onSelectPhoto={(view, file) => selectPhotos({ [view]: file })}
+      onUseCamera={(view) => {
+        setCameraView(view)
+        setPhase('camera')
+      }}
+    />
+  )
 }

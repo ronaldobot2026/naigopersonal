@@ -57,7 +57,7 @@ function renderStep(props: Partial<ComponentProps<typeof CorrectiveFindingsStep>
     <CorrectiveFindingsStep
       suggestions={[]}
       status="ready"
-      onBack={() => {}}
+      onRetakePhotos={() => {}}
       onPublish={() => {}}
       publishStatus="idle"
       {...props}
@@ -101,12 +101,49 @@ describe('CorrectiveFindingsStep', () => {
     expect(screen.getByText(/não é diagnóstico/i)).toBeInTheDocument()
   })
 
-  it('chama onBack ao voltar para o checklist', () => {
-    const onBack = vi.fn()
-    renderStep({ onBack })
+  it('chama onRetakePhotos ao pedir para refazer as fotos', () => {
+    const onRetakePhotos = vi.fn()
+    renderStep({ onRetakePhotos })
 
-    screen.getByRole('button', { name: /voltar/i }).click()
-    expect(onBack).toHaveBeenCalledTimes(1)
+    screen.getByRole('button', { name: /refazer fotos/i }).click()
+    expect(onRetakePhotos).toHaveBeenCalledTimes(1)
+  })
+
+  describe('relatório', () => {
+    it('destaca o ângulo medido de cada ponto de atenção, junto do nome e da vista', () => {
+      const suggestion = buildSuggestion('head_forward', ['0001'])
+      suggestion.finding.measuredValue = 26.63
+      suggestion.finding.view = 'left_side'
+      renderStep({ suggestions: [suggestion] })
+
+      const card = screen.getByRole('article', { name: 'Cabeça anteriorizada' })
+      expect(card).toHaveTextContent('26,6°')
+      expect(card).toHaveTextContent(/lateral esquerda/i)
+    })
+
+    it('resume quantos pontos de atenção foram encontrados', () => {
+      renderStep({
+        suggestions: [buildSuggestion('head_forward', ['0001']), buildSuggestion('knee_hyperextension', ['0002'])],
+      })
+
+      expect(screen.getByText(/2 pontos de atenção/i)).toBeInTheDocument()
+    })
+
+    it('mostra a prescrição padrão de cada exercício sugerido', () => {
+      renderStep({
+        suggestions: [buildSuggestion('shoulder_elevation', ['0001']), buildSuggestion('knee_hyperextension', ['0002'])],
+      })
+
+      expect(screen.getByRole('article', { name: 'Ombro elevado' })).toHaveTextContent('3 × 12-15')
+      expect(screen.getByRole('article', { name: 'Hiperextensão do joelho' })).toHaveTextContent('3 × 10-12')
+    })
+
+    it('inclui as medições completas por vista quando fornecidas', () => {
+      renderStep({ measurements: <p>medições por vista aqui</p> })
+
+      expect(screen.getByRole('heading', { name: /medições por vista/i })).toBeInTheDocument()
+      expect(screen.getByText('medições por vista aqui')).toBeInTheDocument()
+    })
   })
 
   describe('publicação do plano corretivo', () => {
@@ -149,7 +186,7 @@ describe('CorrectiveFindingsStep', () => {
         <CorrectiveFindingsStep
           suggestions={suggestions}
           status="ready"
-          onBack={() => {}}
+          onRetakePhotos={() => {}}
           onPublish={() => {}}
           publishStatus="success"
         />,
