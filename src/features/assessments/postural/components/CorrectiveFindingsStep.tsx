@@ -3,12 +3,17 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { FINDING_KIND_LABEL, type FindingSuggestion } from '../domain/correctivePlan'
+import type { PublishCorrectivePlanStatus } from '../hooks/usePublishCorrectivePlan'
 
 type CorrectiveFindingsStepProps = {
   suggestions: FindingSuggestion[]
   status: 'loading' | 'ready' | 'error'
   errorMessage?: string
   onBack: () => void
+  /** Publicar é ação explícita do treinador (seção 6 da spec) — nada vai pro aluno sozinho. */
+  onPublish: () => void
+  publishStatus: PublishCorrectivePlanStatus
+  publishErrorMessage?: string
 }
 
 /**
@@ -25,7 +30,14 @@ export function CorrectiveFindingsStep({
   status,
   errorMessage,
   onBack,
+  onPublish,
+  publishStatus,
+  publishErrorMessage,
 }: CorrectiveFindingsStepProps) {
+  // Um plano sem nenhum exercício não tem o que entregar ao aluno — não oferece publicar vazio.
+  const hasExercises = suggestions.some(({ selection }) => selection.exercises.length > 0)
+  const isPublishing = publishStatus === 'saving'
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -88,10 +100,28 @@ export function CorrectiveFindingsStep({
         é sempre validado pelo profissional.
       </p>
 
-      <div>
+      {publishStatus === 'success' && (
+        <p role="status" className="text-sm text-success">
+          Plano corretivo publicado para o aluno.
+        </p>
+      )}
+
+      {publishStatus === 'error' && (
+        <div role="alert" className="flex flex-col gap-1 text-sm text-error">
+          <p>Não foi possível publicar o plano corretivo.</p>
+          {publishErrorMessage && <p className="font-mono text-xs">{publishErrorMessage}</p>}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-3">
         <Button variant="secondary" onClick={onBack}>
           Voltar às capturas
         </Button>
+        {status === 'ready' && (
+          <Button onClick={onPublish} disabled={!hasExercises || isPublishing}>
+            {isPublishing ? 'Publicando…' : 'Publicar plano corretivo'}
+          </Button>
+        )}
       </div>
     </div>
   )

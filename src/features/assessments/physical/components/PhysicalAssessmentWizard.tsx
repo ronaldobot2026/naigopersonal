@@ -122,6 +122,8 @@ export function PhysicalAssessmentWizard({
         <Tabs.Panel value="postural">
           <PosturalAssessmentFlow
             assessmentId={assessment.id}
+            studentId={assessment.studentId}
+            evaluatorId={assessment.evaluatorId}
             posturalAssessment={assessment.posturalAssessment}
             onChange={(posturalAssessment) => onUpdate({ posturalAssessment })}
           />

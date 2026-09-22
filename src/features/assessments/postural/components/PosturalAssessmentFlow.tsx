@@ -26,6 +26,7 @@ import { ConsentStep } from './ConsentStep'
 import { CorrectiveFindingsStep } from './CorrectiveFindingsStep'
 import { ViewChecklist } from './ViewChecklist'
 import { useCorrectivePrescription } from '../hooks/useCorrectivePrescription'
+import { usePublishCorrectivePlan } from '../hooks/usePublishCorrectivePlan'
 
 /**
  * Estados de UI mapeados a partir da lista completa exigida (idle, requesting_permission,
@@ -42,12 +43,17 @@ type Phase = 'consent' | 'checklist' | 'instructions' | 'capture' | 'processing'
 
 type PosturalAssessmentFlowProps = {
   assessmentId: string
+  studentId: string
+  /** Treinador autenticado (`auth.uid()`) — a RLS de `corrective_plans` exige que seja ele o autor. */
+  evaluatorId: string
   posturalAssessment: PosturalAssessment | undefined
   onChange: (assessment: PosturalAssessment) => void
 }
 
 export function PosturalAssessmentFlow({
   assessmentId,
+  studentId,
+  evaluatorId,
   posturalAssessment,
   onChange,
 }: PosturalAssessmentFlowProps) {
@@ -61,6 +67,23 @@ export function PosturalAssessmentFlow({
   const activeCapture = getCaptureForView(posturalAssessment, activeView)
   const { status: correctiveStatus, suggestions, errorMessage: correctiveError } =
     useCorrectivePrescription(posturalAssessment)
+  const {
+    status: publishStatus,
+    errorMessage: publishError,
+    publish,
+    reset: resetPublish,
+  } = usePublishCorrectivePlan()
+
+  // Cada entrada na tela de achados parte de "não publicado": as sugestões podem ter mudado
+  // (vista refeita, métrica editada) desde a última publicação, e confirmar de novo seria mentir.
+  const handleViewFindings = useCallback(() => {
+    resetPublish()
+    setPhase('findings')
+  }, [resetPublish])
+
+  const handlePublish = useCallback(() => {
+    void publish({ suggestions, assessmentId, studentId, evaluatorId })
+  }, [assessmentId, evaluatorId, publish, studentId, suggestions])
 
   const handleConsentAccept = useCallback(() => {
     onChange({
@@ -136,7 +159,7 @@ export function PosturalAssessmentFlow({
       <ViewChecklist
         assessment={posturalAssessment}
         onSelectView={handleSelectView}
-        onViewFindings={() => setPhase('findings')}
+        onViewFindings={handleViewFindings}
       />
     )
   }
@@ -192,6 +215,9 @@ export function PosturalAssessmentFlow({
         status={correctiveStatus}
         errorMessage={correctiveError}
         onBack={() => setPhase('checklist')}
+        onPublish={handlePublish}
+        publishStatus={publishStatus}
+        publishErrorMessage={publishError}
       />
     )
   }

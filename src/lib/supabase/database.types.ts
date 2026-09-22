@@ -83,6 +83,119 @@ export type Database = {
           },
         ]
       }
+      corrective_plan_items: {
+        Row: {
+          exercise_id: string
+          exercise_name: string
+          finding_id: string
+          id: string
+          origin: string
+          plan_id: string
+          reps: string
+          sets: number
+          target_muscles: string[]
+          trainer_note: string | null
+          validation: string
+        }
+        Insert: {
+          exercise_id: string
+          exercise_name: string
+          finding_id: string
+          id?: string
+          origin: string
+          plan_id: string
+          reps: string
+          sets: number
+          target_muscles?: string[]
+          trainer_note?: string | null
+          validation?: string
+        }
+        Update: {
+          exercise_id?: string
+          exercise_name?: string
+          finding_id?: string
+          id?: string
+          origin?: string
+          plan_id?: string
+          reps?: string
+          sets?: number
+          target_muscles?: string[]
+          trainer_note?: string | null
+          validation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corrective_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "corrective_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      // corrective_plans / corrective_plan_items: adicionadas à mão (supabase gen types precisa
+      // de CLI autenticado/linkado, indisponível neste ambiente) a partir de
+      // supabase/migrations/20260922120000_corrective_plans.sql. Regenerar via
+      // `supabase gen types typescript --linked` assim que houver acesso, para substituir por
+      // esta entrada gerada de verdade.
+      corrective_plans: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          evaluator_id: string
+          findings: Json
+          id: string
+          prescription_version: string
+          published_at: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          evaluator_id: string
+          findings?: Json
+          id?: string
+          prescription_version: string
+          published_at?: string | null
+          status?: string
+          student_id: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          evaluator_id?: string
+          findings?: Json
+          id?: string
+          prescription_version?: string
+          published_at?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corrective_plans_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "physical_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_plans_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corrective_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       body_metrics: {
         Row: {
           assessment_id: string | null

@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { ComponentProps } from 'react'
 import type { Exercise } from '@/features/workouts/domain/exercise.types'
 import type { FindingSuggestion } from '../domain/correctivePlan'
 import type { PosturalFinding } from '../domain/correctivePrescription.types'
@@ -50,13 +51,25 @@ function buildSuggestion(
   }
 }
 
+/** Render com os props obrigatórios já preenchidos — cada teste sobrescreve só o que importa. */
+function renderStep(props: Partial<ComponentProps<typeof CorrectiveFindingsStep>> = {}) {
+  return render(
+    <CorrectiveFindingsStep
+      suggestions={[]}
+      status="ready"
+      onBack={() => {}}
+      onPublish={() => {}}
+      publishStatus="idle"
+      {...props}
+    />,
+  )
+}
+
 describe('CorrectiveFindingsStep', () => {
   it('lista cada achado com evidência, justificativa e exercícios sugeridos', () => {
     const suggestions = [buildSuggestion('shoulder_elevation', ['0001', '0002'])]
 
-    render(
-      <CorrectiveFindingsStep suggestions={suggestions} status="ready" onBack={() => {}} />,
-    )
+    renderStep({ suggestions })
 
     expect(screen.getByText('Ombro elevado')).toBeInTheDocument()
     expect(screen.getByText('evidência de shoulder_elevation')).toBeInTheDocument()
@@ -66,7 +79,7 @@ describe('CorrectiveFindingsStep', () => {
   })
 
   it('mostra mensagem neutra quando não há achados', () => {
-    render(<CorrectiveFindingsStep suggestions={[]} status="ready" onBack={() => {}} />)
+    renderStep()
 
     expect(screen.getByText(/nenhuma alteração relevante/i)).toBeInTheDocument()
   })
@@ -76,23 +89,84 @@ describe('CorrectiveFindingsStep', () => {
     suggestion.selection.fallback = 'empty'
     suggestion.selection.notice = 'Nenhum exercício do catálogo atende a este achado.'
 
-    render(<CorrectiveFindingsStep suggestions={[suggestion]} status="ready" onBack={() => {}} />)
+    renderStep({ suggestions: [suggestion] })
 
     expect(screen.getByText('Cabeça anteriorizada')).toBeInTheDocument()
     expect(screen.getByText(/nenhum exercício do catálogo atende/i)).toBeInTheDocument()
   })
 
   it('declara explicitamente que nada ali é diagnóstico médico', () => {
-    render(<CorrectiveFindingsStep suggestions={[]} status="ready" onBack={() => {}} />)
+    renderStep()
 
     expect(screen.getByText(/não é diagnóstico/i)).toBeInTheDocument()
   })
 
   it('chama onBack ao voltar para o checklist', () => {
     const onBack = vi.fn()
-    render(<CorrectiveFindingsStep suggestions={[]} status="ready" onBack={onBack} />)
+    renderStep({ onBack })
 
     screen.getByRole('button', { name: /voltar/i }).click()
     expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
+  describe('publicação do plano corretivo', () => {
+    it('chama onPublish ao clicar em "Publicar plano corretivo"', () => {
+      const onPublish = vi.fn()
+      renderStep({ suggestions: [buildSuggestion('shoulder_elevation', ['0001'])], onPublish })
+
+      screen.getByRole('button', { name: /publicar plano corretivo/i }).click()
+      expect(onPublish).toHaveBeenCalledTimes(1)
+    })
+
+    it('desabilita a publicação quando não há nenhum exercício sugerido', () => {
+      const suggestion = buildSuggestion('head_forward', [])
+      renderStep({ suggestions: [suggestion] })
+
+      expect(screen.getByRole('button', { name: /publicar plano corretivo/i })).toBeDisabled()
+    })
+
+    it('não oferece publicação enquanto as sugestões ainda carregam', () => {
+      renderStep({ status: 'loading' })
+
+      expect(screen.queryByRole('button', { name: /publicar plano corretivo/i })).not.toBeInTheDocument()
+    })
+
+    it('mostra "Publicando…" e bloqueia novo clique enquanto salva', () => {
+      renderStep({
+        suggestions: [buildSuggestion('shoulder_elevation', ['0001'])],
+        publishStatus: 'saving',
+      })
+
+      expect(screen.getByRole('button', { name: /publicando/i })).toBeDisabled()
+    })
+
+    it('só confirma a publicação quando o status é success', () => {
+      const suggestions = [buildSuggestion('shoulder_elevation', ['0001'])]
+      const { rerender } = renderStep({ suggestions })
+      expect(screen.queryByText(/plano corretivo publicado/i)).not.toBeInTheDocument()
+
+      rerender(
+        <CorrectiveFindingsStep
+          suggestions={suggestions}
+          status="ready"
+          onBack={() => {}}
+          onPublish={() => {}}
+          publishStatus="success"
+        />,
+      )
+      expect(screen.getByText(/plano corretivo publicado/i)).toBeInTheDocument()
+    })
+
+    it('mostra o erro real da publicação e mantém o botão disponível para tentar de novo', () => {
+      renderStep({
+        suggestions: [buildSuggestion('shoulder_elevation', ['0001'])],
+        publishStatus: 'error',
+        publishErrorMessage: 'permission denied for table corrective_plans',
+      })
+
+      expect(screen.getByText(/não foi possível publicar/i)).toBeInTheDocument()
+      expect(screen.getByText('permission denied for table corrective_plans')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /publicar plano corretivo/i })).toBeEnabled()
+    })
   })
 })
