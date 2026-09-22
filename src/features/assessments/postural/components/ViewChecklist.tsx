@@ -10,6 +10,7 @@ import { POSTURAL_VIEWS, getPosturalViewDefinition } from '../domain/posturalVie
 type ViewChecklistProps = {
   assessment: PosturalAssessment | undefined
   onSelectView: (view: PosturalView) => void
+  onViewFindings: () => void
 }
 
 type ViewStatus = 'pending' | 'low_quality' | 'done'
@@ -48,7 +49,7 @@ function statusForView(assessment: PosturalAssessment | undefined, view: Postura
  * Painel de controle das quatro capturas exigidas pelo protocolo. Mostra o progresso,
  * permite escolher qual vista capturar e refazer qualquer uma já concluída.
  */
-export function ViewChecklist({ assessment, onSelectView }: ViewChecklistProps) {
+export function ViewChecklist({ assessment, onSelectView, onViewFindings }: ViewChecklistProps) {
   const statuses = POSTURAL_VIEWS.map((view) => ({ view, status: statusForView(assessment, view) }))
   const doneCount = statuses.filter((item) => item.status === 'done').length
   const nextPending = statuses.find((item) => item.status !== 'done')?.view
@@ -111,10 +112,12 @@ export function ViewChecklist({ assessment, onSelectView }: ViewChecklistProps) 
           Continuar com {getPosturalViewDefinition(nextPending).label.toLowerCase()}
         </Button>
       ) : (
-        <p className="text-center text-sm text-success">
-          As quatro vistas foram capturadas e aprovadas. Revise as métricas de cada uma antes de
-          concluir a avaliação.
-        </p>
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-center text-sm text-success">
+            As quatro vistas foram capturadas e aprovadas.
+          </p>
+          <Button onClick={onViewFindings}>Ver achados e correção sugerida</Button>
+        </div>
       )}
     </div>
   )

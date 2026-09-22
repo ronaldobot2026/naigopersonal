@@ -23,7 +23,9 @@ import { CameraCapture } from './CameraCapture'
 import { CaptureInstructions } from './CaptureInstructions'
 import { CaptureReview } from './CaptureReview'
 import { ConsentStep } from './ConsentStep'
+import { CorrectiveFindingsStep } from './CorrectiveFindingsStep'
 import { ViewChecklist } from './ViewChecklist'
+import { useCorrectivePrescription } from '../hooks/useCorrectivePrescription'
 
 /**
  * Estados de UI mapeados a partir da lista completa exigida (idle, requesting_permission,
@@ -36,7 +38,7 @@ import { ViewChecklist } from './ViewChecklist'
  * `checklist` é o hub que mostra o progresso e escolhe qual vista capturar; as demais fases
  * operam sempre sobre a vista ativa (`activeView`).
  */
-type Phase = 'consent' | 'checklist' | 'instructions' | 'capture' | 'processing' | 'review'
+type Phase = 'consent' | 'checklist' | 'instructions' | 'capture' | 'processing' | 'review' | 'findings'
 
 type PosturalAssessmentFlowProps = {
   assessmentId: string
@@ -57,6 +59,8 @@ export function PosturalAssessmentFlow({
 
   const { status: modelStatus, detect } = usePoseLandmarker()
   const activeCapture = getCaptureForView(posturalAssessment, activeView)
+  const { status: correctiveStatus, suggestions, errorMessage: correctiveError } =
+    useCorrectivePrescription(posturalAssessment)
 
   const handleConsentAccept = useCallback(() => {
     onChange({
@@ -128,7 +132,13 @@ export function PosturalAssessmentFlow({
   }
 
   if (phase === 'checklist') {
-    return <ViewChecklist assessment={posturalAssessment} onSelectView={handleSelectView} />
+    return (
+      <ViewChecklist
+        assessment={posturalAssessment}
+        onSelectView={handleSelectView}
+        onViewFindings={() => setPhase('findings')}
+      />
+    )
   }
 
   if (phase === 'instructions') {
@@ -170,6 +180,17 @@ export function PosturalAssessmentFlow({
         metrics={getMetricsForView(posturalAssessment, activeView)}
         onMetricsChange={handleMetricsChange}
         onRetake={() => setPhase('capture')}
+        onBack={() => setPhase('checklist')}
+      />
+    )
+  }
+
+  if (phase === 'findings') {
+    return (
+      <CorrectiveFindingsStep
+        suggestions={suggestions}
+        status={correctiveStatus}
+        errorMessage={correctiveError}
         onBack={() => setPhase('checklist')}
       />
     )
