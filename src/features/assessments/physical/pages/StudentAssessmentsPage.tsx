@@ -7,6 +7,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { physicalAssessmentRepository } from '../repositories/physicalAssessmentRepository'
 import type { PhysicalAssessment } from '@/types/domain'
@@ -17,6 +18,7 @@ export function StudentAssessmentsPage() {
   const { studentId } = useParams<{ studentId: string }>()
   const [assessments, setAssessments] = useState<PhysicalAssessment[]>([])
   const [loadState, setLoadState] = useState<LoadState>('loading')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const { status: authStatus } = useAuthUser()
 
   useEffect(() => {
@@ -39,6 +41,17 @@ export function StudentAssessmentsPage() {
       cancelled = true
     }
   }, [studentId, authStatus])
+
+  async function handleDelete(id: string) {
+    if (!window.confirm('Excluir esta avaliação? Esta ação não pode ser desfeita.')) return
+    setDeletingId(id)
+    try {
+      await physicalAssessmentRepository.delete(id)
+      setAssessments((prev) => prev.filter((a) => a.id !== id))
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   if (!studentId) {
     return <ErrorState title="Aluno não informado" description="Volte para a lista de alunos." />
@@ -92,18 +105,26 @@ export function StudentAssessmentsPage() {
               const to = isDraft
                 ? buildNewAssessmentPath(studentId)
                 : buildViewAssessmentPath(studentId, assessment.id)
+              const isDeleting = deletingId === assessment.id
 
               return (
-                <li key={assessment.id}>
+                <li key={assessment.id} className="flex items-center gap-2 py-2">
                   <Link
                     to={to}
-                    className="flex items-center justify-between gap-4 py-4 transition-colors hover:text-action-primary"
+                    className="flex flex-1 items-center justify-between gap-4 py-2 transition-colors hover:text-action-primary"
                   >
                     <span className="text-text-primary">{date}</span>
                     <Badge tone={isDraft ? 'warning' : 'success'}>
                       {isDraft ? 'Rascunho — continuar' : 'Concluída'}
                     </Badge>
                   </Link>
+                  <IconButton
+                    icon={isDeleting ? 'progress_activity' : 'delete'}
+                    label="Excluir avaliação"
+                    disabled={isDeleting}
+                    onClick={() => handleDelete(assessment.id)}
+                    className="text-error hover:bg-error/10"
+                  />
                 </li>
               )
             })}
