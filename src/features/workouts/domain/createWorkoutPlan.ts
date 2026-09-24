@@ -1,3 +1,4 @@
+import { generateId } from '@/lib/generateId'
 import {
   WORKOUT_DIVISION_IDS,
   type WorkoutDivision,
@@ -13,7 +14,7 @@ export function createEmptyDivision(id: WorkoutDivision['id']): WorkoutDivision 
 export function createWorkoutPlan(studentId: string, studentName: string): WorkoutPlan {
   const agora = new Date().toISOString()
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     studentId,
     studentName,
     objective: '',

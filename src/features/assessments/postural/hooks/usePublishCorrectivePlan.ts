@@ -1,3 +1,4 @@
+import { generateId } from '@/lib/generateId'
 import { useCallback, useState } from 'react'
 import { buildCorrectivePlanFromSuggestions, type FindingSuggestion } from '../domain/correctivePlan'
 import { correctivePlanRepository } from '../repositories/correctivePlanRepository'
@@ -36,7 +37,7 @@ export function usePublishCorrectivePlan(): UsePublishCorrectivePlanResult {
     setErrorMessage(undefined)
     try {
       const plan = buildCorrectivePlanFromSuggestions(params.suggestions, {
-        id: crypto.randomUUID(),
+        id: generateId(),
         assessmentId: params.assessmentId,
         studentId: params.studentId,
         createdAt: new Date().toISOString(),

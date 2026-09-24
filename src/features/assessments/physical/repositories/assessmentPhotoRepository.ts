@@ -53,6 +53,13 @@ export const assessmentPhotoRepository = {
     return path
   },
 
+  /** Remove a foto do storage e o registro da tabela. */
+  async remove(storagePath: string): Promise<void> {
+    const supabase = getSupabase()
+    await supabase.storage.from(BUCKET).remove([storagePath])
+    await supabase.from('assessment_photos').delete().eq('storage_path', storagePath)
+  },
+
   /** Signed URL de curta duração — o bucket é privado, nunca servido publicamente (LGPD). */
   async getSignedUrl(storagePath: string): Promise<string | undefined> {
     const supabase = getSupabase()

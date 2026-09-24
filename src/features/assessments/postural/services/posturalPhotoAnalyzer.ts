@@ -1,3 +1,4 @@
+import { generateId } from '@/lib/generateId'
 import { savePhoto } from '@/lib/storage/photoStorage'
 import { toDomainLandmarks } from '../domain/landmarks'
 import { computeMetricsForView } from '../domain/metrics'
@@ -37,7 +38,7 @@ export function createPosturalPhotoAnalyzer({
     await savePhoto(storageKey, photo)
 
     const capture: PosturalCapture = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       view,
       imageReference: storageKey,
       createdAt: new Date().toISOString(),

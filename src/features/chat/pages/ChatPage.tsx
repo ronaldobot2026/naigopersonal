@@ -1,3 +1,4 @@
+import { generateId } from '@/lib/generateId'
 import { useEffect, useState } from 'react'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
@@ -40,7 +41,7 @@ export function ChatPage({ selfRole, counterpartName }: ChatPageProps) {
     const text = draft.trim()
     if (!text) return
     const message: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       from: selfRole,
       text,
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
