@@ -198,8 +198,17 @@ export const physicalAssessmentRepository = {
     )
   },
 
+  /**
+   * Salvamento incremental do wizard (auto-save).
+   *
+   * NUNCA rebaixa uma avaliação já concluída: o mesmo wizard serve para preencher um rascunho e
+   * para reabrir uma avaliação do histórico, e o auto-save dispara a cada alteração de campo. Se
+   * este método forçasse `'draft'`, tocar em qualquer campo de uma avaliação concluída a
+   * rebaixaria para rascunho — e a RLS do aluno (que só lê `status='completed'`) faria o relatório
+   * dele desaparecer sem aviso. Só quem promove para `completed` é `complete()`.
+   */
   async saveDraft(assessment: PhysicalAssessment): Promise<PhysicalAssessment> {
-    return persist(assessment, 'draft')
+    return persist(assessment, assessment.status === 'completed' ? 'completed' : 'draft')
   },
 
   async complete(assessment: PhysicalAssessment): Promise<PhysicalAssessment> {
