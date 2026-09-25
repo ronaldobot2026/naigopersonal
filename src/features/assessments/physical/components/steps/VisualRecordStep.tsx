@@ -10,6 +10,12 @@ type VisualRecordStepProps = {
   studentId: string
   value: VisualRecordEntry[]
   onChange: (value: VisualRecordEntry[]) => void
+  /**
+   * Garante que a avaliação já tenha linha em `physical_assessments` antes do upload:
+   * `assessment_photos.assessment_id` é FK e o rascunho novo só é gravado na primeira edição
+   * (criação preguiçosa em `usePhysicalAssessmentDraft`).
+   */
+  onBeforeUpload: () => Promise<void>
 }
 
 const VIEWS: { view: VisualRecordView; label: string }[] = [
@@ -19,7 +25,7 @@ const VIEWS: { view: VisualRecordView; label: string }[] = [
   { view: 'back', label: 'Vista posterior' },
 ]
 
-export function VisualRecordStep({ assessmentId, studentId, value, onChange }: VisualRecordStepProps) {
+export function VisualRecordStep({ assessmentId, studentId, value, onChange, onBeforeUpload }: VisualRecordStepProps) {
   // Ref de blobs locais: imune a stale closure no useEffect
   const localBlobs = useRef<Partial<Record<VisualRecordView, string>>>({})
   const [previews, setPreviews] = useState<Partial<Record<VisualRecordView, string>>>({})
@@ -67,6 +73,7 @@ export function VisualRecordStep({ assessmentId, studentId, value, onChange }: V
     setPreviews((prev) => ({ ...prev, [view]: blobUrl }))
 
     try {
+      await onBeforeUpload()
       const storagePath = await assessmentPhotoRepository.upload(studentId, assessmentId, view, file)
       const nextRecords = value.filter((entry) => entry.view !== view)
       nextRecords.push({ view, imageStorageKey: storagePath })

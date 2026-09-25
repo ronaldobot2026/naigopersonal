@@ -16,12 +16,26 @@ interface UsePhysicalAssessmentDraftResult {
   /** Mensagem da última falha ao salvar ou concluir; `null` quando o último salvamento deu certo. */
   saveError: string | null
   complete: () => Promise<void>
+  /**
+   * Força a gravação da linha em `physical_assessments` antes de qualquer operação que dependa
+   * dela por chave estrangeira (upload de foto em `assessment_photos`, plano corretivo postural).
+   * Com a criação preguiçosa o rascunho pode ainda só existir em memória; sem isso o insert
+   * filho quebraria com violação de FK. Não faz nada quando a avaliação já está no banco.
+   */
+  ensurePersisted: () => Promise<void>
 }
 
 /**
  * Carrega (ou cria) o rascunho de Avaliação Física de um aluno e persiste cada alteração
  * imediatamente no Supabase via `physicalAssessmentRepository` — é isso que permite recuperar
  * o rascunho ao recarregar a página (ou trocar de máquina) no meio do preenchimento.
+ *
+ * CRIAÇÃO PREGUIÇOSA: abrir a tela "Nova avaliação" NÃO grava nada no banco. Antes, o hook criava
+ * a linha já na montagem, então todo personal que só espiava a tela deixava um rascunho vazio
+ * para trás — o banco acumulou 5 assim. Agora o rascunho novo vive só em memória
+ * (`persistedRef = false`) e a primeira gravação acontece na primeira alteração real de campo
+ * (`updateAssessment`), no "Salvar ficha" (`save`), no `complete()` ou no `ensurePersisted()`
+ * exigido por quem depende da FK (fotos/postural).
  *
  * Quando `assessmentId` é informado, carrega exatamente essa avaliação (rascunho ou concluída) —
  * usado pela rota de visualização/edição de uma avaliação específica do histórico. Sem
@@ -42,12 +56,19 @@ export function usePhysicalAssessmentDraft(
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const assessmentRef = useRef<PhysicalAssessment | null>(null)
+  /**
+   * `true` quando a avaliação atual já tem linha no banco (veio do banco ou já foi gravada).
+   * `false` significa rascunho novo que ainda só existe em memória — é o que evita poluir o
+   * banco com rascunhos vazios de telas abertas e abandonadas.
+   */
+  const persistedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
     setLoadState('loading')
     setSavedAt(null)
     setSaveError(null)
+    persistedRef.current = false
 
     if (!studentId || !evaluatorId) {
       return
@@ -58,6 +79,7 @@ export function usePhysicalAssessmentDraft(
       if (!existing) throw new Error(`Avaliação ${id} não encontrada.`)
       if (cancelled) return
       assessmentRef.current = existing
+      persistedRef.current = true
       setAssessment(existing)
       setSavedAt(existing.updatedAt)
       setLoadState('ready')
@@ -69,14 +91,14 @@ export function usePhysicalAssessmentDraft(
       const mostRecentDraft = drafts.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
 
       const draft = mostRecentDraft ?? createDraftPhysicalAssessment(studentId, evaluatorId)
-      if (!mostRecentDraft) {
-        await physicalAssessmentRepository.saveDraft(draft)
-      }
 
       if (cancelled) return
       assessmentRef.current = draft
+      // Rascunho retomado já existe no banco; o recém-criado não — e só será gravado na 1ª edição.
+      persistedRef.current = Boolean(mostRecentDraft)
       setAssessment(draft)
-      setSavedAt(draft.updatedAt)
+      // O indicador do wizard não pode dizer "Salvo" para algo que ainda não foi gravado.
+      setSavedAt(mostRecentDraft ? draft.updatedAt : null)
       setLoadState('ready')
     }
 
@@ -103,6 +125,8 @@ export function usePhysicalAssessmentDraft(
     setSaveError(null)
     try {
       const saved = await physicalAssessmentRepository.saveDraft(toSave)
+      // A partir daqui a linha existe no banco — fotos e postural já podem referenciá-la por FK.
+      persistedRef.current = true
       if (assessmentRef.current === toSave) {
         assessmentRef.current = saved
         setAssessment(saved)
@@ -136,13 +160,22 @@ export function usePhysicalAssessmentDraft(
     await persistDraft(current)
   }, [persistDraft])
 
+  const ensurePersisted = useCallback(async () => {
+    const current = assessmentRef.current
+    if (!current || persistedRef.current) return
+    await persistDraft(current)
+  }, [persistDraft])
+
   const complete = useCallback(async () => {
     const current = assessmentRef.current
     if (!current) return
     setSaving(true)
     setSaveError(null)
     try {
+      // `complete` faz upsert com status 'completed', então ele já cria a linha se ela ainda não
+      // existir — concluir uma avaliação nunca gravada funciona em uma única chamada.
       const completed = await physicalAssessmentRepository.complete(current)
+      persistedRef.current = true
       assessmentRef.current = completed
       setAssessment(completed)
       setSavedAt(completed.updatedAt)
@@ -156,5 +189,15 @@ export function usePhysicalAssessmentDraft(
     }
   }, [])
 
-  return { assessment, loadState, updateAssessment, save, saving, savedAt, saveError, complete }
+  return {
+    assessment,
+    loadState,
+    updateAssessment,
+    save,
+    saving,
+    savedAt,
+    saveError,
+    complete,
+    ensurePersisted,
+  }
 }

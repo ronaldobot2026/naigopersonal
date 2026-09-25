@@ -21,6 +21,8 @@ type PhysicalAssessmentWizardProps = {
   savedAt: string | null
   saveError: string | null
   onComplete: () => Promise<void>
+  /** Repassado ao passo de fotos: grava o rascunho antes do upload (FK de `assessment_photos`). */
+  onEnsurePersisted: () => Promise<void>
 }
 
 /** Indicador do estado do auto-save (e do botão "Salvar ficha" do ReviewStep) — mesmo estado. */
@@ -72,6 +74,7 @@ export function PhysicalAssessmentWizard({
   savedAt,
   saveError,
   onComplete,
+  onEnsurePersisted,
 }: PhysicalAssessmentWizardProps) {
   const [activeStep, setActiveStep] = useState<WizardStepId>('general')
   const stepIndex = WIZARD_STEPS.findIndex((step) => step.id === activeStep)
@@ -117,6 +120,7 @@ export function PhysicalAssessmentWizard({
             studentId={assessment.studentId}
             value={assessment.visualRecords}
             onChange={(visualRecords) => onUpdate({ visualRecords })}
+            onBeforeUpload={onEnsurePersisted}
           />
         </Tabs.Panel>
         <Tabs.Panel value="postural">
