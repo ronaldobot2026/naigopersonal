@@ -21,6 +21,7 @@ function renderUpload(props: Partial<ComponentProps<typeof PosturalPhotoUpload>>
       analyzingView={null}
       onSelectPhotos={() => {}}
       onSelectPhoto={() => {}}
+      onRemovePhoto={() => {}}
       onUseCamera={() => {}}
       {...props}
     />,
