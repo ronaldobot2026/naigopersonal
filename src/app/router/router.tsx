@@ -6,6 +6,7 @@ import { PersonalDashboardPage } from '@/features/dashboard/pages/PersonalDashbo
 import { StudentHomePage } from '@/features/dashboard/pages/StudentHomePage'
 import { NewPhysicalAssessmentPage } from '@/features/assessments/physical/pages/NewPhysicalAssessmentPage'
 import { StudentAssessmentsPage } from '@/features/assessments/physical/pages/StudentAssessmentsPage'
+import { StudentMyAssessmentsPage } from '@/features/assessments/physical/pages/StudentMyAssessmentsPage'
 import { StudentsListPage } from '@/features/students/pages/StudentsListPage'
 import { StudentDetailPage } from '@/features/students/pages/StudentDetailPage'
 import { StudentWorkoutsPage } from '@/features/workouts/pages/StudentWorkoutsPage'
@@ -21,10 +22,11 @@ import type { NavItem } from '@/components/navigation/BottomNavigation'
 import { ROUTES } from './routes'
 
 const STUDENT_NAV_ITEMS: NavItem[] = [
-  { to: ROUTES.student.home, icon: 'home', label: 'Início' },
-  { to: ROUTES.student.workouts, icon: 'fitness_center', label: 'Treinos' },
+  { to: ROUTES.student.home, icon: 'person', label: 'Ficha' },
+  { to: ROUTES.student.workouts, icon: 'fitness_center', label: 'Treino' },
+  { to: ROUTES.student.nutrition, icon: 'restaurant', label: 'Alimentação' },
   { to: ROUTES.student.posturalCorrection, icon: 'accessibility_new', label: 'Correção' },
-  { to: ROUTES.student.chat, icon: 'chat', label: 'Chat' },
+  { to: ROUTES.student.myAssessments, icon: 'assignment', label: 'Avaliação' },
 ]
 
 const TRAINER_NAV_ITEMS: NavItem[] = [
@@ -51,6 +53,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.student.exerciseDetail, element: <ExerciseDetailPage /> },
       { path: ROUTES.student.nutrition, element: <NutritionPlanPage /> },
       { path: ROUTES.student.posturalCorrection, element: <PosturalCorrectionPage /> },
+      { path: ROUTES.student.myAssessments, element: <StudentMyAssessmentsPage /> },
       {
         path: ROUTES.student.chat,
         element: <ChatPage selfRole="student" counterpartName="Trainer Wood" />,

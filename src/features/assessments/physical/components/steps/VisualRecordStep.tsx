@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { IconButton } from '@/components/ui/IconButton'
@@ -20,6 +20,8 @@ const VIEWS: { view: VisualRecordView; label: string }[] = [
 ]
 
 export function VisualRecordStep({ assessmentId, studentId, value, onChange }: VisualRecordStepProps) {
+  // Ref de blobs locais: imune a stale closure no useEffect
+  const localBlobs = useRef<Partial<Record<VisualRecordView, string>>>({})
   const [previews, setPreviews] = useState<Partial<Record<VisualRecordView, string>>>({})
   const [uploadingView, setUploadingView] = useState<VisualRecordView | null>(null)
   const [removingView, setRemovingView] = useState<VisualRecordView | null>(null)
@@ -32,10 +34,10 @@ export function VisualRecordStep({ assessmentId, studentId, value, onChange }: V
       const urls: Partial<Record<VisualRecordView, string>> = {}
       for (const entry of value) {
         if (!entry.imageStorageKey) continue
-        // Mantém preview local (blob:) — não busca signed URL em HTTP (mixed-content)
-        const existing = previews[entry.view]
-        if (existing?.startsWith('blob:')) {
-          urls[entry.view] = existing
+        // Blob local existe: usa direto, sem mixed-content
+        const blob = localBlobs.current[entry.view]
+        if (blob) {
+          urls[entry.view] = blob
           continue
         }
         const url = await assessmentPhotoRepository.getSignedUrl(entry.imageStorageKey)
@@ -56,18 +58,28 @@ export function VisualRecordStep({ assessmentId, studentId, value, onChange }: V
     setUploadingView(view)
     setErrorByView((current) => ({ ...current, [view]: undefined }))
 
-    // Preview local imediato — evita mixed-content (HTTP app / HTTPS Supabase)
-    const localUrl = URL.createObjectURL(file)
+    // Revoga blob anterior, cria novo
+    const old = localBlobs.current[view]
+    if (old) URL.revokeObjectURL(old)
+    const blobUrl = URL.createObjectURL(file)
+    localBlobs.current[view] = blobUrl
+    // Exibe imediatamente, antes do upload terminar
+    setPreviews((prev) => ({ ...prev, [view]: blobUrl }))
 
     try {
       const storagePath = await assessmentPhotoRepository.upload(studentId, assessmentId, view, file)
       const nextRecords = value.filter((entry) => entry.view !== view)
       nextRecords.push({ view, imageStorageKey: storagePath })
-      // Define o preview antes de chamar onChange para o useEffect não sobrescrever
-      setPreviews((prev) => ({ ...prev, [view]: localUrl }))
       onChange(nextRecords)
     } catch {
-      URL.revokeObjectURL(localUrl)
+      // Desfaz preview em caso de erro
+      URL.revokeObjectURL(blobUrl)
+      delete localBlobs.current[view]
+      setPreviews((prev) => {
+        const next = { ...prev }
+        delete next[view]
+        return next
+      })
       setErrorByView((current) => ({ ...current, [view]: 'Falha ao enviar a foto. Tente novamente.' }))
     } finally {
       setUploadingView(null)
@@ -85,6 +97,11 @@ export function VisualRecordStep({ assessmentId, studentId, value, onChange }: V
     } catch {
       // Ignora erro de storage — remove da lista de qualquer forma
     } finally {
+      const blob = localBlobs.current[view]
+      if (blob) {
+        URL.revokeObjectURL(blob)
+        delete localBlobs.current[view]
+      }
       onChange(value.filter((e) => e.view !== view))
       setPreviews((prev) => {
         const next = { ...prev }
