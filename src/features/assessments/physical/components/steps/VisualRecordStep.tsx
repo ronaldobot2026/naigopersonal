@@ -32,6 +32,12 @@ export function VisualRecordStep({ assessmentId, studentId, value, onChange }: V
       const urls: Partial<Record<VisualRecordView, string>> = {}
       for (const entry of value) {
         if (!entry.imageStorageKey) continue
+        // Mantém preview local (blob:) — não busca signed URL em HTTP (mixed-content)
+        const existing = previews[entry.view]
+        if (existing?.startsWith('blob:')) {
+          urls[entry.view] = existing
+          continue
+        }
         const url = await assessmentPhotoRepository.getSignedUrl(entry.imageStorageKey)
         if (url) urls[entry.view] = url
       }
@@ -50,12 +56,18 @@ export function VisualRecordStep({ assessmentId, studentId, value, onChange }: V
     setUploadingView(view)
     setErrorByView((current) => ({ ...current, [view]: undefined }))
 
+    // Preview local imediato — evita mixed-content (HTTP app / HTTPS Supabase)
+    const localUrl = URL.createObjectURL(file)
+
     try {
       const storagePath = await assessmentPhotoRepository.upload(studentId, assessmentId, view, file)
       const nextRecords = value.filter((entry) => entry.view !== view)
       nextRecords.push({ view, imageStorageKey: storagePath })
+      // Define o preview antes de chamar onChange para o useEffect não sobrescrever
+      setPreviews((prev) => ({ ...prev, [view]: localUrl }))
       onChange(nextRecords)
     } catch {
+      URL.revokeObjectURL(localUrl)
       setErrorByView((current) => ({ ...current, [view]: 'Falha ao enviar a foto. Tente novamente.' }))
     } finally {
       setUploadingView(null)
