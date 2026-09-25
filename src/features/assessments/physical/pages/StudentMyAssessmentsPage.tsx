@@ -27,7 +27,7 @@ export function StudentMyAssessmentsPage() {
         setAssessments(
           result
             .filter((a) => a.status === 'completed')
-            .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
         )
         setLoadState('ready')
       })
@@ -60,7 +60,7 @@ export function StudentMyAssessmentsPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {assessments.map((a) => {
-            const date = new Date(a.updatedAt).toLocaleDateString('pt-BR')
+            const date = new Date(a.createdAt).toLocaleDateString('pt-BR')
             const peso = a.biometrics?.weightKg
             const altura = a.biometrics?.heightCm
             return (

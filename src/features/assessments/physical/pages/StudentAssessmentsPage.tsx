@@ -30,7 +30,10 @@ export function StudentAssessmentsPage() {
       .findByStudentId(studentId)
       .then((result) => {
         if (cancelled) return
-        setAssessments(result.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
+        // Ordena e exibe por `createdAt` (data da coleta), nunca por `updatedAt`: reabrir uma
+        // avaliação antiga só para conferir mudava o `updatedAt` e a fazia "pular" para o topo da
+        // lista com a data de hoje — o personal não encontrava mais a avaliação pela data real.
+        setAssessments(result.sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
         setLoadState('ready')
       })
       .catch(() => {
@@ -100,7 +103,7 @@ export function StudentAssessmentsPage() {
         <Card>
           <ul className="divide-y divide-border">
             {assessments.map((assessment) => {
-              const date = new Date(assessment.updatedAt).toLocaleDateString('pt-BR')
+              const date = new Date(assessment.createdAt).toLocaleDateString('pt-BR')
               const isDraft = assessment.status === 'draft'
               const to = isDraft
                 ? buildNewAssessmentPath(studentId)
