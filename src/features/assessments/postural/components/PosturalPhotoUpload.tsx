@@ -3,6 +3,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
+import { IconButton } from '@/components/ui/IconButton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import type { PosturalView } from '../domain/posturalAssessment.types'
 import { POSTURAL_VIEWS, getPosturalViewDefinition } from '../domain/posturalViews'
@@ -25,6 +26,7 @@ type PosturalPhotoUploadProps = {
   analyzingView: PosturalView | null
   onSelectPhotos: (files: File[]) => void
   onSelectPhoto: (view: PosturalView, file: File) => void
+  onRemovePhoto: (view: PosturalView) => void
   onUseCamera: (view: PosturalView) => void
 }
 
@@ -59,6 +61,7 @@ export function PosturalPhotoUpload({
   analyzingView,
   onSelectPhotos,
   onSelectPhoto,
+  onRemovePhoto,
   onUseCamera,
 }: PosturalPhotoUploadProps) {
   const isAnalyzing = analyzingView !== null
@@ -143,6 +146,14 @@ export function PosturalPhotoUpload({
                   <Icon
                     name={slot.status === 'done' ? 'check_circle' : 'add_photo_alternate'}
                     className={slot.status === 'done' ? 'text-success' : 'text-text-secondary'}
+                  />
+                )}
+                {slot.previewUrl && !isAnalyzing && (
+                  <IconButton
+                    icon="delete"
+                    label="Remover foto"
+                    onClick={() => onRemovePhoto(slot.view)}
+                    className="absolute right-1 top-1 bg-surface-elevated/80 text-error backdrop-blur-sm hover:bg-error/20"
                   />
                 )}
               </div>

@@ -218,6 +218,7 @@ export function PosturalAssessmentFlow({
       analyzingView={analyzingView}
       onSelectPhotos={(files) => selectPhotos(assignPhotosToViews(files, posturalAssessment, pending))}
       onSelectPhoto={(view, file) => selectPhotos({ [view]: file })}
+      onRemovePhoto={(view) => setPending((current) => { const next = { ...current }; delete next[view]; return next })}
       onUseCamera={(view) => {
         setCameraView(view)
         setPhase('camera')
