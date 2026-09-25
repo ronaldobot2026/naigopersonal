@@ -1,0 +1,39 @@
+# CI de guarda: roda EXATAMENTE o que a Vercel roda no deploy (`npm run build`, ou seja
+# `tsc -b && vite build`). Em 25/09/2026 um `tsc --noEmit` verde escondeu um erro de tipo em
+# arquivo de TESTE; `tsc -b` compila os testes, a Vercel quebrou e 5 commits ficaram sem deploy.
+# Este workflow existe para que essa falha apareça no push, e não só no painel da Vercel.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      # Placeholders inofensivos. O build embute VITE_* no bundle, então a chave REAL nunca
+      # entra no repositório nem no CI — ela vive em .env.local (local) e nas env vars da Vercel.
+      VITE_SUPABASE_URL: https://placeholder.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: placeholder-anon-key
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # O projeto não declara engines nem .nvmrc. 20.19 é o mínimo comum exigido por
+          # vite 8 (^20.19 || >=22.12) e eslint 10 (^20.19 || ^22.13 || >=24).
+          node-version: '20.19'
+          cache: npm
+
+      - run: npm ci
+
+      # A ordem importa: build primeiro, porque é o passo que quebrou em produção.
+      - name: Build (igual ao da Vercel)
+        run: npm run build
+
+      - name: Testes
+        run: npx vitest run
+
+      - name: Lint
+        run: npx eslint .
