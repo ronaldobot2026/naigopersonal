@@ -38,7 +38,7 @@ export function NewPhysicalAssessmentPage() {
     }
   }, [studentId])
 
-  const { assessment, loadState, updateAssessment, save, saving, savedAt, saveError, complete } =
+  const { assessment, loadState, updateAssessment, save, saving, savedAt, saveError, complete, ensurePersisted } =
     usePhysicalAssessmentDraft(studentId ?? '', evaluatorId ?? '', assessmentId)
 
   return (
@@ -93,6 +93,7 @@ export function NewPhysicalAssessmentPage() {
             savedAt={savedAt}
             saveError={saveError}
             onComplete={complete}
+            onEnsurePersisted={ensurePersisted}
           />
         )}
     </div>
