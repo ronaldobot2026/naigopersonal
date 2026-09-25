@@ -66,7 +66,11 @@ export const assessmentPhotoRepository = {
     const { data, error } = await supabase.storage
       .from(BUCKET)
       .createSignedUrl(storagePath, SIGNED_URL_TTL_SECONDS)
-    if (error) return undefined
-    return data.signedUrl
+    if (error || !data?.signedUrl) return undefined
+    // Garante URL absoluta — algumas versões do SDK retornam path relativo
+    const url = data.signedUrl
+    if (url.startsWith('http')) return url
+    const base = import.meta.env.VITE_SUPABASE_URL as string
+    return `${base}/storage/v1${url}`
   },
 }
