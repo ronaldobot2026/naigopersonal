@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { IconButton } from '@/components/ui/IconButton'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
+import { PosturalComparison } from '../components/PosturalComparison'
 import { physicalAssessmentRepository } from '../repositories/physicalAssessmentRepository'
 import type { PhysicalAssessment } from '@/types/domain'
 
@@ -133,6 +134,9 @@ export function StudentAssessmentsPage() {
             })}
           </ul>
         </Card>
+      )}
+      {authStatus === 'authenticated' && loadState === 'ready' && assessments.length > 0 && (
+        <PosturalComparison assessments={assessments} />
       )}
     </div>
   )
