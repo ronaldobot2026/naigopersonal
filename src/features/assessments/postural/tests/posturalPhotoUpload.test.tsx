@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PosturalPhotoUpload, type PhotoSlot } from '../components/PosturalPhotoUpload'
 
 function emptySlots(): PhotoSlot[] {
@@ -33,6 +33,38 @@ function file(name: string): File {
 }
 
 describe('PosturalPhotoUpload', () => {
+  beforeEach(() => {
+    vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue({ close: vi.fn() }))
+  })
+
+  it('recusa arquivo inválido em uma vista e permite escolher outra foto depois', async () => {
+    const onSelectPhoto = vi.fn()
+    vi.stubGlobal('createImageBitmap', vi.fn().mockRejectedValue(new Error('invalid bitmap')))
+    renderUpload({ onSelectPhoto })
+    const input = screen.getByLabelText(/foto da vista frontal/i)
+    await userEvent.upload(input, file('invalida'))
+
+    expect(await screen.findByText(/arquivo não é uma imagem válida/i)).toBeInTheDocument()
+    expect(onSelectPhoto).not.toHaveBeenCalled()
+
+    vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue({ close: vi.fn() }))
+    const valid = file('valida')
+    await userEvent.upload(input, valid)
+    await waitFor(() => expect(onSelectPhoto).toHaveBeenCalledWith('front', valid))
+    expect(screen.queryByText(/arquivo não é uma imagem válida/i)).not.toBeInTheDocument()
+  })
+
+  it('filtra arquivos inválidos no lote e mantém a ordem das fotos válidas', async () => {
+    const onSelectPhotos = vi.fn()
+    const valid = [file('frente'), file('lateral')]
+    const empty = new File([], 'vazia.jpg', { type: 'image/jpeg' })
+    renderUpload({ onSelectPhotos })
+    await userEvent.upload(screen.getByLabelText(/selecionar as 4 fotos/i), [valid[0], empty, valid[1]])
+
+    await waitFor(() => expect(onSelectPhotos).toHaveBeenCalledWith(valid))
+    expect(await screen.findByText(/1 foto ignorada/i)).toBeInTheDocument()
+  })
+
   it('mostra as quatro vistas do protocolo numa única tela', () => {
     renderUpload()
 

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { Badge } from '@/components/ui/Badge'
@@ -5,6 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { IconButton } from '@/components/ui/IconButton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { validateImageFile } from '@/lib/files/validateImageFile'
 import type { PosturalView } from '../domain/posturalAssessment.types'
 import { POSTURAL_VIEWS, getPosturalViewDefinition } from '../domain/posturalViews'
 import type { PoseModelStatus } from '../hooks/usePoseLandmarker'
@@ -64,6 +66,8 @@ export function PosturalPhotoUpload({
   onRemovePhoto,
   onUseCamera,
 }: PosturalPhotoUploadProps) {
+  const [batchError, setBatchError] = useState<string | null>(null)
+  const [photoErrors, setPhotoErrors] = useState<Partial<Record<PosturalView, string>>>({})
   const isAnalyzing = analyzingView !== null
   const analyzedCount = slots.filter(
     (slot) => slot.status === 'done' || slot.status === 'low_quality',
@@ -91,13 +95,19 @@ export function PosturalPhotoUpload({
           aria-label="Selecionar as 4 fotos da galeria"
           disabled={isAnalyzing}
           className="sr-only"
-          onChange={(event) => {
+          onChange={async (event) => {
             const files = Array.from(event.target.files ?? [])
             event.target.value = ''
-            if (files.length > 0) onSelectPhotos(files)
+            if (files.length === 0) return
+            const results = await Promise.all(files.map(validateImageFile))
+            const valid = files.filter((_, index) => results[index].valid)
+            const rejected = files.length - valid.length
+            setBatchError(rejected ? `${rejected} foto${rejected === 1 ? '' : 's'} ignorada${rejected === 1 ? '' : 's'}: arquivo inválido ou vazio.` : null)
+            if (valid.length > 0) onSelectPhotos(valid)
           }}
         />
       </label>
+      {batchError && <p role="alert" className="text-sm text-error">{batchError}</p>}
       <p className="text-center text-xs text-text-secondary">
         Em lote, as fotos entram na ordem frente → lateral esquerda → lateral direita → costas.
         Confira as miniaturas; dá para trocar qualquer uma.
@@ -167,6 +177,9 @@ export function PosturalPhotoUpload({
                   ))}
                 </ul>
               )}
+              {photoErrors[slot.view] && (
+                <p role="alert" className="text-xs text-error">{photoErrors[slot.view]}</p>
+              )}
 
               <div className="flex items-center justify-between gap-2">
                 <label
@@ -179,10 +192,17 @@ export function PosturalPhotoUpload({
                     aria-label={`Foto da ${definition.label.toLowerCase()}`}
                     disabled={isAnalyzing}
                     className="sr-only"
-                    onChange={(event) => {
+                    onChange={async (event) => {
                       const selected = event.target.files?.[0]
                       event.target.value = ''
-                      if (selected) onSelectPhoto(slot.view, selected)
+                      if (!selected) return
+                      const validation = await validateImageFile(selected)
+                      if (!validation.valid) {
+                        setPhotoErrors((current) => ({ ...current, [slot.view]: validation.reason }))
+                        return
+                      }
+                      setPhotoErrors((current) => ({ ...current, [slot.view]: undefined }))
+                      onSelectPhoto(slot.view, selected)
                     }}
                   />
                 </label>

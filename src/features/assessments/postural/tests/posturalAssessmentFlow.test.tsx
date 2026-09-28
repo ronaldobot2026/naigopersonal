@@ -136,9 +136,11 @@ describe('PosturalAssessmentFlow — envio em lote e relatório automático', ()
     analyze.mockImplementation(async (view) => passingAnalysis(view))
     URL.createObjectURL = vi.fn(() => 'blob:preview')
     URL.revokeObjectURL = vi.fn()
+    vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue({ close: vi.fn() }))
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 

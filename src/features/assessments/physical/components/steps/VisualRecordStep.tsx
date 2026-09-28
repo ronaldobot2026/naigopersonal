@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { IconButton } from '@/components/ui/IconButton'
 import { assessmentPhotoRepository } from '../../repositories/assessmentPhotoRepository'
+import { validateImageFile } from '@/lib/files/validateImageFile'
 import type { VisualRecordEntry, VisualRecordView } from '@/types/domain'
 
 type VisualRecordStepProps = {
@@ -61,8 +62,18 @@ export function VisualRecordStep({ assessmentId, studentId, value, onChange, onB
 
   async function handleFileChange(view: VisualRecordView, file: File | undefined): Promise<void> {
     if (!file) return
-    setUploadingView(view)
     setErrorByView((current) => ({ ...current, [view]: undefined }))
+
+    // O <input accept="image/*"> só filtra na UI — drag&drop e automação passam qualquer
+    // arquivo. Valida de verdade (decodifica como bitmap) antes de subir, senão um .txt
+    // renomeado para .jpg ou um arquivo de 0 bytes vira "foto preenchida" com thumbnail quebrada.
+    const validation = await validateImageFile(file)
+    if (!validation.valid) {
+      setErrorByView((current) => ({ ...current, [view]: validation.reason }))
+      return
+    }
+
+    setUploadingView(view)
 
     // Revoga blob anterior, cria novo
     const old = localBlobs.current[view]
