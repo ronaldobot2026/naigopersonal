@@ -57,6 +57,14 @@ describe('StudentAssessmentsPage', () => {
     expect(findByStudentId).toHaveBeenCalledWith('aluno-1')
   })
 
+  it('abre um rascunho pelo próprio id, sem encaminhar para Nova avaliação', async () => {
+    findByStudentId.mockResolvedValue([{ ...AVALIACAO_CONCLUIDA, id: 'rascunho-2', status: 'draft' }])
+    renderizar()
+
+    const link = await screen.findByRole('link', { name: /Rascunho — continuar/i })
+    expect(link).toHaveAttribute('href', '/personal/alunos/aluno-1/avaliacoes/rascunho-2')
+  })
+
   it('mostra sessão expirada e não consulta o repositório quando não autenticado', async () => {
     useAuthUserMock.mockReturnValue({ userId: null, status: 'unauthenticated' })
 

@@ -96,17 +96,17 @@ describe('usePhysicalAssessmentDraft', () => {
     expect(saveDraft).not.toHaveBeenCalled()
   })
 
-  it('retoma o rascunho mais recente do aluno sem criar outro', async () => {
+  it('inicia uma avaliação zerada mesmo quando o aluno tem um rascunho anterior', async () => {
     const existente = avaliacao({ id: 'rascunho-antigo', updatedAt: '2026-09-24T00:00:00.000Z' })
     findByStudentId.mockResolvedValue([existente])
 
     const { result } = renderHook(() => usePhysicalAssessmentDraft(ALUNO, AVALIADOR))
     await waitFor(() => expect(result.current.loadState).toBe('ready'))
 
-    expect(result.current.assessment?.id).toBe('rascunho-antigo')
+    expect(result.current.assessment?.id).not.toBe('rascunho-antigo')
+    expect(result.current.assessment?.generalNotes).toBeUndefined()
     expect(saveDraft).not.toHaveBeenCalled()
-    // Rascunho retomado já existe no banco, então o horário de gravação é legítimo.
-    expect(result.current.savedAt).toBe('2026-09-24T00:00:00.000Z')
+    expect(result.current.savedAt).toBeNull()
   })
 
   it('reabre uma avaliação existente por assessmentId', async () => {

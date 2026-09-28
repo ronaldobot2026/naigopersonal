@@ -106,9 +106,7 @@ export function StudentAssessmentsPage() {
             {assessments.map((assessment) => {
               const date = new Date(assessment.createdAt).toLocaleDateString('pt-BR')
               const isDraft = assessment.status === 'draft'
-              const to = isDraft
-                ? buildNewAssessmentPath(studentId)
-                : buildViewAssessmentPath(studentId, assessment.id)
+              const to = buildViewAssessmentPath(studentId, assessment.id)
               const isDeleting = deletingId === assessment.id
 
               return (

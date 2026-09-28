@@ -39,7 +39,7 @@ interface UsePhysicalAssessmentDraftResult {
  *
  * Quando `assessmentId` é informado, carrega exatamente essa avaliação (rascunho ou concluída) —
  * usado pela rota de visualização/edição de uma avaliação específica do histórico. Sem
- * `assessmentId`, resume o rascunho mais recente do aluno ou cria um novo (rota "nova").
+ * `assessmentId`, inicia sempre um rascunho vazio (rota "nova").
  *
  * `evaluatorId` precisa ser o `auth.uid()` real (ver `useAuthUser`) — a RLS rejeita gravação com
  * qualquer outro valor. Enquanto a sessão ainda carrega, `evaluatorId`/`studentId` chegam vazios
@@ -85,27 +85,23 @@ export function usePhysicalAssessmentDraft(
       setLoadState('ready')
     }
 
-    async function loadOrCreateDraft(): Promise<void> {
-      const existing = await physicalAssessmentRepository.findByStudentId(studentId)
-      const drafts = existing.filter((item) => item.status === 'draft')
-      const mostRecentDraft = drafts.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
-
-      const draft = mostRecentDraft ?? createDraftPhysicalAssessment(studentId, evaluatorId)
-
+    function createNewDraft(): void {
+      const draft = createDraftPhysicalAssessment(studentId, evaluatorId)
       if (cancelled) return
       assessmentRef.current = draft
-      // Rascunho retomado já existe no banco; o recém-criado não — e só será gravado na 1ª edição.
-      persistedRef.current = Boolean(mostRecentDraft)
+      persistedRef.current = false
       setAssessment(draft)
-      // O indicador do wizard não pode dizer "Salvo" para algo que ainda não foi gravado.
-      setSavedAt(mostRecentDraft ? draft.updatedAt : null)
+      setSavedAt(null)
       setLoadState('ready')
     }
 
-    const load = assessmentId ? loadSpecific(assessmentId) : loadOrCreateDraft()
-    load.catch(() => {
-      if (!cancelled) setLoadState('error')
-    })
+    if (assessmentId) {
+      loadSpecific(assessmentId).catch(() => {
+        if (!cancelled) setLoadState('error')
+      })
+    } else {
+      createNewDraft()
+    }
 
     return () => {
       cancelled = true
