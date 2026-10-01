@@ -126,3 +126,13 @@ Fases 6, 7 e 17.
       citada no `BACKEND_PLAN.md`) não foi construída, upload é direto; `indexedDbPosturalAssessmentRepository.ts`
       ficou órfão (sem nenhum consumidor desde antes desta entrega) — removido em 2026-09-21 por
       já não ter nenhum uso.
+- [~] Anamnese (pedido do cliente, 2026-10-01) — modelos **PAR-Q** (7 perguntas Sim/Não, com aviso
+      de liberação médica quando há "Sim") e **Padrão** (17 itens), preenchidos pelo personal
+      ("Eu irei preencher") ou enviados ao aluno ("Meu aluno irá preencher"). Código em
+      `src/features/anamnesis/` (catálogo de perguntas no código; respostas em `jsonb`). Migration
+      `supabase/migrations/20261001120000_anamneses.sql` (tabela `anamneses` + RLS: personal só dos
+      próprios alunos como autor, aluno só pendente/concluída e só responde a pendente; trigger
+      impede o aluno de mudar template/autor). **Pendente**: aplicar a migration no projeto
+      `midftshifkvweehrtyte` (`supabase db push`), regenerar `database.types.ts` com
+      `supabase gen types typescript --linked` (a entrada `anamneses` foi escrita à mão) e rodar
+      um teste de isolamento RLS no padrão de `correctivePlanIsolation.integration.test.ts`.

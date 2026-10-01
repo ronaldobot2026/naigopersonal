@@ -41,6 +41,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      anamneses: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          created_at: string
+          filled_by: string
+          id: string
+          status: string
+          student_id: string
+          template_id: string
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string | null
+          created_at?: string
+          filled_by: string
+          id?: string
+          status?: string
+          student_id: string
+          template_id: string
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          created_at?: string
+          filled_by?: string
+          id?: string
+          status?: string
+          student_id?: string
+          template_id?: string
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamneses_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamneses_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_photos: {
         Row: {
           assessment_id: string
