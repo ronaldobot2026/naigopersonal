@@ -27,6 +27,7 @@ coverage
 
 .vercel
 .env*
+!.env.example
 
 # Tooling local do Claude Code (skills e agents instalados). São ~3,6 MB de conteúdo de
 # terceiros, reinstaláveis, e não fazem parte do produto. Remova esta linha se quiser

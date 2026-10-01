@@ -66,18 +66,25 @@ Fases 6, 7 e 17.
       `@/mocks/*` restante em página: `MOCK_CURRENT_STUDENT_ID` em `StudentHomePage.tsx` — é
       placeholder de identidade de sessão (mesma categoria de `MOCK_TRAINER_ID`), propositalmente
       não resolvido aqui; é escopo da Fase 7 (`auth.uid()` substitui os dois).
-- [x] Fase 6 — plataforma confirmada (Supabase + Mercado Pago) e projeto criado pelo usuário em
-      2026-08-14 (`cohzcqdvikzlnzhnqiqf`, região informada pelo painel). Aplicado em produção:
-      migration `supabase/migrations/20260814120000_identity_foundation.sql` (`profiles`,
-      `students`, RLS, trigger de bootstrap de identidade, bucket privado `assessment-photos` +
-      policies). Cliente tipado em `src/lib/supabase/client.ts` + `src/lib/config/env.ts`,
-      `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY` em `.env.local` (gitignored) e
-      documentados em `.env.example`. `@supabase/supabase-js` instalado.
+- [x] Fase 6 — plataforma confirmada (Supabase + Mercado Pago). Projeto original criado pelo
+      usuário em 2026-08-14 (`cohzcqdvikzlnzhnqiqf`) **foi perdido** (consistente com o risco já
+      registrado no `BACKEND_PLAN.md`: plano free pausa após 7 dias sem tráfego) — não aparecia
+      mais em `supabase projects list` em 2026-09-18. Projeto recriado no mesmo dia:
+      `midftshifkvweehrtyte`, região `sa-east-1` (São Paulo, conforme decisão original — uma
+      recriação intermediária em `us-east-2` foi descartada por não bater com essa decisão).
+      Aplicado em produção: migration `supabase/migrations/20260814120000_identity_foundation.sql`
+      (`profiles`, `students`, RLS, trigger de bootstrap de identidade, bucket privado
+      `assessment-photos` + policies). Cliente tipado em `src/lib/supabase/client.ts` +
+      `src/lib/config/env.ts`, `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY` em `.env.local`
+      (gitignored) e documentados em `.env.example`. `@supabase/supabase-js` instalado.
       **Pendente desta fase, adiado para a Fase 7/8** (precisa de usuários reais autenticados
       para existir): teste de integração de isolamento entre alunos (aluno A não lê dado de
       aluno B). Nenhum repositório fez cutover ainda — app continua 100% em cima dos repositórios
       mock, como o DoD pede. A `service_role key` do projeto não foi solicitada nem armazenada
       pelo agente (só entra em secret de Edge Function, mais adiante).
+      **Risco de plano free ainda em aberto**: se o projeto ficar 7 dias sem tráfego antes do
+      lançamento, ele pausa de novo — orçar o Pro (~US$25/mês) antes disso, por decisão já
+      registrada no `BACKEND_PLAN.md`.
 - [ ] Fase 7 — próxima. Precisa: provedor de e-mail transacional (Resend/Postmark) + DNS, OAuth
       client do Google Cloud, e decisão sobre Apple Sign In (US$99/ano) — ou seguir só com
       e-mail/senha + Google no lançamento e adicionar Apple depois.
