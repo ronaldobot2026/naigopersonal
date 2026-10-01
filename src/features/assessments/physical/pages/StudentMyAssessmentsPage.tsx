@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
-import { buildStudentAssessmentDetailPath } from '@/app/router/routes'
+import { buildStudentAssessmentDetailPath, ROUTES } from '@/app/router/routes'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { Icon } from '@/components/ui/Icon'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { MOCK_CURRENT_STUDENT_ID } from '@/mocks/students'
 import { indexedDbPhysicalAssessmentRepository } from '../repositories/indexedDbPhysicalAssessmentRepository'
@@ -31,6 +32,16 @@ export function StudentMyAssessmentsPage() {
         title="Minhas avaliações"
         description="Histórico das avaliações físicas registradas pelo seu personal."
       />
+
+      <Card className="mb-4">
+        <Link
+          to={ROUTES.student.anamnesis}
+          className="flex items-center justify-between gap-4 text-text-primary hover:text-action-primary"
+        >
+          <span className="font-medium">Anamnese — questionários do seu personal</span>
+          <Icon name="chevron_right" />
+        </Link>
+      </Card>
 
       {status === 'loading' && <LoadingState label="Carregando avaliações…" />}
       {status === 'error' && (

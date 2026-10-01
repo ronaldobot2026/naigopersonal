@@ -8,6 +8,12 @@ import { NewPhysicalAssessmentPage } from '@/features/assessments/physical/pages
 import { StudentAssessmentsPage } from '@/features/assessments/physical/pages/StudentAssessmentsPage'
 import { StudentMyAssessmentsPage } from '@/features/assessments/physical/pages/StudentMyAssessmentsPage'
 import { StudentAssessmentDetailPage } from '@/features/assessments/physical/pages/StudentAssessmentDetailPage'
+import { StudentAnamnesisListPage } from '@/features/anamnesis/pages/StudentAnamnesisListPage'
+import { TrainerAnamnesisPage } from '@/features/anamnesis/pages/TrainerAnamnesisPage'
+import {
+  StudentAnamnesisFillPage,
+  StudentMyAnamnesisPage,
+} from '@/features/anamnesis/pages/StudentMyAnamnesisPage'
 import { StudentsListPage } from '@/features/students/pages/StudentsListPage'
 import { StudentDetailPage } from '@/features/students/pages/StudentDetailPage'
 import { StudentWorkoutsPage } from '@/features/workouts/pages/StudentWorkoutsPage'
@@ -56,6 +62,8 @@ export const router = createBrowserRouter([
       { path: ROUTES.student.posturalCorrection, element: <PosturalCorrectionPage /> },
       { path: ROUTES.student.assessments, element: <StudentMyAssessmentsPage /> },
       { path: ROUTES.student.assessmentDetail, element: <StudentAssessmentDetailPage /> },
+      { path: ROUTES.student.anamnesis, element: <StudentMyAnamnesisPage /> },
+      { path: ROUTES.student.anamnesisDetail, element: <StudentAnamnesisFillPage /> },
       {
         path: ROUTES.student.chat,
         element: <ChatPage selfRole="student" counterpartName="Trainer Wood" />,
@@ -78,6 +86,8 @@ export const router = createBrowserRouter([
       { path: ROUTES.trainer.studentAssessments, element: <StudentAssessmentsPage /> },
       { path: ROUTES.trainer.newAssessment, element: <NewPhysicalAssessmentPage /> },
       { path: ROUTES.trainer.viewAssessment, element: <NewPhysicalAssessmentPage /> },
+      { path: ROUTES.trainer.studentAnamnesis, element: <StudentAnamnesisListPage /> },
+      { path: ROUTES.trainer.anamnesisDetail, element: <TrainerAnamnesisPage /> },
       { path: ROUTES.trainer.library, element: <ExerciseLibraryPage /> },
       { path: ROUTES.trainer.newWorkout, element: <WorkoutBuilderPage /> },
       { path: ROUTES.trainer.studentWorkoutBuilder, element: <WorkoutBuilderPage /> },

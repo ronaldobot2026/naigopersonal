@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   buildNewAssessmentPath,
+  buildStudentAnamnesisListPath,
   buildStudentAssessmentsPath,
   buildWorkoutBuilderPath,
 } from '@/app/router/routes'
@@ -62,6 +63,16 @@ export function StudentDetailPage() {
             >
               <Icon name="fitness_center" />
               Montar treino
+            </Link>
+          </Card>
+
+          <Card className="mb-4">
+            <Link
+              to={buildStudentAnamnesisListPath(student.id)}
+              className="flex items-center justify-center gap-2 rounded-md border border-border px-6 py-3 text-center font-mono text-xs font-semibold uppercase tracking-wider text-text-primary hover:bg-surface-elevated"
+            >
+              <Icon name="assignment" />
+              Anamnese
             </Link>
           </Card>
 
