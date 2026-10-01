@@ -37,11 +37,8 @@ export function NewPhysicalAssessmentPage() {
     }
   }, [studentId])
 
-  const { assessment, loadState, updateAssessment, complete } = usePhysicalAssessmentDraft(
-    studentId ?? '',
-    MOCK_TRAINER_ID,
-    assessmentId,
-  )
+  const { assessment, loadState, updateAssessment, saveError, complete, completing, completeError } =
+    usePhysicalAssessmentDraft(studentId ?? '', MOCK_TRAINER_ID, assessmentId)
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
@@ -78,7 +75,10 @@ export function NewPhysicalAssessmentPage() {
             student={student}
             assessment={assessment}
             onUpdate={updateAssessment}
+            saveError={saveError}
             onComplete={complete}
+            completing={completing}
+            completeError={completeError}
           />
         )}
     </div>

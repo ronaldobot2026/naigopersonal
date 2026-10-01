@@ -9,7 +9,12 @@ interface UsePhysicalAssessmentDraftResult {
   assessment: PhysicalAssessment | null
   loadState: LoadState
   updateAssessment: (patch: Partial<PhysicalAssessment>) => void
+  /** Mensagem da última falha ao salvar o rascunho; `null` quando o último salvamento deu certo. */
+  saveError: string | null
   complete: () => Promise<void>
+  completing: boolean
+  /** Mensagem da última falha ao concluir a avaliação; `null` quando não há falha pendente. */
+  completeError: string | null
 }
 
 /**
@@ -29,6 +34,9 @@ export function usePhysicalAssessmentDraft(
 ): UsePhysicalAssessmentDraftResult {
   const [assessment, setAssessment] = useState<PhysicalAssessment | null>(null)
   const [loadState, setLoadState] = useState<LoadState>('loading')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [completing, setCompleting] = useState(false)
+  const [completeError, setCompleteError] = useState<string | null>(null)
   const assessmentRef = useRef<PhysicalAssessment | null>(null)
 
   useEffect(() => {
@@ -77,16 +85,43 @@ export function usePhysicalAssessmentDraft(
     const updated: PhysicalAssessment = { ...current, ...patch }
     assessmentRef.current = updated
     setAssessment(updated)
-    void indexedDbPhysicalAssessmentRepository.saveDraft(updated)
+    indexedDbPhysicalAssessmentRepository
+      .saveDraft(updated)
+      .then(() => setSaveError(null))
+      .catch((erro: unknown) => {
+        // Sem este catch a rejeição virava unhandled: o campo mudava na tela, mas o
+        // rascunho não era persistido, e o professor só descobria ao recarregar a página.
+        const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido ao salvar.'
+        console.error('Falha ao salvar o rascunho da avaliação:', erro)
+        setSaveError(mensagem)
+      })
   }, [])
 
   const complete = useCallback(async () => {
     const current = assessmentRef.current
     if (!current) return
-    const completed = await indexedDbPhysicalAssessmentRepository.complete(current)
-    assessmentRef.current = completed
-    setAssessment(completed)
+    setCompleting(true)
+    setCompleteError(null)
+    try {
+      const completed = await indexedDbPhysicalAssessmentRepository.complete(current)
+      assessmentRef.current = completed
+      setAssessment(completed)
+    } catch (erro: unknown) {
+      const mensagem = erro instanceof Error ? erro.message : 'Erro desconhecido ao concluir.'
+      console.error('Falha ao concluir a avaliação:', erro)
+      setCompleteError(mensagem)
+    } finally {
+      setCompleting(false)
+    }
   }, [])
 
-  return { assessment, loadState, updateAssessment, complete }
+  return {
+    assessment,
+    loadState,
+    updateAssessment,
+    saveError,
+    complete,
+    completing,
+    completeError,
+  }
 }

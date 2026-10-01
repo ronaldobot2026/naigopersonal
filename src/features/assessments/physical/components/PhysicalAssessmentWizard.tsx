@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Card } from '@/components/ui/Card'
+import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Tabs } from '@/components/ui/Tabs'
 import { PosturalAssessmentFlow } from '@/features/assessments/postural/components/PosturalAssessmentFlow'
@@ -15,14 +17,20 @@ type PhysicalAssessmentWizardProps = {
   student: Student
   assessment: PhysicalAssessment
   onUpdate: (patch: Partial<PhysicalAssessment>) => void
+  saveError: string | null
   onComplete: () => Promise<void>
+  completing: boolean
+  completeError: string | null
 }
 
 export function PhysicalAssessmentWizard({
   student,
   assessment,
   onUpdate,
+  saveError,
   onComplete,
+  completing,
+  completeError,
 }: PhysicalAssessmentWizardProps) {
   const [activeStep, setActiveStep] = useState<WizardStepId>('general')
   const stepIndex = WIZARD_STEPS.findIndex((step) => step.id === activeStep)
@@ -33,6 +41,16 @@ export function PhysicalAssessmentWizard({
         value={((stepIndex + 1) / WIZARD_STEPS.length) * 100}
         label="Progresso da avaliação"
       />
+
+      {saveError && (
+        <Card tone="elevated" className="flex items-start gap-2 border-error">
+          <Icon name="error" className="text-error" />
+          <div>
+            <p className="font-bold text-error">Não foi possível salvar o rascunho</p>
+            <p className="text-sm text-text-secondary">{saveError}</p>
+          </div>
+        </Card>
+      )}
 
       <Tabs value={activeStep} onValueChange={(value) => setActiveStep(value as WizardStepId)}>
         <Tabs.List className="mb-4">
@@ -79,7 +97,13 @@ export function PhysicalAssessmentWizard({
           />
         </Tabs.Panel>
         <Tabs.Panel value="review">
-          <ReviewStep assessment={assessment} student={student} onComplete={onComplete} />
+          <ReviewStep
+            assessment={assessment}
+            student={student}
+            onComplete={onComplete}
+            completing={completing}
+            completeError={completeError}
+          />
         </Tabs.Panel>
       </Tabs>
     </div>

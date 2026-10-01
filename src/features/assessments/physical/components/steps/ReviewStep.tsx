@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Icon } from '@/components/ui/Icon'
 import type { PosturalMetric } from '@/features/assessments/postural/domain/posturalAssessment.types'
 import {
   getCapturedViews,
@@ -16,6 +17,8 @@ type ReviewStepProps = {
   assessment: PhysicalAssessment
   student: Student
   onComplete: () => Promise<void>
+  completing: boolean
+  completeError: string | null
 }
 
 const METRIC_STATUS_TONE: Record<PosturalMetric['status'], 'success' | 'warning' | 'neutral'> = {
@@ -33,7 +36,13 @@ function formatValidation(metric: PosturalMetric): string {
   return metric.trainerValidation === 'pending' ? 'Pendente de validação' : metric.trainerValidation
 }
 
-export function ReviewStep({ assessment, student, onComplete }: ReviewStepProps) {
+export function ReviewStep({
+  assessment,
+  student,
+  onComplete,
+  completing,
+  completeError,
+}: ReviewStepProps) {
   const postural = assessment.posturalAssessment
   const capturedViews = getCapturedViews(postural)
 
@@ -110,9 +119,20 @@ export function ReviewStep({ assessment, student, onComplete }: ReviewStepProps)
           Avaliação concluída
         </Badge>
       ) : (
-        <Button onClick={() => void onComplete()} className="self-end">
-          Concluir avaliação
-        </Button>
+        <div className="flex flex-col items-end gap-3">
+          {completeError && (
+            <Card tone="elevated" className="flex w-full items-start gap-2 border-error">
+              <Icon name="error" className="text-error" />
+              <div>
+                <p className="font-bold text-error">Não foi possível concluir a avaliação</p>
+                <p className="text-sm text-text-secondary">{completeError}</p>
+              </div>
+            </Card>
+          )}
+          <Button onClick={() => void onComplete()} disabled={completing} className="self-end">
+            {completing ? 'Concluindo…' : 'Concluir avaliação'}
+          </Button>
+        </div>
       )}
     </div>
   )
