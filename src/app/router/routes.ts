@@ -8,6 +8,8 @@ export const ROUTES = {
     exerciseDetail: '/aluno/exercicios/:exerciseId',
     nutrition: '/aluno/plano-alimentar',
     posturalCorrection: '/aluno/correcao-postural',
+    assessments: '/aluno/avaliacoes',
+    assessmentDetail: '/aluno/avaliacoes/:assessmentId',
     chat: '/aluno/chat',
     billing: '/aluno/financeiro',
   },
@@ -39,6 +41,10 @@ export function buildNewAssessmentPath(studentId: string): string {
 
 export function buildViewAssessmentPath(studentId: string, assessmentId: string): string {
   return `/personal/alunos/${studentId}/avaliacoes/${assessmentId}`
+}
+
+export function buildStudentAssessmentDetailPath(assessmentId: string): string {
+  return `/aluno/avaliacoes/${assessmentId}`
 }
 
 export function buildWorkoutDetailPath(workoutId: string): string {
