@@ -17,13 +17,13 @@ jobs:
       VITE_SUPABASE_URL: https://placeholder.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: placeholder-anon-key
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           # O projeto não declara engines nem .nvmrc. 20.19 é o mínimo comum exigido por
           # vite 8 (^20.19 || >=22.12) e eslint 10 (^20.19 || ^22.13 || >=24).
-          node-version: '20.19'
+          node-version: '22'
           cache: npm
 
       - run: npm ci

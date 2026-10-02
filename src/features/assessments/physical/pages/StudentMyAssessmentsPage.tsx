@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ROUTES } from '@/app/router/routes'
+import { buildStudentAssessmentDetailPath, ROUTES } from '@/app/router/routes'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
@@ -77,7 +77,8 @@ export function StudentMyAssessmentsPage() {
             const peso = a.biometrics?.weightKg
             const altura = a.biometrics?.heightCm
             return (
-              <Card key={a.id}>
+              <Link key={a.id} to={buildStudentAssessmentDetailPath(a.id)}>
+              <Card className="transition-colors hover:border-action-primary">
                 <div className="flex items-center justify-between gap-4 py-2">
                   <div className="flex flex-col gap-1">
                     <span className="font-medium text-text-primary">{date}</span>
@@ -92,6 +93,7 @@ export function StudentMyAssessmentsPage() {
                   <Badge tone="success">Concluída</Badge>
                 </div>
               </Card>
+              </Link>
             )
           })}
         </div>

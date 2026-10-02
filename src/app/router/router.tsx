@@ -7,6 +7,7 @@ import { StudentHomePage } from '@/features/dashboard/pages/StudentHomePage'
 import { NewPhysicalAssessmentPage } from '@/features/assessments/physical/pages/NewPhysicalAssessmentPage'
 import { StudentAssessmentsPage } from '@/features/assessments/physical/pages/StudentAssessmentsPage'
 import { StudentMyAssessmentsPage } from '@/features/assessments/physical/pages/StudentMyAssessmentsPage'
+import { StudentAssessmentDetailPage } from '@/features/assessments/physical/pages/StudentAssessmentDetailPage'
 import { StudentAnamnesisListPage } from '@/features/anamnesis/pages/StudentAnamnesisListPage'
 import { TrainerAnamnesisPage } from '@/features/anamnesis/pages/TrainerAnamnesisPage'
 import {
@@ -60,6 +61,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.student.nutrition, element: <NutritionPlanPage /> },
       { path: ROUTES.student.posturalCorrection, element: <PosturalCorrectionPage /> },
       { path: ROUTES.student.myAssessments, element: <StudentMyAssessmentsPage /> },
+      { path: ROUTES.student.assessmentDetail, element: <StudentAssessmentDetailPage /> },
       { path: ROUTES.student.anamnesis, element: <StudentMyAnamnesisPage /> },
       { path: ROUTES.student.anamnesisDetail, element: <StudentAnamnesisFillPage /> },
       {

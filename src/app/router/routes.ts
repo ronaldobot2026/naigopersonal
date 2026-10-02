@@ -9,6 +9,7 @@ export const ROUTES = {
     nutrition: '/aluno/plano-alimentar',
     posturalCorrection: '/aluno/correcao-postural',
     myAssessments: '/aluno/avaliacoes',
+    assessmentDetail: '/aluno/avaliacoes/:assessmentId',
     anamnesis: '/aluno/anamnese',
     anamnesisDetail: '/aluno/anamnese/:anamnesisId',
     chat: '/aluno/chat',
@@ -46,16 +47,8 @@ export function buildViewAssessmentPath(studentId: string, assessmentId: string)
   return `/personal/alunos/${studentId}/avaliacoes/${assessmentId}`
 }
 
-export function buildWorkoutDetailPath(workoutId: string): string {
-  return `/aluno/treinos/${workoutId}`
-}
-
-export function buildExerciseDetailPath(exerciseId: string): string {
-  return `/aluno/exercicios/${exerciseId}`
-}
-
-export function buildWorkoutBuilderPath(studentId: string): string {
-  return `/personal/alunos/${studentId}/treino`
+export function buildStudentAssessmentDetailPath(assessmentId: string): string {
+  return `/aluno/avaliacoes/${assessmentId}`
 }
 
 export function buildStudentAnamnesisListPath(studentId: string): string {
@@ -68,4 +61,16 @@ export function buildTrainerAnamnesisPath(studentId: string, anamnesisId: string
 
 export function buildStudentAnamnesisDetailPath(anamnesisId: string): string {
   return `/aluno/anamnese/${anamnesisId}`
+}
+
+export function buildWorkoutDetailPath(workoutId: string): string {
+  return `/aluno/treinos/${workoutId}`
+}
+
+export function buildExerciseDetailPath(exerciseId: string): string {
+  return `/aluno/exercicios/${exerciseId}`
+}
+
+export function buildWorkoutBuilderPath(studentId: string): string {
+  return `/personal/alunos/${studentId}/treino`
 }
