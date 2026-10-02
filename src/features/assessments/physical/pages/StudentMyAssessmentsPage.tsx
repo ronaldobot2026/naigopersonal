@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ROUTES } from '@/app/router/routes'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { Icon } from '@/components/ui/Icon'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { physicalAssessmentRepository } from '../repositories/physicalAssessmentRepository'
 import type { PhysicalAssessment } from '@/types/domain'
@@ -51,6 +54,16 @@ export function StudentMyAssessmentsPage() {
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
       <PageHeader eyebrow="Histórico" title="Minhas avaliações" />
+
+      <Card className="mb-4">
+        <Link
+          to={ROUTES.student.anamnesis}
+          className="flex items-center justify-between gap-4 text-text-primary hover:text-action-primary"
+        >
+          <span className="font-medium">Anamnese — questionários do seu personal</span>
+          <Icon name="chevron_right" />
+        </Link>
+      </Card>
 
       {assessments.length === 0 ? (
         <EmptyState
