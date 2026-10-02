@@ -4,8 +4,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Anamnesis } from '../domain/anamnesis.types'
 
-vi.mock('../repositories/indexedDbAnamnesisRepository', () => ({
-  indexedDbAnamnesisRepository: {
+vi.mock('../repositories/anamnesisRepository', () => ({
+  anamnesisRepository: {
     saveAnswers: vi.fn(async (a: Anamnesis, answers: Anamnesis['answers']) => ({ ...a, answers })),
     complete: vi.fn(async (a: Anamnesis, answers: Anamnesis['answers']) => ({
       ...a,
@@ -16,7 +16,7 @@ vi.mock('../repositories/indexedDbAnamnesisRepository', () => ({
 }))
 
 import { AnamnesisFiller } from '../components/AnamnesisFiller'
-import { indexedDbAnamnesisRepository } from '../repositories/indexedDbAnamnesisRepository'
+import { anamnesisRepository } from '../repositories/anamnesisRepository'
 
 const PARQ: Anamnesis = {
   id: 'a1',
@@ -48,7 +48,7 @@ describe('AnamnesisFiller', () => {
     await user.click(screen.getByRole('button', { name: /concluir anamnese/i }))
 
     expect(await screen.findByText(/faltam 7 pergunta/i)).toBeInTheDocument()
-    expect(indexedDbAnamnesisRepository.complete).not.toHaveBeenCalled()
+    expect(anamnesisRepository.complete).not.toHaveBeenCalled()
   })
 
   it('salva a cada resposta e conclui quando tudo está respondido', async () => {
@@ -60,11 +60,11 @@ describe('AnamnesisFiller', () => {
     for (const grupo of grupos) {
       await user.click(grupo.querySelector('[role="radio"]:nth-child(2)') as HTMLElement) // Não
     }
-    expect(indexedDbAnamnesisRepository.saveAnswers).toHaveBeenCalledTimes(7)
+    expect(anamnesisRepository.saveAnswers).toHaveBeenCalledTimes(7)
 
     await user.click(screen.getByRole('button', { name: /concluir anamnese/i }))
 
-    await waitFor(() => expect(indexedDbAnamnesisRepository.complete).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(anamnesisRepository.complete).toHaveBeenCalledTimes(1))
     expect(await screen.findByText(/anamnese concluída/i)).toBeInTheDocument()
     expect(screen.getByText(/nenhuma restrição apontada/i)).toBeInTheDocument()
   })

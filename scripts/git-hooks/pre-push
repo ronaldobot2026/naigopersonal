@@ -1,0 +1,33 @@
+#!/bin/sh
+# Pre-push: roda o MESMO comando de build da Vercel e barra o push se falhar.
+#
+# Porquê: em 25/09/2026, `tsc --noEmit` passou mas `npm run build` (`tsc -b && vite build`)
+# falhou por um erro de tipo em arquivo de TESTE. A Vercel parou de publicar em silêncio e
+# 5 commits ficaram presos. O hook pega isso ANTES de sair da máquina.
+#
+# Shell puro de propósito: zero dependência nova (nada de husky/lint-staged).
+# Emergência: `git push --no-verify`.
+
+set -e
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+printf '\n[pre-push] Rodando "npm run build" (tsc -b && vite build)...\n'
+
+if npm run build; then
+  printf '[pre-push] Build OK. Push liberado.\n\n'
+  exit 0
+fi
+
+cat >&2 <<'MSG'
+
+[pre-push] BUILD QUEBRADO — push abortado.
+
+Corrija o erro acima antes de empurrar. Lembre: `npx tsc --noEmit` NÃO é suficiente,
+porque `tsc -b` também compila os arquivos de teste (src/**/tests/*.test.tsx).
+
+Se for emergência consciente: git push --no-verify
+
+MSG
+exit 1

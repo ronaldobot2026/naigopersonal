@@ -43,6 +43,32 @@ export const POSTURE_THRESHOLDS = {
    */
   maxShoulderSpanRatioForSideView: 0.18,
   minShoulderSpanRatioForBilateralView: 0.08,
+
+  /**
+   * Acima deste desvio (graus) em relação ao alinhamento esperado do joelho (180°, formado por
+   * quadril–joelho–tornozelo na vista lateral), a leitura vira "attention". Uma leitura 2D não
+   * distingue hiperextensão (o "joelho para baixo" pedido pelo Windson) de uma simples flexão
+   * durante a captura — os dois desviam o ângulo na mesma magnitude sem indicar direção — por
+   * isso o texto gerado nunca afirma qual dos dois é. AINDA PRECISA DE VALIDAÇÃO de um
+   * profissional de educação física antes de uso em produção.
+   */
+  kneeAngleDeviationAttentionDeg: 5,
+
+  /**
+   * Acima deste desvio (graus) em relação ao alinhamento esperado da pelve (180°, formado por
+   * ombro–quadril–joelho na vista lateral), a leitura vira "attention". Pelo mesmo motivo do
+   * joelho, a leitura 2D não distingue inclinação anterior de posterior. AINDA PRECISA DE
+   * VALIDAÇÃO de um profissional de educação física antes de uso em produção.
+   */
+  pelvicTiltAttentionDeg: 10,
+
+  /**
+   * Acima desta fração da largura do corpo (distância entre ombros), o desvio lateral do joelho
+   * em relação à linha quadril–tornozelo (vistas frontal/posterior) vira "attention" — pode
+   * indicar padrão de valgo ou varo, mas a leitura 2D não distingue a direção. AINDA PRECISA DE
+   * VALIDAÇÃO de um profissional de educação física antes de uso em produção.
+   */
+  kneeTrackingDeviationAttentionRatio: 0.03,
 } as const
 
 export type PostureThresholds = typeof POSTURE_THRESHOLDS

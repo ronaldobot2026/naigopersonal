@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useAsyncData } from '@/hooks/useAsyncData'
-import { MOCK_TRAINER_ID } from '@/mocks/trainers'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { AnamnesisForm } from '../components/AnamnesisForm'
 import { ANAMNESIS_TEMPLATES, getAnamnesisTemplate } from '../domain/anamnesisTemplates'
 import type {
@@ -17,7 +17,7 @@ import type {
   AnamnesisStatus,
   AnamnesisTemplateId,
 } from '../domain/anamnesis.types'
-import { indexedDbAnamnesisRepository } from '../repositories/indexedDbAnamnesisRepository'
+import { anamnesisRepository } from '../repositories/anamnesisRepository'
 
 const STATUS_BADGE: Record<AnamnesisStatus, { label: string; tone: 'neutral' | 'warning' | 'success' }> = {
   draft: { label: 'Em preenchimento', tone: 'neutral' },
@@ -34,23 +34,31 @@ export function StudentAnamnesisListPage() {
   const [previewing, setPreviewing] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
+  const { userId: trainerId, status: authStatus } = useAuthUser()
+
   const { status, data, errorMessage } = useAsyncData(
-    () => indexedDbAnamnesisRepository.findByStudentId(studentId ?? ''),
-    [studentId, reloadKey],
+    () =>
+      authStatus === 'authenticated'
+        ? anamnesisRepository.findByStudentId(studentId ?? '')
+        : new Promise<never>(() => undefined),
+    [studentId, reloadKey, authStatus],
   )
 
   if (!studentId) {
     return <ErrorState title="Aluno não informado" description="Volte para a lista de alunos." />
   }
+  if (authStatus === 'unauthenticated') {
+    return <ErrorState title="Sessão expirada" description="Faça login novamente." />
+  }
   const alunoId = studentId
 
   async function create(filledBy: AnamnesisFilledBy) {
-    if (!templateId) return
+    if (!templateId || !trainerId) return
     setCreateError(null)
     try {
-      const created = await indexedDbAnamnesisRepository.create({
+      const created = await anamnesisRepository.create({
         studentId: alunoId,
-        trainerId: MOCK_TRAINER_ID,
+        trainerId,
         templateId,
         filledBy,
       })

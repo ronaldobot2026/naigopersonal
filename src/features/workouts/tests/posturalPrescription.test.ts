@@ -35,6 +35,41 @@ describe('derivePosturalFindings', () => {
     expect(findings.map((finding) => finding.focus.id)).toEqual(['cintura_escapular', 'cervical'])
   })
 
+  it('mapeia joelho e pelve para as regiões que observam', () => {
+    const findings = derivePosturalFindings([
+      buildMetric({ id: 'right_side.kneeAngle', value: 12, view: 'right_side' }),
+      buildMetric({ id: 'left_side.pelvicTilt', value: 15, view: 'left_side' }),
+    ])
+
+    expect(findings.map((finding) => finding.focus.id)).toEqual(['joelhos', 'quadril_pelve'])
+  })
+
+  it('agrupa hiperextensão e rastreamento do joelho no mesmo achado', () => {
+    // kneeAngle usa limiar em graus (5); kneeTrackingDeviation usa fração da largura (0,03).
+    const findings = derivePosturalFindings([
+      buildMetric({ id: 'left_side.kneeAngle', value: 10, view: 'left_side' }),
+      buildMetric({ id: 'front.kneeTrackingDeviationRight', value: 0.06 }),
+    ])
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0].focus.id).toBe('joelhos')
+    expect(findings[0].metrics).toHaveLength(2)
+    // A severidade acompanha a leitura mais acentuada (kneeAngle 10/5 = 2,0).
+    expect(findings[0].severity).toBeCloseTo(2)
+  })
+
+  it('calcula a severidade do joelho na unidade nativa de cada métrica', () => {
+    const [knee] = derivePosturalFindings([
+      buildMetric({ id: 'right_side.kneeAngle', value: 12, view: 'right_side' }),
+    ])
+    expect(knee.severity).toBeCloseTo(12 / 5)
+
+    const [tracking] = derivePosturalFindings([
+      buildMetric({ id: 'front.kneeTrackingDeviationLeft', value: 0.06 }),
+    ])
+    expect(tracking.severity).toBeCloseTo(0.06 / 0.03)
+  })
+
   it('ordena da leitura mais acentuada para a menos, em relação ao limiar de cada métrica', () => {
     // 9° num limiar de 3° (razão 3) pesa mais que 18° num limiar de 12° (razão 1,5),
     // mesmo o segundo tendo o valor absoluto maior.

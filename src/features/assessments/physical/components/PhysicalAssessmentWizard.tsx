@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Tabs } from '@/components/ui/Tabs'
@@ -17,40 +16,79 @@ type PhysicalAssessmentWizardProps = {
   student: Student
   assessment: PhysicalAssessment
   onUpdate: (patch: Partial<PhysicalAssessment>) => void
+  onSave: () => Promise<void>
+  saving: boolean
+  savedAt: string | null
   saveError: string | null
   onComplete: () => Promise<void>
-  completing: boolean
-  completeError: string | null
+  /** Repassado ao passo de fotos: grava o rascunho antes do upload (FK de `assessment_photos`). */
+  onEnsurePersisted: () => Promise<void>
+}
+
+/** Indicador do estado do auto-save (e do botão "Salvar ficha" do ReviewStep) — mesmo estado. */
+function SaveStatus({
+  saving,
+  savedAt,
+  saveError,
+}: {
+  saving: boolean
+  savedAt: string | null
+  saveError: string | null
+}) {
+  if (saving) {
+    return (
+      <span className="flex items-center gap-1 font-mono text-xs text-text-secondary">
+        <Icon name="progress_activity" className="animate-spin" />
+        Salvando…
+      </span>
+    )
+  }
+
+  if (saveError) {
+    return (
+      <span role="alert" className="flex items-center gap-1 font-mono text-xs text-error">
+        <Icon name="error" />
+        Falha ao salvar: {saveError}
+      </span>
+    )
+  }
+
+  if (savedAt) {
+    return (
+      <span className="flex items-center gap-1 font-mono text-xs text-success">
+        <Icon name="check_circle" filled />
+        Salvo ✓ · {new Date(savedAt).toLocaleTimeString('pt-BR')}
+      </span>
+    )
+  }
+
+  return null
 }
 
 export function PhysicalAssessmentWizard({
   student,
   assessment,
   onUpdate,
+  onSave,
+  saving,
+  savedAt,
   saveError,
   onComplete,
-  completing,
-  completeError,
+  onEnsurePersisted,
 }: PhysicalAssessmentWizardProps) {
   const [activeStep, setActiveStep] = useState<WizardStepId>('general')
   const stepIndex = WIZARD_STEPS.findIndex((step) => step.id === activeStep)
 
   return (
     <div className="flex flex-col gap-6">
-      <ProgressBar
-        value={((stepIndex + 1) / WIZARD_STEPS.length) * 100}
-        label="Progresso da avaliação"
-      />
-
-      {saveError && (
-        <Card tone="elevated" className="flex items-start gap-2 border-error">
-          <Icon name="error" className="text-error" />
-          <div>
-            <p className="font-bold text-error">Não foi possível salvar o rascunho</p>
-            <p className="text-sm text-text-secondary">{saveError}</p>
-          </div>
-        </Card>
-      )}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <ProgressBar
+          value={((stepIndex + 1) / WIZARD_STEPS.length) * 100}
+          label="Progresso da avaliação"
+          className="sm:flex-1"
+        />
+        <SaveStatus saving={saving} savedAt={savedAt} saveError={saveError} />
+      </div>
 
       <Tabs value={activeStep} onValueChange={(value) => setActiveStep(value as WizardStepId)}>
         <Tabs.List className="mb-4">
@@ -79,13 +117,17 @@ export function PhysicalAssessmentWizard({
         <Tabs.Panel value="visual">
           <VisualRecordStep
             assessmentId={assessment.id}
+            studentId={assessment.studentId}
             value={assessment.visualRecords}
             onChange={(visualRecords) => onUpdate({ visualRecords })}
+            onBeforeUpload={onEnsurePersisted}
           />
         </Tabs.Panel>
         <Tabs.Panel value="postural">
           <PosturalAssessmentFlow
             assessmentId={assessment.id}
+            studentId={assessment.studentId}
+            evaluatorId={assessment.evaluatorId}
             posturalAssessment={assessment.posturalAssessment}
             onChange={(posturalAssessment) => onUpdate({ posturalAssessment })}
           />
@@ -100,9 +142,9 @@ export function PhysicalAssessmentWizard({
           <ReviewStep
             assessment={assessment}
             student={student}
+            onSave={onSave}
+            saving={saving}
             onComplete={onComplete}
-            completing={completing}
-            completeError={completeError}
           />
         </Tabs.Panel>
       </Tabs>

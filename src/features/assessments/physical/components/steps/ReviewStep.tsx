@@ -16,9 +16,9 @@ import type { PhysicalAssessment, Student } from '@/types/domain'
 type ReviewStepProps = {
   assessment: PhysicalAssessment
   student: Student
+  onSave: () => Promise<void>
+  saving: boolean
   onComplete: () => Promise<void>
-  completing: boolean
-  completeError: string | null
 }
 
 const METRIC_STATUS_TONE: Record<PosturalMetric['status'], 'success' | 'warning' | 'neutral'> = {
@@ -36,13 +36,7 @@ function formatValidation(metric: PosturalMetric): string {
   return metric.trainerValidation === 'pending' ? 'Pendente de validação' : metric.trainerValidation
 }
 
-export function ReviewStep({
-  assessment,
-  student,
-  onComplete,
-  completing,
-  completeError,
-}: ReviewStepProps) {
+export function ReviewStep({ assessment, student, onSave, saving, onComplete }: ReviewStepProps) {
   const postural = assessment.posturalAssessment
   const capturedViews = getCapturedViews(postural)
 
@@ -119,18 +113,15 @@ export function ReviewStep({
           Avaliação concluída
         </Badge>
       ) : (
-        <div className="flex flex-col items-end gap-3">
-          {completeError && (
-            <Card tone="elevated" className="flex w-full items-start gap-2 border-error">
-              <Icon name="error" className="text-error" />
-              <div>
-                <p className="font-bold text-error">Não foi possível concluir a avaliação</p>
-                <p className="text-sm text-text-secondary">{completeError}</p>
-              </div>
-            </Card>
-          )}
-          <Button onClick={() => void onComplete()} disabled={completing} className="self-end">
-            {completing ? 'Concluindo…' : 'Concluir avaliação'}
+        <div className="flex flex-wrap justify-end gap-2">
+          {/* Só aparece antes de concluir: salvar depois disso chamaria saveDraft, que sempre
+              grava status "draft" — reabriria uma avaliação já concluída por engano. */}
+          <Button variant="secondary" onClick={() => void onSave()} disabled={saving}>
+            <Icon name="save" />
+            {saving ? 'Salvando…' : 'Salvar ficha'}
+          </Button>
+          <Button onClick={() => void onComplete()} disabled={saving}>
+            Concluir avaliação
           </Button>
         </div>
       )}

@@ -66,25 +66,73 @@ Fases 6, 7 e 17.
       `@/mocks/*` restante em página: `MOCK_CURRENT_STUDENT_ID` em `StudentHomePage.tsx` — é
       placeholder de identidade de sessão (mesma categoria de `MOCK_TRAINER_ID`), propositalmente
       não resolvido aqui; é escopo da Fase 7 (`auth.uid()` substitui os dois).
-- [x] Fase 6 — plataforma confirmada (Supabase + Mercado Pago). Projeto original criado pelo
-      usuário em 2026-08-14 (`cohzcqdvikzlnzhnqiqf`) **foi perdido** (consistente com o risco já
-      registrado no `BACKEND_PLAN.md`: plano free pausa após 7 dias sem tráfego) — não aparecia
-      mais em `supabase projects list` em 2026-09-18. Projeto recriado no mesmo dia:
-      `midftshifkvweehrtyte`, região `sa-east-1` (São Paulo, conforme decisão original — uma
-      recriação intermediária em `us-east-2` foi descartada por não bater com essa decisão).
-      Aplicado em produção: migration `supabase/migrations/20260814120000_identity_foundation.sql`
-      (`profiles`, `students`, RLS, trigger de bootstrap de identidade, bucket privado
-      `assessment-photos` + policies). Cliente tipado em `src/lib/supabase/client.ts` +
-      `src/lib/config/env.ts`, `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY` em `.env.local`
-      (gitignored) e documentados em `.env.example`. `@supabase/supabase-js` instalado.
+- [x] Fase 6 — plataforma confirmada (Supabase + Mercado Pago) e projeto criado pelo usuário em
+      2026-08-14 (`cohzcqdvikzlnzhnqiqf`, região informada pelo painel). Aplicado em produção:
+      migration `supabase/migrations/20260814120000_identity_foundation.sql` (`profiles`,
+      `students`, RLS, trigger de bootstrap de identidade, bucket privado `assessment-photos` +
+      policies). Cliente tipado em `src/lib/supabase/client.ts` + `src/lib/config/env.ts`,
+      `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY` em `.env.local` (gitignored) e
+      documentados em `.env.example`. `@supabase/supabase-js` instalado.
       **Pendente desta fase, adiado para a Fase 7/8** (precisa de usuários reais autenticados
       para existir): teste de integração de isolamento entre alunos (aluno A não lê dado de
       aluno B). Nenhum repositório fez cutover ainda — app continua 100% em cima dos repositórios
       mock, como o DoD pede. A `service_role key` do projeto não foi solicitada nem armazenada
       pelo agente (só entra em secret de Edge Function, mais adiante).
-      **Risco de plano free ainda em aberto**: se o projeto ficar 7 dias sem tráfego antes do
-      lançamento, ele pausa de novo — orçar o Pro (~US$25/mês) antes disso, por decisão já
-      registrada no `BACKEND_PLAN.md`.
-- [ ] Fase 7 — próxima. Precisa: provedor de e-mail transacional (Resend/Postmark) + DNS, OAuth
-      client do Google Cloud, e decisão sobre Apple Sign In (US$99/ano) — ou seguir só com
-      e-mail/senha + Google no lançamento e adicionar Apple depois.
+- [~] Fase 7 — **só a fatia mínima**, para destravar a Fase 9 (abaixo): `LoginPage.tsx` agora
+      autentica de verdade (`supabase.auth.signInWithPassword`, sem mais botão de "entrar como
+      X" instantâneo) e `useAuthUser` expõe `auth.uid()` para quem precisa. **Falta para a Fase 7
+      completa**: Google/Apple OAuth, recuperação de senha, convite, `RequireRole` como guarda de
+      rota (hoje `RoleShell`/`RoleProvider` continuam como troca de papel mockada, decorativa —
+      quem autoriza de verdade é só a RLS). `scripts/seed-demo-users.mjs` cria as duas contas
+      reais (personal + aluno) via `service_role key` — passada só na hora de rodar o script,
+      nunca armazenada. Teste de isolamento entre alunos (aluno A não lê dado de aluno B) segue
+      pendente — só dá para escrever com um segundo aluno real, que ainda não existe.
+- [x] Fase 8 — concluída em 2026-09-21. **Leitura**: `studentRepository.ts` (Supabase) substitui
+      o antigo `indexedDbStudentRepository.ts`/`MOCK_STUDENTS`; `StudentsListPage.tsx` lista e
+      `StudentDetailPage.tsx`/`NewPhysicalAssessmentPage.tsx` leem pelo `id` real. A RLS
+      (`students_all_trainer`, Fase 6) já garante o isolamento: um personal só vê os próprios
+      alunos, sem filtro extra no cliente. **Cadastro/convite pela UI**: Edge Function
+      `supabase/functions/invite-student/` — a única peça que pode chamar
+      `auth.admin.inviteUserByEmail` (exige `service_role`, nunca exposta ao cliente). O vínculo
+      trainer↔aluno (linha em `public.students`, `trainer_id`) não vem mais de metadata enviada
+      pelo cliente nem do trigger `handle_new_user()` — desde o hardening de segurança do commit
+      `9fa594c` (ver `docs/PENTEST_REPORT.md`), esse trigger sempre cria `profiles.role =
+      'student'` sem vínculo nenhum, de propósito. É a própria função que verifica, a partir do
+      JWT de quem chama (nunca de um campo do corpo da requisição), que `profiles.role =
+      'trainer'`, e só então grava `students.trainer_id = auth.uid()` do chamador. `StudentsListPage.tsx`
+      ganhou o formulário "Adicionar aluno" (`InviteStudentForm.tsx`) chamando
+      `studentRepository.invite()` → `supabase.functions.invoke('invite-student', ...)`. Validado
+      de ponta a ponta contra um Supabase local (Docker): convite por um trainer autenticado cria
+      `profiles`+`students` corretamente vinculados; aluno tentando convidar → 403; sem sessão →
+      401; e-mail inválido → 400; e-mail já cadastrado → 409. **Fora do escopo**: página de
+      "definir senha" para o aluno completar o convite (o e-mail de convite do Supabase aponta
+      para uma rota que ainda não existe no app — mesma lacuna que "recuperação de senha", Fase 7
+      completa) e reenvio/cancelamento de convite pendente.
+- [x] Fase 9 (parcial) — Avaliação Física com salvamento real, concluída em 2026-09-21. Migration
+      `supabase/migrations/20260921140000_physical_assessment_backend.sql`: tabelas
+      `physical_assessments`, `body_metrics`, `assessment_photos` + RLS + policy de `update` no
+      bucket `assessment-photos` (upsert de foto). `indexedDbPhysicalAssessmentRepository.ts`
+      deletado; `physicalAssessmentRepository.ts` (mesmas assinaturas) + `assessmentPhotoRepository.ts`
+      (Storage, signed URL) tomam o lugar. Rascunho continua salvando a cada alteração (agora no
+      Supabase) e resume ao voltar — validado de ponta a ponta contra um Supabase local (Docker):
+      login real, criação/resumo de rascunho, biometria/antropometria, upload de foto com preview
+      via signed URL, conclusão, e RLS bloqueando escrita do aluno na própria avaliação.
+      **Decisões de escopo, não pedidas explicitamente mas necessárias para não quebrar nada**:
+      `usePosturalFindings.ts` (feature Treinos) also migrado, só porque consumia o repositório
+      deletado. **Fora do escopo desta entrega** (não pedido, ficou como dívida explícita):
+      avaliação postural continua como `jsonb` em `physical_assessments.postural_assessment`, não
+      nas tabelas normalizadas do `BACKEND_PLAN.md` (`postural_assessments`/`postural_captures`/
+      `postural_metrics`) — isso é Fase 14; fila local de upload pendente de foto (offline-first,
+      citada no `BACKEND_PLAN.md`) não foi construída, upload é direto; `indexedDbPosturalAssessmentRepository.ts`
+      ficou órfão (sem nenhum consumidor desde antes desta entrega) — removido em 2026-09-21 por
+      já não ter nenhum uso.
+- [~] Anamnese (pedido do cliente, 2026-10-01) — modelos **PAR-Q** (7 perguntas Sim/Não, com aviso
+      de liberação médica quando há "Sim") e **Padrão** (17 itens), preenchidos pelo personal
+      ("Eu irei preencher") ou enviados ao aluno ("Meu aluno irá preencher"). Código em
+      `src/features/anamnesis/` (catálogo de perguntas no código; respostas em `jsonb`). Migration
+      `supabase/migrations/20261001120000_anamneses.sql` (tabela `anamneses` + RLS: personal só dos
+      próprios alunos como autor, aluno só pendente/concluída e só responde a pendente; trigger
+      impede o aluno de mudar template/autor). **Pendente**: aplicar a migration no projeto
+      `midftshifkvweehrtyte` (`supabase db push`), regenerar `database.types.ts` com
+      `supabase gen types typescript --linked` (a entrada `anamneses` foi escrita à mão) e rodar
+      um teste de isolamento RLS no padrão de `correctivePlanIsolation.integration.test.ts`.

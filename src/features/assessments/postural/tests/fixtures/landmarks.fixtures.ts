@@ -101,3 +101,27 @@ export const FORWARD_HEAD_SIDE_POSE = buildSidePoseArray({
 
 /** A mesma pose frontal, porém rotulada como captura lateral — orientação incompatível. */
 export const FRONTAL_POSE_LABELED_AS_SIDE = GOOD_FRONTAL_POSE
+
+/**
+ * Joelho direito da vista frontal deslocado ~40% da largura do corpo em direção ao centro —
+ * deve cair em "attention" no rastreamento do joelho (kneeTrackingDeviation), sem afetar
+ * inclinação de ombros/quadris (nenhum dos dois usa o landmark do joelho).
+ */
+export const KNEE_LATERAL_DEVIATION_FRONTAL_POSE = buildPoseArray({
+  26: { x: 0.5, y: 0.75, visibility: DEFAULT_VISIBILITY }, // rightKnee deslocado para dentro
+})
+
+/**
+ * Perfil direito com o joelho deslocado lateralmente: quebra o alinhamento quadril–joelho–
+ * tornozelo (ângulo do joelho) e, por tabela, também o de ombro–quadril–joelho (inclinação da
+ * pelve), já que os dois ângulos compartilham o landmark do joelho. Usada nos testes de
+ * "attention" de kneeAngle e pelvicTilt.
+ */
+export const KNEE_AND_PELVIS_DEVIATION_SIDE_POSE = buildSidePoseArray({
+  26: { x: 0.56, y: 0.75, visibility: DEFAULT_VISIBILITY }, // rightKnee deslocado
+})
+
+/** Perfil direito com o joelho detectado, porém com visibilidade abaixo do mínimo aceitável. */
+export const LOW_VISIBILITY_KNEE_SIDE_POSE = buildSidePoseArray({
+  26: { x: 0.5, y: 0.75, visibility: 0.3 }, // rightKnee
+})

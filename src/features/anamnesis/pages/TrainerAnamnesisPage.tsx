@@ -6,13 +6,13 @@ import { PageHeader } from '@/components/navigation/PageHeader'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { AnamnesisFiller } from '../components/AnamnesisFiller'
 import { getAnamnesisTemplate } from '../domain/anamnesisTemplates'
-import { indexedDbAnamnesisRepository } from '../repositories/indexedDbAnamnesisRepository'
+import { anamnesisRepository } from '../repositories/anamnesisRepository'
 
 /** Personal: preenche (ou revisa) uma anamnese do aluno. */
 export function TrainerAnamnesisPage() {
   const { studentId, anamnesisId } = useParams<{ studentId: string; anamnesisId: string }>()
   const { status, data } = useAsyncData(
-    () => indexedDbAnamnesisRepository.findById(anamnesisId ?? ''),
+    () => anamnesisRepository.findById(anamnesisId ?? ''),
     [anamnesisId],
   )
 

@@ -6,8 +6,8 @@ const findById = vi.fn()
 const save = vi.fn()
 const findByStudentId = vi.fn()
 
-vi.mock('@/features/students/repositories/indexedDbStudentRepository', () => ({
-  indexedDbStudentRepository: { findById: (id: string) => findById(id) },
+vi.mock('@/features/students/repositories/studentRepository', () => ({
+  studentRepository: { findById: (id: string) => findById(id) },
 }))
 
 vi.mock('../repositories/indexedDbWorkoutPlanRepository', () => ({

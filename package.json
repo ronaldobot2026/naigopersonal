@@ -22,7 +22,9 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "build:exercises": "node scripts/build-exercises.mjs"
+    "build:exercises": "node scripts/build-exercises.mjs",
+    "verify": "npm run build && npx vitest run && npx eslint .",
+    "hooks:install": "sh scripts/install-git-hooks.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

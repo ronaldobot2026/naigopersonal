@@ -11,7 +11,7 @@ import {
   getUnansweredQuestions,
 } from '../domain/anamnesisTemplates'
 import type { Anamnesis, AnamnesisAnswers } from '../domain/anamnesis.types'
-import { indexedDbAnamnesisRepository } from '../repositories/indexedDbAnamnesisRepository'
+import { anamnesisRepository } from '../repositories/anamnesisRepository'
 
 type AnamnesisFillerProps = {
   anamnesis: Anamnesis
@@ -43,7 +43,7 @@ export function AnamnesisFiller({ anamnesis, backTo, onCompleted }: AnamnesisFil
   function handleChange(next: AnamnesisAnswers) {
     setAnswers(next)
     setHighlightIds([])
-    indexedDbAnamnesisRepository
+    anamnesisRepository
       .saveAnswers(current, next)
       .then(() => setSaveError(null))
       .catch((erro: unknown) => {
@@ -60,7 +60,7 @@ export function AnamnesisFiller({ anamnesis, backTo, onCompleted }: AnamnesisFil
     }
     setCompleting(true)
     try {
-      const completed = await indexedDbAnamnesisRepository.complete(current, answers)
+      const completed = await anamnesisRepository.complete(current, answers)
       setCurrent(completed)
       setSaveError(null)
       onCompleted?.(completed)

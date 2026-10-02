@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { formatMetricValue } from '../domain/measurementFormat'
 import type { PosturalMetric, TrainerValidation } from '../domain/posturalAssessment.types'
 
 type MetricsReviewProps = {
@@ -34,9 +35,16 @@ function MetricRow({ metric, onValidate }: MetricRowProps) {
   return (
     <Card tone="elevated" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="font-bold text-text-primary">{metric.label}</p>
-          <p className="text-sm text-text-secondary">{metric.automaticObservation}</p>
+        <div className="flex items-baseline gap-3">
+          <span
+            className={`font-display text-2xl leading-none ${metric.status === 'attention' ? 'text-warning' : 'text-text-primary'}`}
+          >
+            {formatMetricValue(metric)}
+          </span>
+          <div>
+            <p className="font-bold text-text-primary">{metric.label}</p>
+            <p className="text-sm text-text-secondary">{metric.automaticObservation}</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge tone={STATUS_TONE[metric.status]}>{STATUS_LABEL[metric.status]}</Badge>

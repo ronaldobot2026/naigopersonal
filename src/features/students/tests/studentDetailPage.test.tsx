@@ -9,10 +9,14 @@ const ALUNO: Student = {
   email: 'ana@exemplo.com',
 } as Student
 
-vi.mock('../repositories/indexedDbStudentRepository', () => ({
-  indexedDbStudentRepository: {
+vi.mock('../repositories/studentRepository', () => ({
+  studentRepository: {
     findById: vi.fn(async () => ALUNO),
   },
+}))
+
+vi.mock('@/lib/supabase/useAuthUser', () => ({
+  useAuthUser: () => ({ userId: 'personal-1', status: 'authenticated' }),
 }))
 
 import { StudentDetailPage } from '../pages/StudentDetailPage'

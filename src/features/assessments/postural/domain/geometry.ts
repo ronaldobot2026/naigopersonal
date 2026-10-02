@@ -80,6 +80,24 @@ export function normalizeBySize(value: number, referenceLength: number): number 
   return value / referenceLength
 }
 
+/**
+ * Distância perpendicular (com sinal) do ponto `point` até a reta que passa por `lineStart` e
+ * `lineEnd`. O sinal indica de que lado da reta o ponto está (positivo à esquerda do sentido
+ * lineStart→lineEnd, negativo à direita); o valor absoluto é a distância geométrica.
+ * Lança erro se `lineStart` e `lineEnd` coincidirem, pois a reta não fica definida nesse caso.
+ */
+export function signedDistanceFromLine(point: Point2D, lineStart: Point2D, lineEnd: Point2D): number {
+  const lineLength = distance(lineStart, lineEnd)
+  if (lineLength === 0) {
+    throw new Error('signedDistanceFromLine: lineStart e lineEnd não podem coincidir.')
+  }
+
+  const cross =
+    (lineEnd.x - lineStart.x) * (point.y - lineStart.y) -
+    (lineEnd.y - lineStart.y) * (point.x - lineStart.x)
+  return cross / lineLength
+}
+
 export interface BilateralComparison {
   /** right - left, preserva o sinal (qual lado está maior/mais alto). */
   difference: number

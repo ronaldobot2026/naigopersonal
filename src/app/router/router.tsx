@@ -29,11 +29,11 @@ import type { NavItem } from '@/components/navigation/BottomNavigation'
 import { ROUTES } from './routes'
 
 const STUDENT_NAV_ITEMS: NavItem[] = [
-  { to: ROUTES.student.home, icon: 'home', label: 'Início' },
-  { to: ROUTES.student.workouts, icon: 'fitness_center', label: 'Treinos' },
+  { to: ROUTES.student.home, icon: 'person', label: 'Ficha' },
+  { to: ROUTES.student.workouts, icon: 'fitness_center', label: 'Treino' },
+  { to: ROUTES.student.nutrition, icon: 'restaurant', label: 'Alimentação' },
   { to: ROUTES.student.posturalCorrection, icon: 'accessibility_new', label: 'Correção' },
-  { to: ROUTES.student.assessments, icon: 'assignment', label: 'Avaliações' },
-  { to: ROUTES.student.chat, icon: 'chat', label: 'Chat' },
+  { to: ROUTES.student.myAssessments, icon: 'assignment', label: 'Avaliação' },
 ]
 
 const TRAINER_NAV_ITEMS: NavItem[] = [
@@ -60,7 +60,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.student.exerciseDetail, element: <ExerciseDetailPage /> },
       { path: ROUTES.student.nutrition, element: <NutritionPlanPage /> },
       { path: ROUTES.student.posturalCorrection, element: <PosturalCorrectionPage /> },
-      { path: ROUTES.student.assessments, element: <StudentMyAssessmentsPage /> },
+      { path: ROUTES.student.myAssessments, element: <StudentMyAssessmentsPage /> },
       { path: ROUTES.student.assessmentDetail, element: <StudentAssessmentDetailPage /> },
       { path: ROUTES.student.anamnesis, element: <StudentMyAnamnesisPage /> },
       { path: ROUTES.student.anamnesisDetail, element: <StudentAnamnesisFillPage /> },

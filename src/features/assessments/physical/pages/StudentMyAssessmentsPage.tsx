@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { buildStudentAssessmentDetailPath, ROUTES } from '@/app/router/routes'
 import { EmptyState } from '@/components/feedback/EmptyState'
@@ -7,31 +8,52 @@ import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
-import { useAsyncData } from '@/hooks/useAsyncData'
-import { MOCK_CURRENT_STUDENT_ID } from '@/mocks/students'
-import { indexedDbPhysicalAssessmentRepository } from '../repositories/indexedDbPhysicalAssessmentRepository'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
+import { physicalAssessmentRepository } from '../repositories/physicalAssessmentRepository'
+import type { PhysicalAssessment } from '@/types/domain'
 
-/**
- * Área do aluno para acompanhar o próprio histórico de avaliações físicas. Só lista
- * avaliações concluídas — rascunhos são de uso interno do treinador durante o preenchimento.
- */
+type LoadState = 'loading' | 'error' | 'ready'
+
 export function StudentMyAssessmentsPage() {
-  const { status, data, errorMessage } = useAsyncData(
-    () => indexedDbPhysicalAssessmentRepository.findByStudentId(MOCK_CURRENT_STUDENT_ID),
-    [],
-  )
+  const { userId } = useAuthUser()
+  const [assessments, setAssessments] = useState<PhysicalAssessment[]>([])
+  const [loadState, setLoadState] = useState<LoadState>('loading')
 
-  const assessments = (data ?? [])
-    .filter((assessment) => assessment.status === 'completed')
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  useEffect(() => {
+    if (!userId) return
+    let cancelled = false
+    setLoadState('loading')
+    physicalAssessmentRepository
+      .findByStudentId(userId)
+      .then((result) => {
+        if (cancelled) return
+        setAssessments(
+          result
+            .filter((a) => a.status === 'completed')
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        )
+        setLoadState('ready')
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState('error')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
+  if (loadState === 'loading') return <LoadingState label="Carregando avaliações…" />
+  if (loadState === 'error')
+    return (
+      <ErrorState
+        title="Não foi possível carregar"
+        description="Tente novamente."
+      />
+    )
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
-      <PageHeader
-        eyebrow="Meu progresso"
-        title="Minhas avaliações"
-        description="Histórico das avaliações físicas registradas pelo seu personal."
-      />
+      <PageHeader eyebrow="Histórico" title="Minhas avaliações" />
 
       <Card className="mb-4">
         <Link
@@ -43,37 +65,38 @@ export function StudentMyAssessmentsPage() {
         </Link>
       </Card>
 
-      {status === 'loading' && <LoadingState label="Carregando avaliações…" />}
-      {status === 'error' && (
-        <ErrorState
-          title="Não foi possível carregar suas avaliações"
-          description={errorMessage ?? 'Tente novamente.'}
-        />
-      )}
-      {status === 'ready' && assessments.length === 0 && (
+      {assessments.length === 0 ? (
         <EmptyState
-          title="Nenhuma avaliação concluída ainda"
-          description="Quando seu personal concluir uma avaliação, ela aparece aqui."
+          title="Nenhuma avaliação disponível"
+          description="O seu personal ainda não concluiu nenhuma avaliação."
         />
-      )}
-      {status === 'ready' && assessments.length > 0 && (
-        <Card>
-          <ul className="divide-y divide-border">
-            {assessments.map((assessment) => (
-              <li key={assessment.id}>
-                <Link
-                  to={buildStudentAssessmentDetailPath(assessment.id)}
-                  className="flex items-center justify-between gap-4 py-4 transition-colors hover:text-action-primary"
-                >
-                  <span className="text-text-primary">
-                    {new Date(assessment.updatedAt).toLocaleDateString('pt-BR')}
-                  </span>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {assessments.map((a) => {
+            const date = new Date(a.createdAt).toLocaleDateString('pt-BR')
+            const peso = a.biometrics?.weightKg
+            const altura = a.biometrics?.heightCm
+            return (
+              <Link key={a.id} to={buildStudentAssessmentDetailPath(a.id)}>
+              <Card className="transition-colors hover:border-action-primary">
+                <div className="flex items-center justify-between gap-4 py-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-medium text-text-primary">{date}</span>
+                    {(peso || altura) && (
+                      <span className="text-xs text-text-secondary">
+                        {peso ? `${peso} kg` : ''}
+                        {peso && altura ? ' · ' : ''}
+                        {altura ? `${altura} cm` : ''}
+                      </span>
+                    )}
+                  </div>
                   <Badge tone="success">Concluída</Badge>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
+                </div>
+              </Card>
+              </Link>
+            )
+          })}
+        </div>
       )}
     </div>
   )

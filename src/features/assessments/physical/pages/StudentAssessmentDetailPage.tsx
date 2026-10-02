@@ -2,10 +2,10 @@ import { useParams } from 'react-router-dom'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
-import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
+import { studentRepository } from '@/features/students/repositories/studentRepository'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import type { PhysicalAssessment, Student } from '@/types/domain'
-import { indexedDbPhysicalAssessmentRepository } from '../repositories/indexedDbPhysicalAssessmentRepository'
+import { physicalAssessmentRepository } from '../repositories/physicalAssessmentRepository'
 import { ReviewStep } from '../components/steps/ReviewStep'
 
 interface AssessmentDetail {
@@ -14,10 +14,10 @@ interface AssessmentDetail {
 }
 
 async function loadDetail(assessmentId: string): Promise<AssessmentDetail> {
-  const assessment = await indexedDbPhysicalAssessmentRepository.findById(assessmentId)
+  const assessment = await physicalAssessmentRepository.findById(assessmentId)
   if (!assessment) throw new Error(`Avaliação ${assessmentId} não encontrada.`)
 
-  const student = await indexedDbStudentRepository.findById(assessment.studentId)
+  const student = await studentRepository.findById(assessment.studentId)
   if (!student) throw new Error(`Aluno ${assessment.studentId} não encontrado.`)
 
   return { assessment, student }
@@ -50,9 +50,9 @@ export function StudentAssessmentDetailPage() {
         <ReviewStep
           assessment={data.assessment}
           student={data.student}
+          onSave={async () => {}}
+          saving={false}
           onComplete={async () => {}}
-          completing={false}
-          completeError={null}
         />
       )}
     </div>

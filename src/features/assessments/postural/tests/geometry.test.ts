@@ -7,6 +7,7 @@ import {
   distance,
   midpoint,
   normalizeBySize,
+  signedDistanceFromLine,
   slopeDegrees,
 } from '../domain/geometry'
 
@@ -90,6 +91,29 @@ describe('normalizeBySize', () => {
   it('lança erro quando o comprimento de referência é zero ou negativo', () => {
     expect(() => normalizeBySize(10, 0)).toThrow()
     expect(() => normalizeBySize(10, -5)).toThrow()
+  })
+})
+
+describe('signedDistanceFromLine', () => {
+  it('retorna 0 para um ponto sobre a reta', () => {
+    expect(signedDistanceFromLine({ x: 0.5, y: 0.75 }, { x: 0.5, y: 0 }, { x: 0.5, y: 1 })).toBe(0)
+  })
+
+  it('calcula a distância perpendicular a uma reta vertical', () => {
+    const value = signedDistanceFromLine({ x: 0.58, y: 0.5 }, { x: 0.5, y: 0 }, { x: 0.5, y: 1 })
+    expect(Math.abs(value)).toBeCloseTo(0.08, 10)
+  })
+
+  it('inverte o sinal quando o ponto está do lado oposto da reta', () => {
+    const left = signedDistanceFromLine({ x: 0.4, y: 0.5 }, { x: 0.5, y: 0 }, { x: 0.5, y: 1 })
+    const right = signedDistanceFromLine({ x: 0.6, y: 0.5 }, { x: 0.5, y: 0 }, { x: 0.5, y: 1 })
+    expect(Math.sign(left)).toBe(-Math.sign(right))
+  })
+
+  it('lança erro quando lineStart e lineEnd coincidem', () => {
+    expect(() =>
+      signedDistanceFromLine({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 1, y: 1 }),
+    ).toThrow()
   })
 })
 

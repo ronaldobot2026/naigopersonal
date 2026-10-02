@@ -1,3 +1,4 @@
+import { generateId } from '@/lib/generateId'
 import {
   createEmptyAnthropometry,
   createEmptyBiometrics,
@@ -10,7 +11,7 @@ export function createDraftPhysicalAssessment(
 ): PhysicalAssessment {
   const now = new Date().toISOString()
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     studentId,
     evaluatorId,
     createdAt: now,

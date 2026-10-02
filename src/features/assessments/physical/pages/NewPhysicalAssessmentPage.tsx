@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
-import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
-import { MOCK_TRAINER_ID } from '@/mocks/trainers'
+import { studentRepository } from '@/features/students/repositories/studentRepository'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import type { Student } from '@/types/domain'
 import { PhysicalAssessmentWizard } from '../components/PhysicalAssessmentWizard'
 import { usePhysicalAssessmentDraft } from '../hooks/usePhysicalAssessmentDraft'
@@ -15,13 +15,14 @@ export function NewPhysicalAssessmentPage() {
   const { studentId, assessmentId } = useParams<{ studentId: string; assessmentId?: string }>()
   const [student, setStudent] = useState<Student | null>(null)
   const [studentLoadState, setStudentLoadState] = useState<LoadState>('loading')
+  const { userId: evaluatorId, status: authStatus } = useAuthUser()
 
   useEffect(() => {
     if (!studentId) return
     let cancelled = false
     setStudentLoadState('loading')
 
-    indexedDbStudentRepository
+    studentRepository
       .findById(studentId)
       .then((result) => {
         if (cancelled) return
@@ -37,8 +38,8 @@ export function NewPhysicalAssessmentPage() {
     }
   }, [studentId])
 
-  const { assessment, loadState, updateAssessment, saveError, complete, completing, completeError } =
-    usePhysicalAssessmentDraft(studentId ?? '', MOCK_TRAINER_ID, assessmentId)
+  const { assessment, loadState, updateAssessment, save, saving, savedAt, saveError, complete, ensurePersisted } =
+    usePhysicalAssessmentDraft(studentId ?? '', evaluatorId ?? '', assessmentId)
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
@@ -55,18 +56,30 @@ export function NewPhysicalAssessmentPage() {
         />
       )}
 
-      {studentId && (studentLoadState === 'loading' || loadState === 'loading') && (
-        <LoadingState label="Carregando avaliação…" />
-      )}
-
-      {studentId && (studentLoadState === 'error' || loadState === 'error') && (
+      {studentId && authStatus === 'unauthenticated' && (
         <ErrorState
-          title="Não foi possível carregar a avaliação"
-          description="Verifique o aluno selecionado e tente novamente."
+          title="Sessão expirada"
+          description="Faça login novamente para continuar avaliando este aluno."
         />
       )}
 
       {studentId &&
+        authStatus !== 'unauthenticated' &&
+        (authStatus === 'loading' || studentLoadState === 'loading' || loadState === 'loading') && (
+          <LoadingState label="Carregando avaliação…" />
+        )}
+
+      {studentId &&
+        authStatus === 'authenticated' &&
+        (studentLoadState === 'error' || loadState === 'error') && (
+          <ErrorState
+            title="Não foi possível carregar a avaliação"
+            description="Verifique o aluno selecionado e tente novamente."
+          />
+        )}
+
+      {studentId &&
+        authStatus === 'authenticated' &&
         studentLoadState === 'ready' &&
         loadState === 'ready' &&
         student &&
@@ -75,10 +88,12 @@ export function NewPhysicalAssessmentPage() {
             student={student}
             assessment={assessment}
             onUpdate={updateAssessment}
+            onSave={save}
+            saving={saving}
+            savedAt={savedAt}
             saveError={saveError}
             onComplete={complete}
-            completing={completing}
-            completeError={completeError}
+            onEnsurePersisted={ensurePersisted}
           />
         )}
     </div>

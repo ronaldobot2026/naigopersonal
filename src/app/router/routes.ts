@@ -8,7 +8,7 @@ export const ROUTES = {
     exerciseDetail: '/aluno/exercicios/:exerciseId',
     nutrition: '/aluno/plano-alimentar',
     posturalCorrection: '/aluno/correcao-postural',
-    assessments: '/aluno/avaliacoes',
+    myAssessments: '/aluno/avaliacoes',
     assessmentDetail: '/aluno/avaliacoes/:assessmentId',
     anamnesis: '/aluno/anamnese',
     anamnesisDetail: '/aluno/anamnese/:anamnesisId',

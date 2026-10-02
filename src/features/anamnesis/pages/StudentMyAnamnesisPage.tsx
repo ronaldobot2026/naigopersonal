@@ -7,19 +7,21 @@ import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { useAsyncData } from '@/hooks/useAsyncData'
-import { MOCK_CURRENT_STUDENT_ID } from '@/mocks/students'
+import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { AnamnesisFiller } from '../components/AnamnesisFiller'
 import { getAnamnesisTemplate } from '../domain/anamnesisTemplates'
-import { indexedDbAnamnesisRepository } from '../repositories/indexedDbAnamnesisRepository'
+import { anamnesisRepository } from '../repositories/anamnesisRepository'
 
 /**
  * Aluno: lista as anamneses que o personal enviou para ele. Rascunhos do personal
  * (`draft`) não aparecem — só o que está aguardando o aluno ou já foi concluído.
  */
 export function StudentMyAnamnesisPage() {
+  const { userId, status: authStatus } = useAuthUser()
   const { status, data, errorMessage } = useAsyncData(
-    () => indexedDbAnamnesisRepository.findByStudentId(MOCK_CURRENT_STUDENT_ID),
-    [],
+    () =>
+      userId ? anamnesisRepository.findByStudentId(userId) : new Promise<never>(() => undefined),
+    [userId],
   )
   const items = (data ?? []).filter((item) => item.status !== 'draft')
 
@@ -30,7 +32,12 @@ export function StudentMyAnamnesisPage() {
         title="Anamnese"
         description="Questionários de saúde enviados pelo seu personal."
       />
-      {status === 'loading' && <LoadingState label="Carregando…" />}
+      {authStatus === 'unauthenticated' && (
+        <ErrorState title="Sessão expirada" description="Faça login novamente." />
+      )}
+      {authStatus !== 'unauthenticated' && status === 'loading' && (
+        <LoadingState label="Carregando…" />
+      )}
       {status === 'error' && (
         <ErrorState
           title="Não foi possível carregar"
@@ -76,12 +83,13 @@ export function StudentMyAnamnesisPage() {
 /** Aluno: responde (ou revê) uma anamnese. */
 export function StudentAnamnesisFillPage() {
   const { anamnesisId } = useParams<{ anamnesisId: string }>()
+  const { userId } = useAuthUser()
   const { status, data } = useAsyncData(
-    () => indexedDbAnamnesisRepository.findById(anamnesisId ?? ''),
+    () => anamnesisRepository.findById(anamnesisId ?? ''),
     [anamnesisId],
   )
   const visible =
-    status === 'ready' && data && data.studentId === MOCK_CURRENT_STUDENT_ID && data.status !== 'draft'
+    status === 'ready' && data && data.studentId === userId && data.status !== 'draft'
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">

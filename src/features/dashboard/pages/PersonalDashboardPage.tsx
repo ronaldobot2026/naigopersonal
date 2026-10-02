@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/navigation/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { Reveal } from '@/components/motion/Reveal'
-import { indexedDbStudentRepository } from '@/features/students/repositories/indexedDbStudentRepository'
+import { studentRepository } from '@/features/students/repositories/studentRepository'
 import type { Student } from '@/types/domain'
 
 type LoadState = 'loading' | 'error' | 'ready'
@@ -21,7 +21,7 @@ export function PersonalDashboardPage() {
     let cancelled = false
     setLoadState('loading')
 
-    indexedDbStudentRepository
+    studentRepository
       .findAll()
       .then((result) => {
         if (cancelled) return

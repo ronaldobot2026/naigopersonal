@@ -16,7 +16,7 @@ import { POSTURE_THRESHOLDS } from '@/features/assessments/postural/domain/postu
 import type { Exercise } from './exercise.types'
 import { selectPosturalExercises, type PosturalCategoryId } from './posturalProgram'
 
-export type PosturalFocusId = 'cintura_escapular' | 'quadril_pelve' | 'cervical' | 'tronco'
+export type PosturalFocusId = 'cintura_escapular' | 'quadril_pelve' | 'cervical' | 'tronco' | 'joelhos'
 
 export interface PosturalFocus {
   id: PosturalFocusId
@@ -31,25 +31,43 @@ export interface PosturalFocus {
 
 /**
  * Sufixo do id da métrica (`front.shoulderInclination` → `shoulderInclination`) mapeado para a
- * região que ele observa e para o limiar de atenção correspondente. Os limiares vêm de
- * `POSTURE_THRESHOLDS` para que ajustar o threshold da avaliação ajuste também a ordenação aqui.
+ * região que ele observa e para o limiar de atenção correspondente, na unidade nativa da
+ * métrica (graus para ângulos, fração da largura do corpo para o rastreamento do joelho). Os
+ * limiares vêm de `POSTURE_THRESHOLDS` para que ajustar o threshold da avaliação ajuste também
+ * a ordenação aqui.
  */
-const METRIC_FOCUS: Record<string, { focus: PosturalFocusId; attentionThresholdDeg: number }> = {
+const METRIC_FOCUS: Record<string, { focus: PosturalFocusId; attentionThreshold: number }> = {
   shoulderInclination: {
     focus: 'cintura_escapular',
-    attentionThresholdDeg: POSTURE_THRESHOLDS.shoulderInclinationAttentionDeg,
+    attentionThreshold: POSTURE_THRESHOLDS.shoulderInclinationAttentionDeg,
   },
   hipInclination: {
     focus: 'quadril_pelve',
-    attentionThresholdDeg: POSTURE_THRESHOLDS.hipInclinationAttentionDeg,
+    attentionThreshold: POSTURE_THRESHOLDS.hipInclinationAttentionDeg,
   },
   headAlignment: {
     focus: 'cervical',
-    attentionThresholdDeg: POSTURE_THRESHOLDS.headAlignmentAttentionDeg,
+    attentionThreshold: POSTURE_THRESHOLDS.headAlignmentAttentionDeg,
   },
   trunkAlignment: {
     focus: 'tronco',
-    attentionThresholdDeg: POSTURE_THRESHOLDS.trunkAlignmentAttentionDeg,
+    attentionThreshold: POSTURE_THRESHOLDS.trunkAlignmentAttentionDeg,
+  },
+  kneeAngle: {
+    focus: 'joelhos',
+    attentionThreshold: POSTURE_THRESHOLDS.kneeAngleDeviationAttentionDeg,
+  },
+  pelvicTilt: {
+    focus: 'quadril_pelve',
+    attentionThreshold: POSTURE_THRESHOLDS.pelvicTiltAttentionDeg,
+  },
+  kneeTrackingDeviationLeft: {
+    focus: 'joelhos',
+    attentionThreshold: POSTURE_THRESHOLDS.kneeTrackingDeviationAttentionRatio,
+  },
+  kneeTrackingDeviationRight: {
+    focus: 'joelhos',
+    attentionThreshold: POSTURE_THRESHOLDS.kneeTrackingDeviationAttentionRatio,
   },
 }
 
@@ -82,6 +100,13 @@ export const POSTURAL_FOCUSES: readonly PosturalFocus[] = [
     rationale: 'A avaliação destacou o alinhamento do tronco para revisão do profissional.',
     muscles: ['Coluna', 'Abdômen', 'Dorsais', 'Dorsal superior'],
     bodyParts: ['Core', 'Costas'],
+  },
+  {
+    id: 'joelhos',
+    label: 'Joelhos',
+    rationale: 'A avaliação destacou o alinhamento dos joelhos para revisão do profissional.',
+    muscles: ['Quadríceps', 'Posteriores de coxa', 'Glúteos', 'Adutores', 'Abdutores'],
+    bodyParts: ['Coxas'],
   },
 ] as const
 
@@ -143,8 +168,8 @@ export function derivePosturalFindings(metrics: PosturalMetric[]): PosturalFindi
   for (const [focusId, supporting] of byFocus) {
     const severity = Math.max(
       ...supporting.map((metric) => {
-        const { attentionThresholdDeg } = METRIC_FOCUS[getMetricKey(metric.id)]
-        return Math.abs(metric.value ?? 0) / attentionThresholdDeg
+        const { attentionThreshold } = METRIC_FOCUS[getMetricKey(metric.id)]
+        return Math.abs(metric.value ?? 0) / attentionThreshold
       }),
     )
 
