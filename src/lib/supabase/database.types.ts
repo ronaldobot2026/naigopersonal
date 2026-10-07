@@ -395,6 +395,62 @@ export type Database = {
         }
         Relationships: []
       }
+      set_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          done: boolean
+          exercise_id: string
+          exercise_name: string
+          id: string
+          reps: number | null
+          rpe: number | null
+          set_index: number
+          student_id: string
+          updated_at: string
+          weight_kg: number | null
+          workout_log_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          done?: boolean
+          exercise_id: string
+          exercise_name: string
+          id?: string
+          reps?: number | null
+          rpe?: number | null
+          set_index: number
+          student_id: string
+          updated_at?: string
+          weight_kg?: number | null
+          workout_log_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          done?: boolean
+          exercise_id?: string
+          exercise_name?: string
+          id?: string
+          reps?: number | null
+          rpe?: number | null
+          set_index?: number
+          student_id?: string
+          updated_at?: string
+          weight_kg?: number | null
+          workout_log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'set_logs_log_student_fkey'
+            columns: ['workout_log_id', 'student_id']
+            isOneToOne: false
+            referencedRelation: 'workout_logs'
+            referencedColumns: ['id', 'student_id']
+          },
+        ]
+      }
       students: {
         Row: {
           birth_date: string | null
@@ -445,6 +501,57 @@ export type Database = {
             columns: ['trainer_id']
             isOneToOne: false
             referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      workout_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          division_key: string
+          id: string
+          notes: string
+          started_at: string
+          student_id: string
+          updated_at: string
+          workout_plan_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          division_key: string
+          id?: string
+          notes?: string
+          started_at?: string
+          student_id: string
+          updated_at?: string
+          workout_plan_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          division_key?: string
+          id?: string
+          notes?: string
+          started_at?: string
+          student_id?: string
+          updated_at?: string
+          workout_plan_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'workout_logs_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'workout_logs_workout_plan_id_fkey'
+            columns: ['workout_plan_id']
+            isOneToOne: false
+            referencedRelation: 'workout_plans'
             referencedColumns: ['id']
           },
         ]
