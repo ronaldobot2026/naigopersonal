@@ -5,9 +5,28 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Biometrics } from '@/types/domain'
 import { BiometricsStep } from '../components/steps/BiometricsStep'
 
-const VAZIO: Biometrics = { weightKg: null, heightCm: null, bodyFatPercent: null, muscleMassKg: null }
+const VAZIO: Biometrics = {
+  weightKg: null,
+  heightCm: null,
+  bodyFatPercent: null,
+  muscleMassKg: null,
+}
 
 describe('BiometricsStep', () => {
+  /**
+   * Regressao: o schema aceita campos vazios, entao o form nasce valido e o efeito de sync
+   * disparava ja na montagem com os valores iniciais — o wizard recebia `onUpdate` e gravava um
+   * rascunho vazio no banco so por abrir a tela "Nova avaliacao".
+   */
+  it('nao chama onChange ao montar sem o usuario alterar nada', async () => {
+    const onChange = vi.fn()
+    render(<BiometricsStep value={VAZIO} onChange={onChange} />)
+
+    await new Promise((r) => setTimeout(r, 300))
+
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
   it('propaga o peso digitado para o onChange', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

@@ -6,22 +6,31 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
-import { ProgressBar } from '@/components/ui/ProgressBar'
-import { useAsyncData } from '@/hooks/useAsyncData'
-import { workoutRepository } from '../repositories/workoutRepository'
+import { useStudentProgram } from '../hooks/useStudentProgram'
+
+function formatDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 
 export function StudentWorkoutsPage() {
-  const { status, data: workouts, errorMessage } = useAsyncData(
-    () => workoutRepository.findAll(),
-    [],
-  )
+  const { status, program, errorMessage } = useStudentProgram()
+  const plan = program?.plan
+  const sessions = program?.sessions ?? []
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
       <PageHeader
         eyebrow="Programa atual"
         title="Treinos"
-        description="Sua trilha de performance personalizada. Complete cada sessão para evoluir seu físico."
+        description={
+          plan?.publishedAt
+            ? `Ficha montada pelo seu personal · atualizada em ${formatDate(plan.publishedAt)}`
+            : 'Sua ficha de treino, montada pelo seu personal.'
+        }
       />
 
       {status === 'loading' && <LoadingState label="Carregando treinos…" />}
@@ -33,35 +42,48 @@ export function StudentWorkoutsPage() {
         />
       )}
 
-      {status === 'ready' && workouts?.length === 0 && (
-        <EmptyState title="Nenhum treino atribuído" description="Fale com seu personal." />
+      {status === 'ready' && sessions.length === 0 && (
+        <EmptyState
+          title="Nenhum treino publicado ainda"
+          description="Assim que seu personal publicar sua ficha, ela aparece aqui."
+        />
+      )}
+
+      {status === 'ready' && plan && (plan.objective || plan.weeklyFrequency || plan.notes) && (
+        <Card className="mb-6 flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            {plan.objective && <Badge>{plan.objective}</Badge>}
+            {plan.weeklyFrequency && <Badge>{plan.weeklyFrequency}x por semana</Badge>}
+          </div>
+          {plan.notes && <p className="text-sm text-text-secondary">{plan.notes}</p>}
+        </Card>
       )}
 
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-2">
         {status === 'ready' &&
-          workouts?.map((workout) => (
-            <Card key={workout.id} tone="elevated" className="flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
+          sessions.map((session) => (
+            <Card key={session.id} tone="elevated" className="flex flex-col gap-4">
+              <div>
+                {session.focusTag && (
                   <span className="font-mono text-xs uppercase tracking-wider text-action-primary">
-                    {workout.focusTag}
+                    {session.focusTag}
                   </span>
-                  <h3 className="font-display text-xl font-bold text-text-primary">
-                    {workout.name}
-                  </h3>
-                </div>
-                <span className="font-mono text-sm text-action-primary">
-                  {workout.progressPercent}%
-                </span>
+                )}
+                <h3 className="font-display text-xl font-bold text-text-primary">{session.name}</h3>
               </div>
-              <ProgressBar value={workout.progressPercent} label={`Progresso — ${workout.name}`} />
               <div className="flex items-center justify-between">
-                <Badge>{workout.durationMinutes} min</Badge>
+                <div className="flex gap-2">
+                  <Badge>
+                    {session.exercises.length}{' '}
+                    {session.exercises.length === 1 ? 'exercício' : 'exercícios'}
+                  </Badge>
+                  <Badge>~{session.durationMinutes} min</Badge>
+                </div>
                 <Link
-                  to={buildWorkoutDetailPath(workout.id)}
+                  to={buildWorkoutDetailPath(session.id)}
                   className="rounded-lg bg-action-primary px-4 py-2 font-bold text-sm text-action-primary-foreground hover:opacity-90"
                 >
-                  Iniciar sessão
+                  Ver treino
                 </Link>
               </div>
             </Card>

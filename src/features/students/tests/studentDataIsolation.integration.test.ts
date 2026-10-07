@@ -64,26 +64,50 @@ describe.skipIf(!hasCredentials)('isolamento de dados entre alunos (RLS)', () =>
       email_confirm: true,
       user_metadata: { role: 'trainer', full_name: 'Personal (teste isolamento)' },
     })
-    if (trainerError || !trainer.user) throw trainerError ?? new Error('Falha ao criar personal de teste')
+    if (trainerError || !trainer.user)
+      throw trainerError ?? new Error('Falha ao criar personal de teste')
     trainerId = trainer.user.id
 
     const { data: studentA, error: studentAError } = await admin.auth.admin.createUser({
       email: studentAEmail,
       password: studentAPassword,
       email_confirm: true,
-      user_metadata: { role: 'student', full_name: 'Aluno A (teste isolamento)', trainer_id: trainerId },
+      user_metadata: {
+        role: 'student',
+        full_name: 'Aluno A (teste isolamento)',
+        trainer_id: trainerId,
+      },
     })
-    if (studentAError || !studentA.user) throw studentAError ?? new Error('Falha ao criar aluno A de teste')
+    if (studentAError || !studentA.user)
+      throw studentAError ?? new Error('Falha ao criar aluno A de teste')
     studentAId = studentA.user.id
 
     const { data: studentB, error: studentBError } = await admin.auth.admin.createUser({
       email: studentBEmail,
       password: studentBPassword,
       email_confirm: true,
-      user_metadata: { role: 'student', full_name: 'Aluno B (teste isolamento)', trainer_id: trainerId },
+      user_metadata: {
+        role: 'student',
+        full_name: 'Aluno B (teste isolamento)',
+        trainer_id: trainerId,
+      },
     })
-    if (studentBError || !studentB.user) throw studentBError ?? new Error('Falha ao criar aluno B de teste')
+    if (studentBError || !studentB.user)
+      throw studentBError ?? new Error('Falha ao criar aluno B de teste')
     studentBId = studentB.user.id
+
+    // handle_new_user ignora role/trainer_id do metadata desde o hardening de 2026-09-21 (todo
+    // usuário nasce 'student', sem vínculo) — o vínculo é do fluxo de convite; aqui, via service_role.
+    const { error: roleError } = await admin
+      .from('profiles')
+      .update({ role: 'trainer' })
+      .eq('id', trainerId)
+    if (roleError) throw roleError
+    const { error: linkError } = await admin.from('students').insert([
+      { id: studentAId, trainer_id: trainerId },
+      { id: studentBId, trainer_id: trainerId },
+    ])
+    if (linkError) throw linkError
 
     // Ficha real do aluno B, gravada pelo personal (service_role só bypassa RLS aqui, no setup —
     // a leitura avaliada pelo teste é sempre pela chave publicável, como o app faz de verdade).
@@ -112,11 +136,16 @@ describe.skipIf(!hasCredentials)('isolamento de dados entre alunos (RLS)', () =>
 
   afterAll(async () => {
     await getSupabase().auth.signOut()
+    // Alunos antes do personal: o cascade dos alunos leva as linhas de que o personal é autor
+    // (avaliações, planos, fichas); apagando tudo em paralelo, o personal ainda era referenciado
+    // e sobrava no banco.
     await Promise.all(
-      [studentAId, studentBId, trainerId]
-        .filter(Boolean)
-        .map((id) => admin.auth.admin.deleteUser(id)),
+      [studentAId, studentBId].filter(Boolean).map((id) => admin.auth.admin.deleteUser(id)),
     )
+    if (trainerId) {
+      const { error } = await admin.auth.admin.deleteUser(trainerId)
+      if (error) throw error
+    }
   })
 
   it('aluno A autenticado não lê nenhum dado do aluno B', async () => {

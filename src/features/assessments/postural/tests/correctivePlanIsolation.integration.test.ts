@@ -141,6 +141,19 @@ describe.skipIf(!hasCredentials)('isolamento do plano corretivo entre alunos (RL
       trainer_id: trainerId,
     })
 
+    // handle_new_user ignora role/trainer_id do metadata desde o hardening de 2026-09-21 (todo
+    // usuário nasce 'student', sem vínculo) — o vínculo é do fluxo de convite; aqui, via service_role.
+    const { error: roleError } = await admin
+      .from('profiles')
+      .update({ role: 'trainer' })
+      .eq('id', trainerId)
+    if (roleError) throw roleError
+    const { error: linkError } = await admin.from('students').insert([
+      { id: studentAId, trainer_id: trainerId },
+      { id: studentBId, trainer_id: trainerId },
+    ])
+    if (linkError) throw linkError
+
     assessmentAId = await createAssessment(studentAId)
     draftAssessmentAId = await createAssessment(studentAId)
     assessmentBId = await createAssessment(studentBId)
@@ -148,9 +161,16 @@ describe.skipIf(!hasCredentials)('isolamento do plano corretivo entre alunos (RL
 
   afterAll(async () => {
     await getSupabase().auth.signOut()
+    // Alunos antes do personal: o cascade dos alunos leva as linhas de que o personal é autor
+    // (avaliações, planos, fichas); apagando tudo em paralelo, o personal ainda era referenciado
+    // e sobrava no banco.
     await Promise.all(
-      [studentAId, studentBId, trainerId].filter(Boolean).map((id) => admin.auth.admin.deleteUser(id)),
+      [studentAId, studentBId].filter(Boolean).map((id) => admin.auth.admin.deleteUser(id)),
     )
+    if (trainerId) {
+      const { error } = await admin.auth.admin.deleteUser(trainerId)
+      if (error) throw error
+    }
   })
 
   it('personal publica e lê o plano dos dois alunos, sem duplicar ao republicar', async () => {
@@ -192,8 +212,9 @@ describe.skipIf(!hasCredentials)('isolamento do plano corretivo entre alunos (RL
     expect(plansError).toBeNull()
     expect(planRowsB).toEqual([])
 
-    const planIdB = (await admin.from('corrective_plans').select('id').eq('assessment_id', assessmentBId).single())
-      .data!.id
+    const planIdB = (
+      await admin.from('corrective_plans').select('id').eq('assessment_id', assessmentBId).single()
+    ).data!.id
     const { data: itemRowsB, error: itemsError } = await client
       .from('corrective_plan_items')
       .select('*')
@@ -204,7 +225,9 @@ describe.skipIf(!hasCredentials)('isolamento do plano corretivo entre alunos (RL
     // Mesmo caminho que a UI vai usar.
     await expect(correctivePlanRepository.findByAssessmentId(assessmentBId)).resolves.toBeNull()
     await expect(correctivePlanRepository.findByStudentId(studentBId)).resolves.toEqual([])
-    await expect(correctivePlanRepository.findByAssessmentId(draftAssessmentAId)).resolves.toBeNull()
+    await expect(
+      correctivePlanRepository.findByAssessmentId(draftAssessmentAId),
+    ).resolves.toBeNull()
 
     // Sanity check: sem isto, um RLS que bloqueia tudo passaria disfarçado de sucesso acima.
     const ownPlans = await correctivePlanRepository.findByStudentId(studentAId)

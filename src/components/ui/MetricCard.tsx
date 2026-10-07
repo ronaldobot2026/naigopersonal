@@ -15,6 +15,12 @@ type MetricCardProps = {
   unit?: string
   trend?: MetricCardTrend
   className?: string
+  /**
+   * Identidade da métrica para a memória de contagem (padrão: o `label`). A contagem roda uma
+   * vez por sessão para cada valor, então voltar para a aba não reanima o número. Passe uma
+   * chave explícita quando o mesmo label aparecer em telas diferentes.
+   */
+  countUpKey?: string
 }
 
 /**
@@ -23,14 +29,21 @@ type MetricCardProps = {
  * sem isso, o tamanho intrínseco do texto impede o item do grid de encolher e o número vaza
  * para fora do cartão.
  */
-export function MetricCard({ label, value, unit, trend, className = '' }: MetricCardProps) {
+export function MetricCard({
+  label,
+  value,
+  unit,
+  trend,
+  className = '',
+  countUpKey,
+}: MetricCardProps) {
   return (
     <Card tone="glass" className={`flex min-w-0 flex-col justify-between gap-2 ${className}`}>
       <p className="text-xs font-medium text-text-secondary sm:text-sm">{label}</p>
       <p className="font-display text-lg font-bold tabular-nums text-text-primary sm:text-2xl md:text-4xl">
         {typeof value === 'number' ? (
           <>
-            <CountUp to={value} duration={1.2} />
+            <CountUp to={value} duration={1.2} memoryKey={countUpKey ?? `metric:${label}`} />
             {unit}
           </>
         ) : (

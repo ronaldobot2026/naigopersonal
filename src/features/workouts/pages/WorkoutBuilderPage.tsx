@@ -24,12 +24,45 @@ import { useWorkoutPlanDraft } from '../hooks/useWorkoutPlanDraft'
 import type { Exercise } from '../domain/exercise.types'
 import type { WorkoutDivisionId, WorkoutExerciseEntry } from '../domain/workout.types'
 
+function quando(iso: string): string {
+  return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+/** Uma frase só dizendo onde a ficha está: rascunho salvo, o que o aluno vê, o que falta. */
+function statusDaFicha(params: {
+  totalExercicios: number
+  savedAt: string | null
+  publishedAt: string | null
+  hasUnpublishedChanges: boolean
+}): string {
+  const { totalExercicios, savedAt, publishedAt, hasUnpublishedChanges } = params
+  if (totalExercicios === 0) return 'Adicione ao menos um exercício para poder salvar.'
+  if (!publishedAt) {
+    return savedAt
+      ? `Rascunho salvo em ${quando(savedAt)}. O aluno ainda não vê — publique quando estiver pronta.`
+      : 'O aluno ainda não vê esta ficha — publique quando estiver pronta.'
+  }
+  if (hasUnpublishedChanges) {
+    return `O aluno vê a versão de ${quando(publishedAt)}. Publique para enviar as alterações.`
+  }
+  return `O aluno já vê esta ficha · publicada em ${quando(publishedAt)}.`
+}
+
 export function WorkoutBuilderPage() {
   const { studentId } = useParams<{ studentId: string }>()
   const { status, catalog, errorMessage } = useExerciseCatalog()
-  const { plan, loadState, updatePlan, save, saving, savedAt, saveError } = useWorkoutPlanDraft(
-    studentId ?? '',
-  )
+  const {
+    plan,
+    loadState,
+    updatePlan,
+    save,
+    publish,
+    saving,
+    savedAt,
+    publishedAt,
+    hasUnpublishedChanges,
+    saveError,
+  } = useWorkoutPlanDraft(studentId ?? '')
   const [divisaoAtiva, setDivisaoAtiva] = useState<WorkoutDivisionId>('A')
 
   const exercisesById = useMemo(
@@ -199,34 +232,37 @@ export function WorkoutBuilderPage() {
           </Tabs>
 
           <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <Button
+              variant="secondary"
+              className="self-start"
+              onClick={adicionarDivisao}
+              disabled={!podeAdicionarDivisao}
+            >
+              <Icon name="add" />
+              {podeAdicionarDivisao ? 'Adicionar divisão' : 'Divisões A–E completas'}
+            </Button>
+
+            <div className="grid grid-cols-2 gap-3 border-t border-border pt-4 sm:flex sm:justify-end">
               <Button
                 variant="secondary"
-                onClick={adicionarDivisao}
-                disabled={!podeAdicionarDivisao}
+                onClick={() => void save()}
+                disabled={saving || totalExercicios === 0}
               >
-                <Icon name="add" />
-                {podeAdicionarDivisao ? 'Adicionar divisão' : 'Divisões A–E completas'}
+                <Icon name="save" />
+                {saving ? 'Salvando…' : 'Salvar rascunho'}
               </Button>
-
-              <div className="flex items-center gap-3">
-                {savedAt && !saveError && (
-                  <span className="font-mono text-xs text-success">
-                    Salva em {new Date(savedAt).toLocaleString('pt-BR')}
-                  </span>
-                )}
-                <Button onClick={() => void save()} disabled={saving || totalExercicios === 0}>
-                  <Icon name="save" />
-                  {saving ? 'Salvando…' : 'Salvar ficha'}
-                </Button>
-              </div>
+              <Button
+                onClick={() => void publish()}
+                disabled={saving || totalExercicios === 0 || !hasUnpublishedChanges}
+              >
+                <Icon name={publishedAt && !hasUnpublishedChanges ? 'check_circle' : 'send'} />
+                {publishedAt && !hasUnpublishedChanges ? 'Publicada' : 'Publicar'}
+              </Button>
             </div>
 
-            {totalExercicios === 0 && (
-              <p className="text-right text-xs text-text-secondary">
-                Adicione ao menos um exercício para poder salvar.
-              </p>
-            )}
+            <p className="text-xs text-text-secondary sm:text-right">
+              {statusDaFicha({ totalExercicios, savedAt, publishedAt, hasUnpublishedChanges })}
+            </p>
 
             {saveError && (
               <Card tone="elevated" className="flex items-start gap-2 border-error">

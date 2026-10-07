@@ -6,11 +6,31 @@ import { Reveal } from '@/components/motion/Reveal'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { MetricCard } from '@/components/ui/MetricCard'
-import { ProgressBar } from '@/components/ui/ProgressBar'
 import { useAsyncData } from '@/hooks/useAsyncData'
+import { physicalAssessmentRepository } from '@/features/assessments/physical/repositories/physicalAssessmentRepository'
 import { studentRepository } from '@/features/students/repositories/studentRepository'
+import { useStudentProgram } from '@/features/workouts/hooks/useStudentProgram'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
-import { workoutRepository } from '@/features/workouts/repositories/workoutRepository'
+import { summarizeBody, type BodyMetricSummary } from '../domain/studentBodySummary'
+
+function formatDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('pt-BR')
+}
+
+/** Cartão de métrica a partir da avaliação real — "—" quando o personal não mediu o campo. */
+function metricProps(summary: BodyMetricSummary, unit: string) {
+  return {
+    value: summary.value ?? '—',
+    unit,
+    trend:
+      summary.changePercent === null || summary.changePercent === 0
+        ? undefined
+        : {
+            direction: summary.changePercent > 0 ? ('up' as const) : ('down' as const),
+            label: `${Math.abs(summary.changePercent).toFixed(1).replace('.', ',')}%`,
+          },
+  }
+}
 
 export function StudentHomePage() {
   const { userId: currentStudentId } = useAuthUser()
@@ -22,31 +42,34 @@ export function StudentHomePage() {
     () => (currentStudentId ? studentRepository.findById(currentStudentId) : Promise.resolve(null)),
     [currentStudentId],
   )
-  const {
-    status: workoutsStatus,
-    data: workouts,
-    errorMessage: workoutsError,
-  } = useAsyncData(() => workoutRepository.findAll(), [])
+  const { status: programStatus, program, errorMessage: programError } = useStudentProgram()
+  const { status: assessmentsStatus, data: assessments } = useAsyncData(
+    () =>
+      currentStudentId
+        ? physicalAssessmentRepository.findByStudentId(currentStudentId)
+        : Promise.resolve([]),
+    [currentStudentId],
+  )
 
-  if (studentStatus === 'loading' || workoutsStatus === 'loading') {
+  if (
+    studentStatus === 'loading' ||
+    programStatus === 'loading' ||
+    assessmentsStatus === 'loading'
+  ) {
     return <LoadingState label="Carregando sua Home…" />
   }
 
-  if (
-    studentStatus === 'error' ||
-    workoutsStatus === 'error' ||
-    !currentStudent ||
-    !workouts?.length
-  ) {
+  if (studentStatus === 'error' || programStatus === 'error' || !currentStudent) {
     return (
       <ErrorState
         title="Não foi possível carregar sua Home"
-        description={studentError ?? workoutsError ?? 'Verifique sua conexão e recarregue a página.'}
+        description={studentError ?? programError ?? 'Verifique sua conexão e recarregue a página.'}
       />
     )
   }
 
-  const todaysWorkout = workouts[0]
+  const nextWorkout = program?.sessions[0] ?? null
+  const body = summarizeBody(assessments ?? [])
 
   return (
     <div className="mx-auto max-w-container-max px-margin-mobile py-8 md:px-margin-desktop">
@@ -62,21 +85,38 @@ export function StudentHomePage() {
           <div className="flex items-start justify-between">
             <div>
               <span className="rounded border border-action-primary/20 bg-action-primary/10 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-action-primary">
-                Treino do dia
+                Seu treino
               </span>
               <h2 className="mt-2 font-display text-xl font-bold text-text-primary">
-                {todaysWorkout.name}
+                {nextWorkout
+                  ? `${nextWorkout.name}${nextWorkout.focusTag ? ` · ${nextWorkout.focusTag}` : ''}`
+                  : 'Aguardando sua ficha'}
               </h2>
+              {!nextWorkout && (
+                <p className="mt-1 text-sm text-text-secondary">
+                  Seu personal ainda não publicou sua ficha de treino.
+                </p>
+              )}
             </div>
             <Icon name="fitness_center" className="text-3xl text-action-primary" />
           </div>
-          <Link
-            to={buildWorkoutDetailPath(todaysWorkout.id)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-action-primary py-3 font-bold text-action-primary-foreground active:scale-95"
-          >
-            <Icon name="play_arrow" filled />
-            VER TREINO
-          </Link>
+          {nextWorkout && (
+            <Link
+              to={buildWorkoutDetailPath(nextWorkout.id)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-action-primary py-3 font-bold text-action-primary-foreground active:scale-95"
+            >
+              <Icon name="play_arrow" filled />
+              VER TREINO
+            </Link>
+          )}
+          {program && program.sessions.length > 1 && (
+            <Link
+              to={ROUTES.student.workouts}
+              className="text-center text-sm text-text-secondary underline hover:text-action-primary"
+            >
+              Ver os {program.sessions.length} treinos da ficha
+            </Link>
+          )}
         </Card>
 
         <Link
@@ -89,54 +129,50 @@ export function StudentHomePage() {
             </div>
             <div>
               <h3 className="font-bold text-text-primary">Correção Postural</h3>
-              <p className="text-sm text-text-secondary">Sessão 1: Mobilidade e Ativação</p>
+              <p className="text-sm text-text-secondary">Exercícios da sua avaliação postural</p>
             </div>
           </div>
           <Icon name="chevron_right" className="text-text-secondary" />
         </Link>
 
         <section>
-          <h3 className="mb-4 font-mono text-xs uppercase tracking-widest text-text-secondary">
-            Evolução atual
-          </h3>
+          <div className="mb-4 flex items-baseline justify-between">
+            <h3 className="font-mono text-xs uppercase tracking-widest text-text-secondary">
+              Evolução atual
+            </h3>
+            <span className="font-mono text-[10px] uppercase text-text-secondary">
+              {body.assessedAt
+                ? `Avaliação de ${formatDate(body.assessedAt)}`
+                : 'Sem avaliação ainda'}
+            </span>
+          </div>
           <div className="grid grid-cols-3 gap-3">
             <Reveal>
-              <MetricCard
-                label="Peso"
-                value={78.4}
-                unit="kg"
-                trend={{ direction: 'up', label: '1,2%' }}
-              />
+              <MetricCard label="Peso" {...metricProps(body.weightKg, 'kg')} />
             </Reveal>
             <Reveal delay={70}>
-              <MetricCard
-                label="% Gordura"
-                value={14.2}
-                unit="%"
-                trend={{ direction: 'down', label: '0,8%' }}
-              />
+              <MetricCard label="% Gordura" {...metricProps(body.bodyFatPercent, '%')} />
             </Reveal>
             <Reveal delay={140}>
-              <MetricCard
-                label="Massa magra"
-                value={67.3}
-                unit="kg"
-                trend={{ direction: 'up', label: '2,1%' }}
-              />
+              <MetricCard label="Massa magra" {...metricProps(body.muscleMassKg, 'kg')} />
             </Reveal>
           </div>
         </section>
 
-        <Card className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-text-primary">Próxima Avaliação</h3>
-            <span className="font-mono text-xs text-text-secondary">20/06/2026</span>
+        <Link
+          to={ROUTES.student.myAssessments}
+          className="flex items-center justify-between rounded-xl border border-border bg-surface p-5 transition-colors hover:bg-surface-elevated"
+        >
+          <div>
+            <h3 className="font-bold text-text-primary">Minhas avaliações</h3>
+            <p className="text-sm text-text-secondary">
+              {body.assessedAt
+                ? `Última em ${formatDate(body.assessedAt)}`
+                : 'Nenhuma avaliação concluída ainda'}
+            </p>
           </div>
-          <ProgressBar value={65} label="Progresso até a próxima avaliação" />
-          <p className="text-center text-sm italic text-text-secondary">
-            Faltam 12 dias para sua nova evolução.
-          </p>
-        </Card>
+          <Icon name="chevron_right" className="text-text-secondary" />
+        </Link>
 
         <div className="grid grid-cols-2 gap-4">
           <Link

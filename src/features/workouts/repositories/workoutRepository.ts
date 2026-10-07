@@ -1,17 +1,28 @@
-import { MOCK_WORKOUTS } from '@/mocks/workouts'
-import type { WorkoutSession } from '../domain/workout.types'
+import { toStudentSessions } from '../domain/studentSessions'
+import type { WorkoutPlan, WorkoutSession } from '../domain/workout.types'
+import { workoutPlanRepository } from './workoutPlanRepository'
+
+/** O programa que o aluno vê: a ficha publicada e as sessões (divisões) derivadas dela. */
+export interface StudentProgram {
+  plan: WorkoutPlan
+  sessions: WorkoutSession[]
+}
 
 /**
- * Fonte de dados de sessões de treino do aluno. Hoje devolve o fixture de `@/mocks/workouts` —
- * nenhuma página deve importar `MOCK_WORKOUTS` diretamente (ver `docs/ARCHITECTURE.md`). Vira
- * cutover para Postgres/Supabase na Fase 10 do roadmap, mesma assinatura.
+ * Treinos do aluno logado, lidos da ficha que o personal PUBLICOU (`workout_plans`, status
+ * `published`). Antes devolvia um fixture igual para todos os alunos; agora cada aluno vê só o que
+ * o próprio personal montou — e a RLS garante que ninguém lê a ficha de outro.
  */
 export const workoutRepository = {
-  async findAll(): Promise<WorkoutSession[]> {
-    return MOCK_WORKOUTS
+  /** `null` enquanto o personal não publicar nenhuma ficha para o aluno. */
+  async findProgram(studentId: string): Promise<StudentProgram | null> {
+    const plan = await workoutPlanRepository.findPublished(studentId)
+    if (!plan) return null
+    return { plan, sessions: toStudentSessions(plan) }
   },
 
-  async findById(id: string): Promise<WorkoutSession | null> {
-    return MOCK_WORKOUTS.find((workout) => workout.id === id) ?? null
+  async findSession(studentId: string, sessionId: string): Promise<WorkoutSession | null> {
+    const program = await this.findProgram(studentId)
+    return program?.sessions.find((session) => session.id === sessionId) ?? null
   },
 }
