@@ -183,3 +183,61 @@ export function countDone(groups: ExecutionExerciseGroup[]): { done: number; tot
     { done: 0, total: 0 },
   )
 }
+
+/**
+ * Volume total em kg: soma de `reps × carga` das séries MARCADAS COMO FEITAS.
+ *
+ * Série não marcada fica fora — o campo pode ter a sugestão de pré-preenchimento que o aluno nem
+ * tentou, e somá-la daria um volume que ele não levantou. Série feita sem carga (peso corporal,
+ * elástico) contribui 0 em vez de inflar o número com um peso imaginário.
+ */
+export function totalVolumeKg(groups: ExecutionExerciseGroup[]): number {
+  const total = groups.reduce(
+    (sum, group) =>
+      sum +
+      group.rows.reduce((groupSum, row) => {
+        if (!row.done) return groupSum
+        const reps = toNumber(row.reps) ?? 0
+        const weight = toNumber(row.weightKg) ?? 0
+        return groupSum + reps * weight
+      }, 0),
+    0,
+  )
+  // Arredonda a 1 casa: 2,5kg × 9 reps gera dízima em float e "112,49999999999999 kg" na tela.
+  return Math.round(total * 10) / 10
+}
+
+/**
+ * Resumo honesto da sessão, do jeito que ele é mostrado depois de concluir o treino.
+ *
+ * `durationMinutes` é a duração REAL medida de `started_at` a `completed_at` (não a estimativa de
+ * `estimateDurationMinutes`), e é `null` enquanto a sessão não foi fechada — não existe duração de
+ * um treino que não terminou.
+ */
+export interface SessionSummary {
+  setsDone: number
+  setsPrescribed: number
+  volumeKg: number
+  durationMinutes: number | null
+}
+
+export function summarizeSession(input: {
+  groups: ExecutionExerciseGroup[]
+  startedAt: string | null
+  completedAt: string | null
+}): SessionSummary {
+  const { done, total } = countDone(input.groups)
+  const hasRange = input.startedAt !== null && input.completedAt !== null
+  const elapsedMs = hasRange
+    ? new Date(input.completedAt as string).getTime() - new Date(input.startedAt as string).getTime()
+    : 0
+
+  return {
+    setsDone: done,
+    setsPrescribed: total,
+    volumeKg: totalVolumeKg(input.groups),
+    // Piso em 0 e arredondamento para baixo: um treino de 40s é "menos de 1 minuto" na tela, não
+    // "1 minuto" arredondado para cima.
+    durationMinutes: hasRange ? Math.max(0, Math.floor(elapsedMs / 60000)) : null,
+  }
+}

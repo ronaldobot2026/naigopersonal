@@ -4,8 +4,10 @@ import {
   countDone,
   prescribedReps,
   setKey,
+  summarizeSession,
   toNumber,
   toSetDraft,
+  totalVolumeKg,
 } from '../domain/workoutExecution'
 import type { SetLog } from '../domain/workoutLog.types'
 import type { WorkoutExerciseEntry } from '../domain/workout.types'
@@ -191,5 +193,51 @@ describe('setKey e countDone', () => {
     })
 
     expect(countDone(grupos)).toEqual({ done: 1, total: 4 })
+  })
+})
+
+describe('totalVolumeKg e summarizeSession', () => {
+  function grupos(sets: Partial<SetLog>[]) {
+    return buildExecutionGroups({
+      entries: [entry({ sets: 3 })],
+      exerciseName: nome,
+      savedSets: sets.map((set) => saved(set)),
+      lastWeights: {},
+    })
+  }
+
+  it('soma reps x carga somente das séries marcadas como feitas', () => {
+    const feito = grupos([
+      { setIndex: 1, reps: 10, weightKg: 50, done: true },
+      { setIndex: 2, reps: 10, weightKg: 50, done: false },
+    ])
+    expect(totalVolumeKg(feito)).toBe(500)
+  })
+
+  it('série feita sem carga vale 0, e não um peso imaginário', () => {
+    expect(totalVolumeKg(grupos([{ setIndex: 1, reps: 12, weightKg: null, done: true }]))).toBe(0)
+  })
+
+  it('arredonda a 1 casa: dizima de float nao vaza para a tela', () => {
+    expect(totalVolumeKg(grupos([{ setIndex: 1, reps: 9, weightKg: 2.5, done: true }]))).toBe(22.5)
+  })
+
+  it('duracao e null enquanto a sessao nao foi fechada', () => {
+    const resumo = summarizeSession({
+      groups: grupos([{ setIndex: 1, reps: 10, weightKg: 40, done: true }]),
+      startedAt: '2026-10-07T12:00:00.000Z',
+      completedAt: null,
+    })
+    expect(resumo).toMatchObject({ setsDone: 1, setsPrescribed: 3, durationMinutes: null })
+  })
+
+  it('duracao e medida de started_at a completed_at, arredondando para baixo', () => {
+    const resumo = summarizeSession({
+      groups: grupos([]),
+      startedAt: '2026-10-07T12:00:00.000Z',
+      completedAt: '2026-10-07T12:00:40.000Z',
+    })
+    // 40 segundos sao "menos de 1 minuto" (0), nunca "1 minuto".
+    expect(resumo.durationMinutes).toBe(0)
   })
 })

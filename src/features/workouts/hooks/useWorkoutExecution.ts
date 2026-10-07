@@ -4,10 +4,13 @@ import {
   buildExecutionGroups,
   countDone,
   setKey,
+  summarizeSession,
   toSetDraft,
   type ExecutionExerciseGroup,
   type ExecutionSetRow,
+  type SessionSummary,
 } from '../domain/workoutExecution'
+import { isSameLocalDay, startOfLocalDay } from '../domain/trainingDay'
 import { workoutLogRepository } from '../repositories/workoutLogRepository'
 import type { LastWeightEntry, WorkoutLog } from '../domain/workoutLog.types'
 import type { WorkoutExerciseEntry } from '../domain/workout.types'
@@ -15,8 +18,10 @@ import type { WorkoutExerciseEntry } from '../domain/workout.types'
 /**
  * `idle` = existe ficha mas nenhuma sessão aberta (a tela mostra "Iniciar treino").
  * `ready` = em execução, com as séries na tela.
+ * `completed` = a sessão de HOJE desta divisão já foi fechada; a tela mostra o resumo e não
+ * reabre nada (recarregar a página tem de continuar dizendo "concluído hoje").
  */
-export type ExecutionStatus = 'idle' | 'loading' | 'ready' | 'error'
+export type ExecutionStatus = 'idle' | 'loading' | 'ready' | 'completed' | 'error'
 
 /** Feedback de gravação. O aluno está na academia e não vai clicar em "salvar". */
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
@@ -28,8 +33,12 @@ export interface UseWorkoutExecutionResult {
   session: WorkoutLog | null
   groups: ExecutionExerciseGroup[]
   progress: { done: number; total: number }
+  /** Resumo do que foi feito: séries, volume e duração real (duração só após concluir). */
+  summary: SessionSummary
   /** Cria ou retoma a sessão da divisão. Idempotente (a garantia vive em `startSession`). */
   start: () => Promise<void>
+  /** Fecha a sessão (grava o que estiver pendente antes). Vira `status: 'completed'`. */
+  complete: () => Promise<void>
   /** Altera uma série e agenda a gravação. Marcar "feita" grava na hora. */
   updateRow: (exerciseId: string, setIndex: number, patch: Partial<ExecutionSetRow>) => void
 }
@@ -120,9 +129,35 @@ export function useWorkoutExecution({
       const currentEntries = entriesRef.current
       const open = existing ?? (await workoutLogRepository.findOpenSession(studentId, division))
 
+      /*
+       * Sem sessão aberta a tela ainda não é "a fazer": o aluno pode ter CONCLUÍDO esta divisão
+       * hoje, e recarregar a página tem de continuar dizendo isso (critério da F10-4).
+       *
+       * A janela de busca começa um dia antes da meia-noite local porque `listSessions` filtra
+       * por `started_at`: um treino começado às 23h50 e concluído depois da meia-noite é de hoje
+       * e ficaria de fora de uma janela que começasse hoje.
+       */
+      let closedToday: WorkoutLog | null = null
+      if (!open) {
+        const windowStart = startOfLocalDay(new Date())
+        windowStart.setDate(windowStart.getDate() - 1)
+        const recent = await workoutLogRepository.listSessions(studentId, {
+          from: windowStart.toISOString(),
+        })
+        closedToday =
+          recent.find(
+            (log) =>
+              log.divisionKey === division &&
+              log.completedAt !== null &&
+              isSameLocalDay(log.completedAt, new Date()),
+          ) ?? null
+      }
+
+      const current = open ?? closedToday
+
       const uniqueExerciseIds = [...new Set(currentEntries.map((entry) => entry.exerciseId))]
       const [savedSets, lastWeightList] = await Promise.all([
-        open ? workoutLogRepository.listSets(open.id) : Promise.resolve([]),
+        current ? workoutLogRepository.listSets(current.id) : Promise.resolve([]),
         Promise.all(
           uniqueExerciseIds.map((exerciseId) =>
             workoutLogRepository.lastWeightFor(studentId, exerciseId),
@@ -135,7 +170,7 @@ export function useWorkoutExecution({
         lastWeights[exerciseId] = lastWeightList[index]
       })
 
-      setSession(open)
+      setSession(current)
       const built = buildExecutionGroups({
         entries: currentEntries,
         exerciseName: exerciseNameRef.current,
@@ -150,7 +185,7 @@ export function useWorkoutExecution({
         ),
       )
       setGroups(built)
-      setStatus(open ? 'ready' : 'idle')
+      setStatus(open ? 'ready' : closedToday ? 'completed' : 'idle')
     },
     [],
   )
@@ -283,7 +318,65 @@ export function useWorkoutExecution({
     }
   }, [userId, planId, divisionKey, load])
 
-  const progress = useMemo(() => countDone(groups), [groups])
+  /**
+   * Fecha a sessão.
+   *
+   * Antes de gravar `completed_at`, descarrega os timers de debounce pendentes: a última carga que
+   * o aluno digitou pode estar dentro da janela de 400ms, e fechar o treino sem esperá-la perderia
+   * a série e mostraria um volume menor do que ele levantou. Depois do fechamento a tela fica em
+   * `completed` — não há "reabrir", porque `startSession` abriria uma SEGUNDA sessão da mesma
+   * divisão no mesmo dia.
+   */
+  const complete = useCallback(async () => {
+    const log = sessionRef.current
+    if (!log || !userId) return
 
-  return { status, saveStatus, errorMessage, session, groups, progress, start, updateRow }
+    const pending = [...timersRef.current.entries()]
+    timersRef.current.clear()
+    await Promise.all(
+      pending.map(([key, timer]) => {
+        clearTimeout(timer)
+        const [exerciseId, setIndex] = key.split('#')
+        return persist(exerciseId, Number(setIndex))
+      }),
+    )
+
+    setStatus('loading')
+    try {
+      const closed = await workoutLogRepository.completeSession(log.id)
+      sessionRef.current = closed
+      setSession(closed)
+      setStatus('completed')
+    } catch (error: unknown) {
+      setStatus('ready')
+      setSaveStatus('error')
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Não foi possível concluir o treino agora.',
+      )
+    }
+  }, [userId, persist])
+
+  const progress = useMemo(() => countDone(groups), [groups])
+  const summary = useMemo(
+    () =>
+      summarizeSession({
+        groups,
+        startedAt: session?.startedAt ?? null,
+        completedAt: session?.completedAt ?? null,
+      }),
+    [groups, session],
+  )
+
+  return {
+    status,
+    saveStatus,
+    errorMessage,
+    session,
+    groups,
+    progress,
+    summary,
+    start,
+    complete,
+    updateRow,
+  }
 }
