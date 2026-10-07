@@ -227,6 +227,11 @@ export function WorkoutDetailPage() {
                     key={group.exerciseId}
                     group={group}
                     onChange={execution.updateRow}
+                    askTrainer={{
+                      workoutLabel: workout.name,
+                      logId: execution.session?.id ?? null,
+                      onBeforeSend: execution.flushPendingSaves,
+                    }}
                   />
                 ))
               : workout.exercises.map((entry, index) => {

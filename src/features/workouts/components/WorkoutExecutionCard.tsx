@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
+import { AskTrainerPanel } from '@/features/chat/components/AskTrainerPanel'
 import { ExerciseHistoryPanel } from './ExerciseHistoryPanel'
 import { describeLastWeight } from '../domain/workoutHistory'
 import type { ExecutionExerciseGroup, ExecutionSetRow } from '../domain/workoutExecution'
@@ -9,6 +10,20 @@ import type { WorkoutExerciseEntry } from '../domain/workout.types'
 interface WorkoutExecutionCardProps {
   group: ExecutionExerciseGroup
   onChange: (exerciseId: string, setIndex: number, patch: Partial<ExecutionSetRow>) => void
+  /**
+   * Habilita o "Falar com o personal" deste exercício.
+   *
+   * `workoutLabel` é o nome do dia de treino; o rótulo congelado da mensagem é montado aqui
+   * ("Treino A · Supino com barra") para que a conversa continue legível depois de a ficha mudar.
+   * `logId` é a execução (`workout_logs.id`) — `messages.context_id` é `uuid` e o id do exercício
+   * do catálogo (`'0025'`) não serve.
+   */
+  askTrainer?: {
+    workoutLabel: string
+    logId: string | null
+    /** Descarrega o auto-save pendente antes de enviar (não perder a série digitada). */
+    onBeforeSend: () => Promise<void>
+  }
 }
 
 /** A prescrição resumida, para o aluno comparar com o que está fazendo. */
@@ -30,7 +45,7 @@ const FIELD_CLASS =
   'min-h-11 w-full min-w-0 rounded-md border border-border bg-surface px-3 py-2 text-center font-body text-base text-text-primary transition-colors focus:border-action-primary focus:outline-none focus:ring-2 focus:ring-action-primary/20'
 
 /** Um exercício em execução: a prescrição no topo e uma linha por série. */
-export function WorkoutExecutionCard({ group, onChange }: WorkoutExecutionCardProps) {
+export function WorkoutExecutionCard({ group, onChange, askTrainer }: WorkoutExecutionCardProps) {
   const [historyOpen, setHistoryOpen] = useState(false)
   // A referência do passado é calculada a partir de `group.lastWeight`, que a execução já traz
   // carregado (`useWorkoutExecution.load`) — não há consulta nova aqui.
@@ -137,6 +152,21 @@ export function WorkoutExecutionCard({ group, onChange }: WorkoutExecutionCardPr
           </div>
         )
       })}
+
+      {/*
+        Fica DEPOIS das séries e discreto: a tela em execução é para registrar carga, e um botão
+        de mensagem com o mesmo peso visual do check de série competiria com ele. O painel abre no
+        próprio card — enviar mensagem não navega para fora nem interrompe a sessão.
+      */}
+      {askTrainer && (
+        <AskTrainerPanel
+          contextKind="exercise"
+          contextId={askTrainer.logId}
+          contextLabel={`${askTrainer.workoutLabel} · ${group.exerciseName}`}
+          onBeforeSend={askTrainer.onBeforeSend}
+          className="mt-1"
+        />
+      )}
     </Card>
   )
 }

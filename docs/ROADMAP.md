@@ -187,10 +187,27 @@ Fases 6, 7 e 17.
       thread maior que a tela), com limpeza do dado de teste no fim. Bug achado e corrigido aí:
       dois consumidores (tela + badge) assinavam o MESMO topic de canal e o supabase-js deixava um
       deles mudo — o topic passou a levar sufixo único.
+      **Comentar de dentro do contexto** (2026-10-07): `AskTrainerPanel`
+      (`features/chat/components`) põe um "Falar com o personal" discreto em cada exercício
+      **durante a execução do treino** (`/aluno/treinos/:divisao`, `context_kind='exercise'`,
+      `context_id` = a execução em `workout_logs`, `context_label` = "Treino A · Supino com
+      barra") e no detalhe da **avaliação** do aluno (`context_kind='assessment'`, rótulo
+      "Avaliação física · data"). O rótulo é **congelado no clique de enviar** — republicar a ficha
+      depois não reescreve a mensagem antiga (teste `askTrainerPanel.test.tsx`). `context_id` é o
+      id da execução/avaliação, e não o do exercício do catálogo, porque `messages.context_id` é
+      `uuid` e o catálogo usa códigos curtos (`'0025'`). Enviar **não interrompe o treino**:
+      `useWorkoutExecution.flushPendingSaves` (extraído do "Concluir treino") descarrega o
+      auto-save com debounce antes do envio, e a sessão segue em andamento. Depois do envio fica a
+      confirmação com o rótulo e o atalho "Abrir conversa" — mensagem não some no vazio.
+      **Prova de ponta a ponta**: `scripts/e2e-chat-contexto.cjs` — **22/22 asserts verdes** em
+      2026-10-07 (ação discreta com alvo de 44px, carga digitada dentro da janela de 400ms gravada
+      antes do envio, `context_kind/context_id/context_label` conferidos pela sessão do PERSONAL,
+      treino intacto depois do envio e ao voltar para a tela, mensagem na conversa com o rótulo),
+      com limpeza do dado de teste no fim.
       **Falta nesta fase, não está no app**: lista de conversas do PERSONAL (ele só abre conversa
-      recebendo o id por prop; a tela `/personal/chat` mostra "Escolha um aluno"), enviar mensagem
-      com contexto a partir de um treino/exercício pela UI (o banco e o repositório aceitam, nenhuma
-      tela ainda oferece), anexo de foto/vídeo, áudio, "digitando…", reação, push/Web Push
+      recebendo o id por prop; a tela `/personal/chat` mostra "Escolha um aluno"), abrir a mensagem
+      e navegar de volta para o treino/avaliação que ela cita (o `context_id` está gravado, nenhuma
+      tela usa como link), anexo de foto/vídeo, áudio, "digitando…", reação, push/Web Push
       (**Fase 15**) e broadcast para vários alunos.
 - [x] Anamnese (pedido do cliente, 2026-10-01; dívida de banco fechada em 2026-10-07) — modelos
       **PAR-Q** (7 perguntas Sim/Não, com aviso de liberação médica quando há "Sim") e **Padrão**
