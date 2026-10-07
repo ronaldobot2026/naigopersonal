@@ -166,7 +166,7 @@ Fases 6, 7 e 17.
       personal quando o aluno conclui, filtro por período e exportação na visão do personal; fila
       offline de séries (registrar exige rede). Nada disto foi prometido como pronto em nenhuma
       tela.
-- [~] Fase 12 — **chat em texto funciona do lado do ALUNO**, em 2026-10-07. Banco:
+- [x] Fase 12 — **chat em texto funciona do lado do ALUNO**, em 2026-10-07. Banco:
       `conversations` (unique trainer/student, `last_message_at` por trigger) e `messages`
       (contexto congelado em `context_kind/context_id/context_label`, colunas de anexo já criadas,
       RLS por participante, Realtime habilitado) — migration `20261007140000`. Cliente:
@@ -232,8 +232,44 @@ Fases 6, 7 e 17.
       personal chegando ao aluno sem recarregar, mensagem nova do aluno aparecendo na caixa de
       entrada sem recarregar, e estado vazio honesto do personal sem conversa — com limpeza do
       dado de teste no fim.
-      **Falta nesta fase, não está no app**: anexo de foto/vídeo, áudio, "digitando…", reação,
-      push/Web Push (**Fase 15**) e broadcast para vários alunos.
+      **Prova de ponta a ponta da FASE, do zero** (2026-10-07): `scripts/e2e-chat-fase12.cjs` —
+      **25/25 asserts verdes**, três sessões simultâneas na UI, cada uma em seu
+      `launchPersistentContext` (aluno A em iPhone, personal em desktop, aluno B em iPhone; um
+      user-data-dir por papel, porque dois tokens no mesmo perfil se sobrescrevem no
+      `localStorage`). Os **dois alunos são criados pelo `naigo-aluno` no início e apagados no
+      fim** — nada de estado herdado do aluno demo. O roteiro: o personal publica a ficha (com a
+      sessão dele, não `service_role`), o aluno A inicia o treino, digita a carga e fala com o
+      personal **de dentro do exercício em execução**, o personal vê a conversa na caixa de
+      entrada com 1 não lida e a prévia trazendo o rótulo `Treino A · Supino com barra`, abre e o
+      rótulo é link para `/personal/alunos/:id?sessao=<workout_log>`, responde; o **badge do aluno
+      sobe a 1 sem recarregar com ele ainda na tela do treino** e **zera ao abrir a conversa**
+      (`read_at` conferido no banco), **sem bolha duplicada** (contagem na tela e as 2 linhas no
+      banco, porque `includes` passaria igual com a mensagem repetida pela reconciliação otimista);
+      o **aluno B não vê nada** — nem na tela (estado vazio) nem
+      pela REST com o token dele (`messages` = 0 linhas, `conversations` só a dele); e o treino do
+      aluno A segue **em andamento com a carga 47,5 kg** na tela e no banco depois de tudo. No
+      fim apaga conversas, mensagens, execuções, séries, fichas, vínculos, perfis e os usuários de
+      auth, e **assere que não sobrou nada** (todas as contagens em zero).
+      **Bug achado por esse E2E e corrigido**: o badge do aluno (`useStudentUnreadCount`)
+      resolvia a conversa no mount e, quando o aluno ainda não tinha nenhuma, não assinava nada —
+      a conversa nascia na primeira mensagem dele e a resposta do personal **não avisava até
+      recarregar**, justamente no aluno novo. O hook passou a contar com
+      `unreadCountForCurrentUser` e a assinar `subscribeToAllMessages` (RLS como escopo: o aluno só
+      participa da conversa dele), igual ao badge do personal, e deixou de depender de um
+      `conversation_id` resolvido no mount.
+      **Dívida explícita desta fase — NÃO foi feito**, nada disto está no app hoje: **anexo de
+      foto/vídeo** (as colunas `attachment_path/attachment_kind` existem em `messages` desde a
+      migration, mas não há upload, bucket de Storage, miniatura nem leitor — só o campo); **áudio**
+      (gravação e reprodução, nem campo nem UI); **broadcast para todos os alunos** (o plano é
+      Edge Function inserindo N mensagens, uma por conversa, porque um "para todos" sem linha por
+      aluno quebraria a RLS e o histórico de cada conversa — não existe função, nem tela, nem
+      fila); **notificação push** (Web Push/service worker → **Fase 15**: hoje o único aviso é o
+      badge da navegação, que só aparece com o app aberto); **notificação por e-mail** (depende da
+      Fase 15 e de um provedor de e-mail transacional contratado — não há provedor configurado);
+      **"digitando…"** (exigiria canal de presence do Realtime, nada assinado); **reação a
+      mensagem**; **busca no histórico** (a conversa pagina por cursor para trás, mas não há campo
+      de busca nem índice de texto em `messages.body`). Nada disto foi prometido como pronto em
+      nenhuma tela.
 - [x] Anamnese (pedido do cliente, 2026-10-01; dívida de banco fechada em 2026-10-07) — modelos
       **PAR-Q** (7 perguntas Sim/Não, com aviso de liberação médica quando há "Sim") e **Padrão**
       (17 itens), preenchidos pelo personal ("Eu irei preencher") ou enviados ao aluno ("Meu aluno

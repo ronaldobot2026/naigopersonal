@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { chatRepository } from '../repositories/chatRepository'
 
@@ -18,9 +18,17 @@ export interface UseStudentUnreadCountResult {
  *
  * Duas decisões que não são acidentais:
  *
- * 1. A conversa é LIDA, nunca criada (`findConversationForCurrentStudent`): o badge roda em toda
- *    tela do aluno, e criar a conversa só porque o app abriu encheria `conversations` de linhas
- *    sem nenhuma mensagem.
+ * 1. A conversa NUNCA é criada aqui, nem procurada: o badge roda em toda tela do aluno, e criar a
+ *    conversa só porque o app abriu encheria `conversations` de linhas sem nenhuma mensagem. A
+ *    contagem é global (`unreadCountForCurrentUser`) e a assinatura é de TODAS as mensagens
+ *    acessíveis (`subscribeToAllMessages`), com a RLS de `messages` como autorização — o aluno só
+ *    participa da conversa dele, então o escopo global já é o escopo dele.
+ *
+ *    Isto conserta um buraco achado no E2E da Fase 12 com aluno NOVO: a versão anterior resolvia
+ *    a conversa no mount e, quando não existia nenhuma (aluno que nunca falou com o personal),
+ *    não assinava nada. A conversa nascia depois, na primeira mensagem dele, e a resposta do
+ *    personal não subia o badge até o aluno recarregar — exatamente no aluno que mais precisa do
+ *    aviso. Sem filtro de `conversation_id` não há o que ficar desatualizado.
  * 2. O evento do Realtime incrementa em memória em vez de recontar no banco: a mensagem que
  *    acabou de chegar já veio na carga do evento, e recontar a cada chegada seria um round-trip
  *    por mensagem. O `refresh` existe para o caminho oposto (as mensagens foram lidas na tela do
@@ -31,53 +39,36 @@ export function useStudentUnreadCount(): UseStudentUnreadCountResult {
   const [count, setCount] = useState(0)
   const [revision, setRevision] = useState(0)
 
-  /** Conversa já resolvida: o `refresh` não precisa redescobri-la a cada recontagem. */
-  const conversationId = useRef<string | null>(null)
-
   const refresh = useCallback(() => {
     setRevision((current) => current + 1)
   }, [])
 
   useEffect(() => {
     if (!userId) {
-      conversationId.current = null
       setCount(0)
       return
     }
 
     let cancelled = false
-    let unsubscribe: (() => void) | undefined
 
-    async function load(): Promise<void> {
-      const id =
-        conversationId.current ?? (await chatRepository.findConversationForCurrentStudent())?.id
-      if (cancelled) return
-
-      // Sem conversa ainda não há o que contar nem o que assinar: nenhuma mensagem existe.
-      if (!id) {
-        setCount(0)
-        return
-      }
-      conversationId.current = id
-
-      unsubscribe = chatRepository.subscribeToMessages(id, (message) => {
-        if (cancelled || message.senderId === userId) return
-        setCount((current) => current + 1)
-      })
-
-      const unread = await chatRepository.unreadCount(id)
-      if (cancelled) return
-      setCount(unread)
-    }
-
-    load().catch((error: unknown) => {
-      // Badge é aviso, não função crítica: falhar aqui não pode derrubar a navegação do aluno.
-      console.error(error)
+    const unsubscribe = chatRepository.subscribeToAllMessages((message) => {
+      if (cancelled || message.senderId === userId) return
+      setCount((current) => current + 1)
     })
+
+    chatRepository
+      .unreadCountForCurrentUser()
+      .then((unread) => {
+        if (!cancelled) setCount(unread)
+      })
+      .catch((error: unknown) => {
+        // Badge é aviso, não função crítica: falhar aqui não pode derrubar a navegação do aluno.
+        console.error(error)
+      })
 
     return () => {
       cancelled = true
-      unsubscribe?.()
+      unsubscribe()
     }
   }, [userId, revision])
 
