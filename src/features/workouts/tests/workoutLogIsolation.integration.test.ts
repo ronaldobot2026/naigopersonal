@@ -297,4 +297,39 @@ describe.skipIf(!hasCredentials)('execução do treino: isolamento de workout_lo
       .single()
     expect(survivor).toEqual({ id: logAId, workout_plan_id: null, division_key: 'A' })
   })
+
+  it('regravar a mesma série atualiza a linha em vez de duplicar', async () => {
+    const client = await signInAs(studentAEmail)
+    const row = {
+      workout_log_id: logAId,
+      student_id: studentAId,
+      exercise_id: '0025',
+      exercise_name: 'Supino reto com barra',
+      set_index: 1,
+    }
+
+    // O executor grava a cada toque do aluno; o alvo é o índice único
+    // (workout_log_id, exercise_id, set_index) da migration 20261007131000.
+    const { error: firstError } = await client
+      .from('set_logs')
+      .upsert(
+        { ...row, reps: 8, weight_kg: 60 },
+        { onConflict: 'workout_log_id,exercise_id,set_index' },
+      )
+    expect(firstError).toBeNull()
+    const { error: secondError } = await client
+      .from('set_logs')
+      .upsert(
+        { ...row, reps: 7, weight_kg: 62.5, done: true },
+        { onConflict: 'workout_log_id,exercise_id,set_index' },
+      )
+    expect(secondError).toBeNull()
+
+    const { data: sets } = await client
+      .from('set_logs')
+      .select('reps, weight_kg, done')
+      .eq('workout_log_id', logAId)
+      .eq('exercise_id', '0025')
+    expect(sets).toEqual([{ reps: 7, weight_kg: 62.5, done: true }])
+  })
 })
