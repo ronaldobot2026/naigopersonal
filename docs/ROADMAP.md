@@ -166,13 +166,28 @@ Fases 6, 7 e 17.
       personal quando o aluno conclui, filtro por período e exportação na visão do personal; fila
       offline de séries (registrar exige rede). Nada disto foi prometido como pronto em nenhuma
       tela.
-- [~] Anamnese (pedido do cliente, 2026-10-01) — modelos **PAR-Q** (7 perguntas Sim/Não, com aviso
-      de liberação médica quando há "Sim") e **Padrão** (17 itens), preenchidos pelo personal
-      ("Eu irei preencher") ou enviados ao aluno ("Meu aluno irá preencher"). Código em
-      `src/features/anamnesis/` (catálogo de perguntas no código; respostas em `jsonb`). Migration
-      `supabase/migrations/20261001120000_anamneses.sql` (tabela `anamneses` + RLS: personal só dos
-      próprios alunos como autor, aluno só pendente/concluída e só responde a pendente; trigger
-      impede o aluno de mudar template/autor). **Pendente**: aplicar a migration no projeto
-      `midftshifkvweehrtyte` (`supabase db push`), regenerar `database.types.ts` com
-      `supabase gen types typescript --linked` (a entrada `anamneses` foi escrita à mão) e rodar
-      um teste de isolamento RLS no padrão de `correctivePlanIsolation.integration.test.ts`.
+- [x] Anamnese (pedido do cliente, 2026-10-01; dívida de banco fechada em 2026-10-07) — modelos
+      **PAR-Q** (7 perguntas Sim/Não, com aviso de liberação médica quando há "Sim") e **Padrão**
+      (17 itens), preenchidos pelo personal ("Eu irei preencher") ou enviados ao aluno ("Meu aluno
+      irá preencher"). Código em `src/features/anamnesis/` (catálogo de perguntas no código;
+      respostas em `jsonb`). Migration `supabase/migrations/20261001120000_anamneses.sql` (tabela
+      `anamneses` + RLS: personal só dos próprios alunos como autor, aluno só pendente/concluída e
+      só responde a pendente; trigger impede o aluno de mudar template/autor).
+      **Reconciliado em 2026-10-07**: `supabase migration list --linked` mostra as 8 migrations com
+      local e remoto coerentes (incluindo `20261001120000`), então não houve `migration repair` a
+      fazer — o histórico já estava alinhado. O schema real do banco foi conferido contra o arquivo
+      pelo catálogo (`information_schema.columns`, `pg_policy`, `pg_trigger`, `pg_constraint`,
+      `pg_indexes`, `pg_proc`): as 10 colunas, os 3 checks, as 2 FKs, o índice
+      `anamneses_student_id_idx`, as 3 policies e o trigger `anamneses_guard_student_update`
+      (security definer, `search_path=public`) batem com a migration — zero divergência.
+      `database.types.ts` foi regenerado com `supabase gen types typescript --linked` + prettier e
+      o diff deu **vazio**: a entrada `anamneses` escrita à mão estava correta (mesmas colunas,
+      mesmos `Insert`/`Update` opcionais, mesmas duas `Relationships`), então nada mudou — mas
+      agora é saída de CLI, não trabalho manual. Isolamento RLS coberto por
+      `src/features/anamnesis/tests/anamnesisIsolation.integration.test.ts` (7 testes, passando
+      contra o projeto real): personal lê só os próprios alunos, não grava com `trainer_id`
+      forjado; personal de outro aluno não lê nada do aluno A; aluno A não vê o rascunho do
+      personal nem a anamnese do aluno B, e o update na linha do B afeta zero linhas; o trigger
+      recusa troca de `template_id`/`trainer_id`; aluno responde e conclui a própria e depois ela
+      fica travada. Teardown apaga alunos antes dos personais e assere que nenhum usuário do run
+      sobrou.
