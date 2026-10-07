@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
+import { ExerciseHistoryPanel } from './ExerciseHistoryPanel'
+import { describeLastWeight } from '../domain/workoutHistory'
 import type { ExecutionExerciseGroup, ExecutionSetRow } from '../domain/workoutExecution'
 import type { WorkoutExerciseEntry } from '../domain/workout.types'
 
@@ -28,6 +31,11 @@ const FIELD_CLASS =
 
 /** Um exercício em execução: a prescrição no topo e uma linha por série. */
 export function WorkoutExecutionCard({ group, onChange }: WorkoutExecutionCardProps) {
+  const [historyOpen, setHistoryOpen] = useState(false)
+  // A referência do passado é calculada a partir de `group.lastWeight`, que a execução já traz
+  // carregado (`useWorkoutExecution.load`) — não há consulta nova aqui.
+  const lastLine = describeLastWeight(group.lastWeight)
+
   return (
     <Card tone="elevated" className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
@@ -37,8 +45,31 @@ export function WorkoutExecutionCard({ group, onChange }: WorkoutExecutionCardPr
           {group.prescription.notes && (
             <p className="mt-1 text-xs italic text-text-secondary">{group.prescription.notes}</p>
           )}
+          {/*
+            A última carga fica ACIMA das séries e em destaque: é o número que decide a carga de
+            hoje. Quando o aluno nunca fez o exercício, a linha simplesmente não existe — "última:
+            —" só ocuparia espaço e pareceria erro.
+          */}
+          {lastLine && <p className="mt-2 text-sm font-bold text-action-primary">{lastLine}</p>}
         </div>
+
+        <button
+          type="button"
+          aria-expanded={historyOpen}
+          aria-label={`Histórico de carga — ${group.exerciseName}`}
+          onClick={() => setHistoryOpen((open) => !open)}
+          className="flex min-h-11 shrink-0 items-center gap-1 rounded-md border border-border px-3 text-xs text-text-secondary transition-colors active:scale-[0.97]"
+        >
+          <Icon name="history" className="text-base" />
+          {historyOpen ? 'Fechar' : 'Histórico'}
+        </button>
       </div>
+
+      {historyOpen && (
+        <div className="rounded-md border border-border bg-surface p-3">
+          <ExerciseHistoryPanel exerciseId={group.exerciseId} exerciseName={group.exerciseName} />
+        </div>
+      )}
 
       <div className="grid grid-cols-[2rem_1fr_1fr_auto] items-center gap-2 text-xs uppercase tracking-wide text-text-secondary">
         <span className="sr-only">Série</span>

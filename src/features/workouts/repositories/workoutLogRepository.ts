@@ -1,5 +1,6 @@
 import { getSupabase } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
+import { DEFAULT_HISTORY_SESSIONS } from '../domain/workoutHistory'
 import type {
   LastWeightEntry,
   SessionRange,
@@ -13,6 +14,13 @@ type SetLogRow = Database['public']['Tables']['set_logs']['Row']
 
 /** Teto padrão de `listSessions` — histórico é tela de rolagem, não dump da tabela. */
 const DEFAULT_SESSION_LIMIT = 50
+
+/**
+ * Folga de séries por sessão usada para converter "últimas N sessões" em teto de linhas em
+ * `listExerciseSets`. Fichas de hipertrofia raramente passam de 5 séries por exercício; 8 dá
+ * margem para a série extra que o aluno registra por conta.
+ */
+const MAX_SETS_PER_SESSION = 8
 
 function toLog(row: WorkoutLogRow): WorkoutLog {
   return {
@@ -51,7 +59,10 @@ function toSet(row: SetLogRow): SetLog {
  * não por `this`: a tela desestrutura o repositório (`const { startSession } = ...`) e um `this`
  * perdido viraria "não duplica sessão" falhando só em produção.
  */
-async function findOpenSession(studentId: string, divisionKey?: string): Promise<WorkoutLog | null> {
+async function findOpenSession(
+  studentId: string,
+  divisionKey?: string,
+): Promise<WorkoutLog | null> {
   let query = getSupabase()
     .from('workout_logs')
     .select('*')
@@ -215,6 +226,35 @@ export const workoutLogRepository = {
     if (!row || row.completed_at === null) return null
 
     return { weightKg: row.weight_kg, reps: row.reps, completedAt: row.completed_at }
+  },
+
+  /**
+   * Séries CONCLUÍDAS deste aluno neste exercício, da mais recente para a mais antiga — a matéria
+   * bruta do painel de evolução de carga (`groupHistorySessions` agrupa por sessão).
+   *
+   * Mesma varredura de índice de `lastWeightFor` (`student_id, exercise_id, completed_at desc`),
+   * só com um teto maior: é uma leitura a mais do MESMO índice, e não um `join` com
+   * `workout_logs`. Por isso o histórico sobrevive à ficha apagada — nada aqui depende de
+   * `workout_plans`, e `exercise_name` vem denormalizado na própria série.
+   *
+   * `maxSessions` é convertido em teto de LINHAS (`× MAX_SETS_PER_SESSION`): o filtro é por série,
+   * não por sessão, então pedir 6 sessões exige folga de linhas. Quem agrupa corta o excedente.
+   */
+  async listExerciseSets(
+    studentId: string,
+    exerciseId: string,
+    maxSessions: number = DEFAULT_HISTORY_SESSIONS,
+  ): Promise<SetLog[]> {
+    const { data, error } = await getSupabase()
+      .from('set_logs')
+      .select('*')
+      .eq('student_id', studentId)
+      .eq('exercise_id', exerciseId)
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(Math.max(1, maxSessions) * MAX_SETS_PER_SESSION)
+    if (error) throw error
+    return ((data ?? []) as SetLogRow[]).map(toSet)
   },
 
   /**

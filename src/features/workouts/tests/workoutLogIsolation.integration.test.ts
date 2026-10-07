@@ -3,6 +3,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { getSupabase } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
+import { groupHistorySessions } from '../domain/workoutHistory'
+import { workoutLogRepository } from '../repositories/workoutLogRepository'
 
 /**
  * Isolamento RLS da EXECUÇÃO do treino (`workout_logs` + `set_logs`,
@@ -296,6 +298,94 @@ describe.skipIf(!hasCredentials)('execução do treino: isolamento de workout_lo
       .eq('id', logAId)
       .single()
     expect(survivor).toEqual({ id: logAId, workout_plan_id: null, division_key: 'A' })
+  })
+
+  /**
+   * O teste real da denormalização da F10-1, agora pela porta que a TELA usa (o repositório, e não
+   * SQL cru): o histórico de carga tem de continuar lá depois de a ficha ser apagada.
+   */
+  it('histórico de carga sobrevive à ficha apagada (lido pelo repositório, como a tela lê)', async () => {
+    const exerciseId = '0047'
+    const seedWeights = [
+      { weight: 30, reps: 10, when: '2026-09-23T12:00:00.000Z' },
+      { weight: 32.5, reps: 9, when: '2026-09-30T12:00:00.000Z' },
+    ]
+
+    // Ficha publicada + duas sessões concluídas penduradas nela, tudo via service_role (setup).
+    const { data: plan, error: planError } = await admin
+      .from('workout_plans')
+      .insert({
+        student_id: studentAId,
+        trainer_id: trainerId,
+        status: 'published',
+        objective: 'ficha do histórico',
+        divisions: [],
+      })
+      .select('id')
+      .single()
+    if (planError || !plan) throw planError ?? new Error('Falha ao semear ficha do histórico')
+
+    for (const seed of seedWeights) {
+      const { data: log, error: logError } = await admin
+        .from('workout_logs')
+        .insert({
+          student_id: studentAId,
+          workout_plan_id: plan.id,
+          division_key: 'A',
+          started_at: seed.when,
+          completed_at: seed.when,
+        })
+        .select('id')
+        .single()
+      if (logError || !log) throw logError ?? new Error('Falha ao semear sessão do histórico')
+
+      const { error: setError } = await admin.from('set_logs').insert({
+        workout_log_id: log.id,
+        student_id: studentAId,
+        exercise_id: exerciseId,
+        exercise_name: 'Remada curvada',
+        set_index: 1,
+        reps: seed.reps,
+        weight_kg: seed.weight,
+        done: true,
+        completed_at: seed.when,
+      })
+      if (setError) throw setError
+    }
+
+    await signInAs(studentAEmail)
+
+    const antes = await workoutLogRepository.listExerciseSets(studentAId, exerciseId)
+    const ultimaAntes = await workoutLogRepository.lastWeightFor(studentAId, exerciseId)
+    expect(antes).toHaveLength(2)
+    expect(ultimaAntes).toMatchObject({ weightKg: 32.5, reps: 9 })
+
+    // A ficha morre — editada e republicada, ou simplesmente apagada pelo personal.
+    const { error: deleteError } = await admin.from('workout_plans').delete().eq('id', plan.id)
+    expect(deleteError).toBeNull()
+
+    const depois = await workoutLogRepository.listExerciseSets(studentAId, exerciseId)
+    const ultimaDepois = await workoutLogRepository.lastWeightFor(studentAId, exerciseId)
+
+    expect(depois).toHaveLength(2)
+    expect(ultimaDepois).toEqual(ultimaAntes)
+    // Nome e carga continuam legíveis porque moram na própria série, não na ficha nem no catálogo.
+    expect(depois.map((set) => [set.exerciseName, set.weightKg, set.reps])).toEqual([
+      ['Remada curvada', 32.5, 9],
+      ['Remada curvada', 30, 10],
+    ])
+
+    const sessoes = groupHistorySessions(depois)
+    expect(sessoes).toHaveLength(2)
+    expect(sessoes[0]).toMatchObject({ topWeightKg: 32.5, totalReps: 9 })
+
+    // E o vínculo com a ficha foi zerado, não cascateado junto com as séries.
+    const { data: logs } = await admin
+      .from('workout_logs')
+      .select('workout_plan_id')
+      .eq('student_id', studentAId)
+      .eq('division_key', 'A')
+    expect(logs?.every((row) => row.workout_plan_id === null)).toBe(true)
   })
 
   it('regravar a mesma série atualiza a linha em vez de duplicar', async () => {

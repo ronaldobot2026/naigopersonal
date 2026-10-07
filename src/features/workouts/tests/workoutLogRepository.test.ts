@@ -375,6 +375,38 @@ describe('workoutLogRepository.lastWeightFor', () => {
   })
 })
 
+describe('workoutLogRepository.listExerciseSets', () => {
+  it('varre o mesmo índice de lastWeightFor, sem join com workout_logs, e exclui pendente', async () => {
+    responder = () => [SERIE]
+
+    const series = await workoutLogRepository.listExerciseSets('aluno-1', '0025', 6)
+
+    expect(series).toHaveLength(1)
+    expect(series[0].exerciseName).toBe('Supino reto')
+
+    const chamada = ultimaChamada()
+    expect(chamada.table).toBe('set_logs')
+    // `select('*')` — nenhuma coluna de `workout_plans`/`workout_logs` embarcada: é isso que faz o
+    // histórico continuar de pé depois de a ficha ser apagada.
+    expect(chamada.columns).toBe('*')
+    expect(chamada.filters).toEqual([
+      'eq:student_id=aluno-1',
+      'eq:exercise_id=0025',
+      'not:completed_at is null',
+    ])
+    expect(chamada.orders).toEqual(['completed_at desc'])
+    // Teto de LINHAS derivado das sessões pedidas (6 sessões × folga de 8 séries).
+    expect(chamada.limit).toBe(48)
+  })
+
+  it('aplica o teto padrão de sessões quando a tela não pede nada', async () => {
+    responder = () => []
+
+    expect(await workoutLogRepository.listExerciseSets('aluno-1', '0099')).toEqual([])
+    expect(ultimaChamada().limit).toBe(48)
+  })
+})
+
 describe('workoutLogRepository.listSessions', () => {
   it('filtra a janela por started_at e ordena do mais recente para o mais antigo', async () => {
     responder = () => [LOG_ABERTO]
