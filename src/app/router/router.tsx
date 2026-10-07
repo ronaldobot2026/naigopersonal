@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from '@/app/layouts/AppShell'
 import { RoleShell } from '@/app/layouts/RoleShell'
+import { StudentShell } from '@/app/layouts/StudentShell'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { PersonalDashboardPage } from '@/features/dashboard/pages/PersonalDashboardPage'
 import { StudentHomePage } from '@/features/dashboard/pages/StudentHomePage'
@@ -28,14 +29,6 @@ import { ChatPage } from '@/features/chat/pages/ChatPage'
 import type { NavItem } from '@/components/navigation/BottomNavigation'
 import { ROUTES } from './routes'
 
-const STUDENT_NAV_ITEMS: NavItem[] = [
-  { to: ROUTES.student.home, icon: 'person', label: 'Ficha' },
-  { to: ROUTES.student.workouts, icon: 'fitness_center', label: 'Treino' },
-  { to: ROUTES.student.nutrition, icon: 'restaurant', label: 'Alimentação' },
-  { to: ROUTES.student.posturalCorrection, icon: 'accessibility_new', label: 'Correção' },
-  { to: ROUTES.student.myAssessments, icon: 'assignment', label: 'Avaliação' },
-]
-
 const TRAINER_NAV_ITEMS: NavItem[] = [
   { to: ROUTES.trainer.dashboard, icon: 'dashboard', label: 'Dashboard' },
   { to: ROUTES.trainer.students, icon: 'group', label: 'Alunos' },
@@ -50,9 +43,7 @@ export const router = createBrowserRouter([
     children: [{ path: ROUTES.login, element: <LoginPage /> }],
   },
   {
-    element: (
-      <RoleShell navItems={STUDENT_NAV_ITEMS} sidebarSubtitle="ÁREA DO ALUNO" switchTo="trainer" />
-    ),
+    element: <StudentShell />,
     children: [
       { path: ROUTES.student.home, element: <StudentHomePage /> },
       { path: ROUTES.student.workouts, element: <StudentWorkoutsPage /> },

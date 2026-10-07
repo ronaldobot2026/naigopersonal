@@ -166,6 +166,32 @@ Fases 6, 7 e 17.
       personal quando o aluno conclui, filtro por período e exportação na visão do personal; fila
       offline de séries (registrar exige rede). Nada disto foi prometido como pronto em nenhuma
       tela.
+- [~] Fase 12 — **chat em texto funciona do lado do ALUNO**, em 2026-10-07. Banco:
+      `conversations` (unique trainer/student, `last_message_at` por trigger) e `messages`
+      (contexto congelado em `context_kind/context_id/context_label`, colunas de anexo já criadas,
+      RLS por participante, Realtime habilitado) — migration `20261007140000`. Cliente:
+      `chatRepository` (conversa idempotente, páginas por cursor, envio com `sender_id` da sessão,
+      `markRead`, `unreadCount`, assinatura de Realtime) + `useChatConversation` (bolha otimista
+      reconciliada por id gerado no cliente, para a mensagem do próprio usuário não duplicar
+      quando o Realtime devolve o `INSERT`). Tela do aluno (`ChatPage`): uma conversa, a do
+      personal dele (vínculo em `students.trainer_id`), histórico paginado, envio por botão, campo
+      de 16px (abaixo disso o Safari do iOS dá zoom) acima da barra de navegação, rótulo do
+      contexto em bloco próprio acima do texto, rolagem automática ao fim só quando chega mensagem
+      nova (não ao carregar histórico antigo) e estado vazio honesto ("Nenhuma mensagem ainda").
+      Aviso de mensagem nova = **badge de não lidas na aba Chat** (`useStudentUnreadCount` no
+      shell do aluno, assinando Realtime em qualquer tela), porque não há push.
+      **Prova de ponta a ponta**: `scripts/e2e-chat-aluno.cjs` — sessão real do aluno em viewport
+      de iPhone, o personal manda pela REST com o token dele, **19/19 asserts verdes** em
+      2026-10-07 (chegada sem recarregar, rótulo do contexto, `read_at` preenchido com a conversa
+      aberta, badge subindo a 1 fora do chat e voltando a zero depois de ler, rolagem no fim com
+      thread maior que a tela), com limpeza do dado de teste no fim. Bug achado e corrigido aí:
+      dois consumidores (tela + badge) assinavam o MESMO topic de canal e o supabase-js deixava um
+      deles mudo — o topic passou a levar sufixo único.
+      **Falta nesta fase, não está no app**: lista de conversas do PERSONAL (ele só abre conversa
+      recebendo o id por prop; a tela `/personal/chat` mostra "Escolha um aluno"), enviar mensagem
+      com contexto a partir de um treino/exercício pela UI (o banco e o repositório aceitam, nenhuma
+      tela ainda oferece), anexo de foto/vídeo, áudio, "digitando…", reação, push/Web Push
+      (**Fase 15**) e broadcast para vários alunos.
 - [x] Anamnese (pedido do cliente, 2026-10-01; dívida de banco fechada em 2026-10-07) — modelos
       **PAR-Q** (7 perguntas Sim/Não, com aviso de liberação médica quando há "Sim") e **Padrão**
       (17 itens), preenchidos pelo personal ("Eu irei preencher") ou enviados ao aluno ("Meu aluno

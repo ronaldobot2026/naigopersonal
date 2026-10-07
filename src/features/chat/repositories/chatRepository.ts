@@ -147,6 +147,26 @@ export const chatRepository = {
   },
 
   /**
+   * A conversa do aluno logado, se já existir — SEM criar.
+   *
+   * O badge de não lidas roda no shell, em toda tela do aluno; usar `ensureConversation` ali
+   * criaria a linha de `conversations` só porque o app abriu, antes de qualquer mensagem. Quem
+   * cria é a tela do chat, quando o aluno de fato entra na conversa.
+   */
+  async findConversationForCurrentStudent(): Promise<Conversation | null> {
+    const studentId = await currentUserId()
+    const { data, error } = await getSupabase()
+      .from('conversations')
+      .select('*')
+      .eq('student_id', studentId)
+      .order('created_at', { ascending: true })
+      .limit(1)
+    if (error) throw error
+    const rows = (data ?? []) as ConversationRow[]
+    return rows.length > 0 ? toConversation(rows[0]) : null
+  },
+
+  /**
    * Página da conversa, da mensagem MAIS RECENTE para a mais antiga (índice
    * `messages_conversation_created_idx`). `before` é o cursor para subir no histórico: passe o
    * `createdAt` da mensagem mais antiga que já está na tela.
@@ -287,13 +307,19 @@ export const chatRepository = {
    * O filtro é por `conversation_id` no servidor (a tela não recebe evento de conversa alheia), e
    * a RLS vale aqui também: o Realtime só entrega a linha a quem poderia tê-la lido.
    *
+   * O topic leva um sufixo único por assinatura, e isso NÃO é cosmético: o supabase-js multiplexa
+   * canais por topic e um segundo `join` no mesmo topic não recebe os eventos. A tela do chat e o
+   * contador de não lidas da navegação assinam a MESMA conversa ao mesmo tempo — com topic fixo,
+   * um dos dois ficaria mudo (foi exatamente o que aconteceu: a mensagem nova não chegava na tela
+   * aberta porque o badge já tinha tomado o canal `messages:<id>`).
+   *
    * Quem consome reconcilia por id — o remetente recebe o evento da PRÓPRIA mensagem, que já está
    * na tela (ver `mergeMessage`).
    */
   subscribeToMessages(conversationId: string, onInsert: (message: ChatMessage) => void): () => void {
     const supabase = getSupabase()
     const channel = supabase
-      .channel(`messages:${conversationId}`)
+      .channel(`messages:${conversationId}:${generateId()}`)
       .on(
         'postgres_changes',
         {

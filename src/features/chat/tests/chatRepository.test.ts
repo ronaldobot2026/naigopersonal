@@ -485,7 +485,9 @@ describe('chatRepository.subscribeToMessages', () => {
       recebidas.push(message),
     )
 
-    expect(canalAssinado.nome).toBe('messages:conversa-1')
+    // O topic leva sufixo único por assinatura: tela do chat e badge de não lidas assinam a
+    // mesma conversa ao mesmo tempo, e topic repetido deixa um dos dois mudo no supabase-js.
+    expect(canalAssinado.nome).toMatch(/^messages:conversa-1:.+/)
     expect(canalAssinado.config).toEqual({
       event: 'INSERT',
       schema: 'public',
@@ -499,5 +501,19 @@ describe('chatRepository.subscribeToMessages', () => {
 
     unsubscribe()
     expect(removeChannel).toHaveBeenCalledTimes(1)
+  })
+
+  it('dá um topic diferente a cada assinatura da MESMA conversa', () => {
+    // A tela do chat e o contador de não lidas da navegação assinam a mesma conversa ao mesmo
+    // tempo. O supabase-js multiplexa por topic: topic repetido = um dos dois nunca recebe nada
+    // (bug real — a mensagem nova não chegava na tela aberta).
+    const primeiro = chatRepository.subscribeToMessages('conversa-1', () => {})
+    const topicDaTela = canalAssinado.nome
+    const segundo = chatRepository.subscribeToMessages('conversa-1', () => {})
+
+    expect(canalAssinado.nome).not.toBe(topicDaTela)
+
+    primeiro()
+    segundo()
   })
 })
