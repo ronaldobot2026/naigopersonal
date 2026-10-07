@@ -126,6 +126,46 @@ Fases 6, 7 e 17.
       citada no `BACKEND_PLAN.md`) não foi construída, upload é direto; `indexedDbPosturalAssessmentRepository.ts`
       ficou órfão (sem nenhum consumidor desde antes desta entrega) — removido em 2026-09-21 por
       já não ter nenhum uso.
+- [~] Fase 10 — **loop diário fecha de ponta a ponta**, concluída como fatia de execução em
+      2026-10-07 (branch `feat/espelho-aluno`, commits `a438396`…`52cd796`). O que está pronto e
+      provado em navegador real contra o Supabase de produção:
+      **Prescrição (já existia, PR #3)**: construtor `/personal/alunos/:id/treino` com divisões
+      A–E, `workout_plans` em duas linhas por aluno (`draft`/`published`,
+      `unique(student_id,status)`), botões Salvar rascunho / Publicar; o aluno só lê `published`
+      (RLS). **Dados de execução**: migrations `20261007120000_workout_plans.sql`,
+      `20261007130000_workout_execution_logs.sql` (`workout_logs` + `set_logs` com RLS — o aluno
+      escreve só o próprio log, o personal **só lê**) e `20261007131000_set_logs_upsert_key.sql`
+      (índice único `(workout_log_id, exercise_id, set_index)`, que faz o upsert ser idempotente),
+      mais `workoutLog.types.ts`/`workoutLogRepository.ts`. **Aluno executa**:
+      `/aluno/treinos/:divisao` tem Iniciar treino, uma linha por série com repetições, carga e
+      check "feita", auto-save com debounce de 400 ms (o check fura o debounce), retomada da sessão
+      aberta ao recarregar a página e Concluir treino com resumo honesto — séries feitas sobre
+      prescritas, volume só do que foi marcado e duração medida de `started_at` a `completed_at`,
+      nunca a estimativa da ficha. **Home do aluno**: card "Treino de hoje" com estado real (A
+      fazer / Em andamento / Concluído hoje) e semana contada das sessões gravadas; o volume fixo
+      de 78,4 kg que nunca existiu saiu da tela. **Histórico de carga**: a última carga aparece na
+      execução ("última: 47,5 kg × 8, 3 dias atrás") e cada exercício tem painel sob demanda com as
+      últimas sessões; é lido só do que está denormalizado em `set_logs`, então sobrevive à ficha
+      apagada (provado). **Personal vê a aderência** em `/personal/alunos/:id`: semana corrente
+      contra a frequência prescrita (pela mesma `summarizeWeek` da home do aluno, para os dois
+      nunca discordarem), últimas sessões e drill-down série por série com a carga usada ao lado da
+      prescrita (↓ abaixo / ↑ acima, "não registrado" para exercício prescrito e não tocado).
+      Somente leitura por desenho: zero campos de edição na tela e `PATCH` com o token do personal
+      recusado pela RLS. **Prova de ponta a ponta**: `scripts/e2e-loop-treino.cjs` roda o loop do
+      zero em Chromium (cria aluno limpo, personal monta e publica a ficha pela UI, aluno treina
+      registrando carga, recarrega no meio e retoma, conclui, home passa a dizer "Concluído hoje",
+      personal vê 2 de 5 séries · 890 kg com 45 kg abaixo e 55 kg acima do prescrito, e ficha em
+      `draft` não aparece para o aluno) e apaga todo o dado de teste no fim: **27/27 asserts
+      verdes** em 2026-10-07.
+      **Dívida explícita desta fase — NÃO foi feito**, nada disto está no app hoje: cronômetro de
+      descanso entre séries (o `restSeconds` é prescrito e exibido, mas nada conta o tempo);
+      trocar ou pular exercício durante a execução (o aluno só registra, ou deixa em branco, o que
+      o personal prescreveu); sugestão automática de progressão de carga → **Fase 11**; gráfico de
+      evolução de carga/volume → **Fase 13** (hoje o histórico é lista de números, de propósito: a
+      decisão do aluno é "subo de 32 para 35?", e isso pede número, não curva); notificação ao
+      personal quando o aluno conclui, filtro por período e exportação na visão do personal; fila
+      offline de séries (registrar exige rede). Nada disto foi prometido como pronto em nenhuma
+      tela.
 - [~] Anamnese (pedido do cliente, 2026-10-01) — modelos **PAR-Q** (7 perguntas Sim/Não, com aviso
       de liberação médica quando há "Sim") e **Padrão** (17 itens), preenchidos pelo personal
       ("Eu irei preencher") ou enviados ao aluno ("Meu aluno irá preencher"). Código em

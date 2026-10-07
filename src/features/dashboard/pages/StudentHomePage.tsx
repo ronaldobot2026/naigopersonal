@@ -1,15 +1,16 @@
 import { Link } from 'react-router-dom'
-import { ROUTES, buildWorkoutDetailPath } from '@/app/router/routes'
+import { ROUTES } from '@/app/router/routes'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { Reveal } from '@/components/motion/Reveal'
-import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { physicalAssessmentRepository } from '@/features/assessments/physical/repositories/physicalAssessmentRepository'
 import { studentRepository } from '@/features/students/repositories/studentRepository'
+import { TrainingDayCard } from '@/features/workouts/components/TrainingDayCard'
 import { useStudentProgram } from '@/features/workouts/hooks/useStudentProgram'
+import { useStudentTrainingDay } from '@/features/workouts/hooks/useStudentTrainingDay'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { summarizeBody, type BodyMetricSummary } from '../domain/studentBodySummary'
 
@@ -43,6 +44,7 @@ export function StudentHomePage() {
     [currentStudentId],
   )
   const { status: programStatus, program, errorMessage: programError } = useStudentProgram()
+  const trainingDay = useStudentTrainingDay(program)
   const { status: assessmentsStatus, data: assessments } = useAsyncData(
     () =>
       currentStudentId
@@ -68,7 +70,6 @@ export function StudentHomePage() {
     )
   }
 
-  const nextWorkout = program?.sessions[0] ?? null
   const body = summarizeBody(assessments ?? [])
 
   return (
@@ -81,43 +82,13 @@ export function StudentHomePage() {
       </div>
 
       <div className="flex flex-col gap-6">
-        <Card tone="elevated" className="flex flex-col gap-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="rounded border border-action-primary/20 bg-action-primary/10 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-action-primary">
-                Seu treino
-              </span>
-              <h2 className="mt-2 font-display text-xl font-bold text-text-primary">
-                {nextWorkout
-                  ? `${nextWorkout.name}${nextWorkout.focusTag ? ` · ${nextWorkout.focusTag}` : ''}`
-                  : 'Aguardando sua ficha'}
-              </h2>
-              {!nextWorkout && (
-                <p className="mt-1 text-sm text-text-secondary">
-                  Seu personal ainda não publicou sua ficha de treino.
-                </p>
-              )}
-            </div>
-            <Icon name="fitness_center" className="text-3xl text-action-primary" />
-          </div>
-          {nextWorkout && (
-            <Link
-              to={buildWorkoutDetailPath(nextWorkout.id)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-action-primary py-3 font-bold text-action-primary-foreground active:scale-95"
-            >
-              <Icon name="play_arrow" filled />
-              VER TREINO
-            </Link>
-          )}
-          {program && program.sessions.length > 1 && (
-            <Link
-              to={ROUTES.student.workouts}
-              className="text-center text-sm text-text-secondary underline hover:text-action-primary"
-            >
-              Ver os {program.sessions.length} treinos da ficha
-            </Link>
-          )}
-        </Card>
+        <TrainingDayCard
+          sessions={program?.sessions ?? []}
+          today={trainingDay.today}
+          week={trainingDay.week}
+          suggestion={trainingDay.suggestion}
+          loading={trainingDay.status === 'loading'}
+        />
 
         <Link
           to={ROUTES.student.posturalCorrection}

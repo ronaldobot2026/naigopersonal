@@ -11,6 +11,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
+import { StudentAdherenceCard } from '@/features/workouts/components/StudentAdherenceCard'
 import { useAuthUser } from '@/lib/supabase/useAuthUser'
 import { studentRepository } from '../repositories/studentRepository'
 import type { Student } from '@/types/domain'
@@ -68,6 +69,12 @@ export function StudentDetailPage() {
       {authStatus === 'authenticated' && loadState === 'ready' && student && (
         <>
           <PageHeader eyebrow="Perfil do aluno" title={student.name} description={student.email} />
+
+          {/*
+            Aderência antes dos atalhos de prescrição: o personal abre o aluno para decidir o
+            próximo treino, e essa decisão depende do que ele de fato fez — não do que foi pedido.
+          */}
+          <StudentAdherenceCard studentId={student.id} studentName={student.name} />
 
           <Card className="mb-4">
             <Link
