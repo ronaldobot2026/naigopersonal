@@ -67,6 +67,12 @@ pelo treinador e comparada entre datas, por isso não é `jsonb`).
 **Chat**: `conversations` (`UNIQUE (trainer_id, student_id)`), `messages` (anexo em colunas —
 `attachment_path`/`attachment_kind`, um por mensagem). Broadcast é Edge Function inserindo N
 mensagens, sem tabela própria.
+Implementado em 2026-10-07 (`20261007140000`…`20261007142000`) com um acréscimo ao plano:
+`messages` carrega **contexto** (`context_kind` em 'free'/'workout_log'/'exercise'/'assessment',
+`context_id`, `context_label` denormalizado e congelado no envio) — é a razão de existir deste chat
+em vez do WhatsApp: a mensagem nasce amarrada ao que o aluno estava fazendo, e continua legível se
+a ficha mudar depois. `last_message_at` é derivado por trigger; mensagem enviada não se edita (só
+`read_at`, e só por quem recebeu); `messages` está na publication `supabase_realtime`.
 
 **Notificações**: `notifications` (`scheduled_for`, disparada por `pg_cron` a cada 5min via Edge
 Function), `push_subscriptions` (VAPID).
