@@ -141,8 +141,9 @@ construtor de treinos usa busca em vez de `<select>`, impraticável nessa escala
 | Criar treino             | `pages/WorkoutBuilderPage.tsx`     |
 | Correção postural        | `pages/PosturalCorrectionPage.tsx` |
 
-`MOCK_WORKOUTS` (`src/mocks/workouts.ts`) referencia ids reais do catálogo (`"0025"`, `"0334"`),
-então as telas de treino exibem nome, mídia e execução verdadeiros mesmo antes de existir backend.
+As telas de treino do aluno leem a ficha que o personal publicou (`workout_plans`, ver
+`supabase/migrations/20261007120000_workout_plans.sql`); os `exerciseId` gravados lá são ids reais
+do catálogo, então nome, mídia e execução vêm daqui.
 
 As sugestões da Correção Postural (`domain/posturalProgram.ts`) são recortes do catálogo por
 região e equipamento — uma **vitrine de biblioteca**, nunca prescrição automática a partir das

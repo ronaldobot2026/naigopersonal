@@ -15,12 +15,17 @@ export interface WorkoutExerciseEntry {
   notes?: string
 }
 
+/**
+ * Uma sessão como o aluno a vê: uma divisão (A–E) da ficha PUBLICADA pelo personal. O `id` é o
+ * id da divisão, então `/aluno/treinos/A` abre o treino A da ficha atual.
+ */
 export interface WorkoutSession {
   id: string
   name: string
+  /** Foco da divisão definido pelo personal (ex.: "Superior"); vazio quando ele não preencheu. */
   focusTag: string
+  /** Estimativa a partir de séries e descanso — ver `estimateDurationMinutes`. */
   durationMinutes: number
-  progressPercent: number
   exercises: WorkoutExerciseEntry[]
 }
 
@@ -49,4 +54,10 @@ export interface WorkoutPlan {
   divisions: WorkoutDivision[]
   createdAt: string
   updatedAt: string
+  /**
+   * Quando a ficha foi publicada para o aluno pela última vez. `undefined` = nunca publicada
+   * (o aluno ainda não vê nada). Rascunho e publicada são linhas separadas no banco — editar
+   * depois de publicar não muda o que o aluno vê até publicar de novo.
+   */
+  publishedAt?: string
 }

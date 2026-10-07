@@ -7,7 +7,6 @@ import { PageHeader } from '@/components/navigation/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
-import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Tabs } from '@/components/ui/Tabs'
 import { ExerciseAttribution } from '../components/ExerciseAttribution'
 import { ExerciseMedia } from '../components/ExerciseMedia'
@@ -19,6 +18,7 @@ import {
 import { selectExercisesForFocus, type PosturalFocusId } from '../domain/posturalPrescription'
 import { useExerciseCatalog } from '../hooks/useExerciseCatalog'
 import { usePosturalFindings } from '../hooks/usePosturalFindings'
+import { useStudentCorrectivePlan } from '../hooks/useStudentCorrectivePlan'
 
 /** Quantas sugestões exibir por categoria — a lista é uma vitrine, não o catálogo inteiro. */
 const SUGGESTIONS_LIMIT = 12
@@ -44,6 +44,7 @@ export function PosturalCorrectionPage() {
   const [chosenFocusId, setChosenFocusId] = useState<PosturalFocusId | null>(null)
   const { status, catalog, errorMessage } = useExerciseCatalog()
   const { status: findingsStatus, findings, assessedAt } = usePosturalFindings()
+  const { status: planStatus, plan: correctivePlan } = useStudentCorrectivePlan()
 
   const activeCategory =
     POSTURAL_CATEGORIES.find((item) => item.id === category) ?? POSTURAL_CATEGORIES[0]
@@ -139,38 +140,53 @@ export function PosturalCorrectionPage() {
       </Tabs>
 
       <div className="grid grid-cols-1 gap-gutter md:grid-cols-12">
-        <Card tone="elevated" className="md:col-span-8">
-          <span className="mb-2 inline-block rounded bg-action-primary/20 px-2 py-1 font-mono text-xs uppercase text-action-primary">
-            Sessão em destaque
-          </span>
-          <h3 className="mb-2 font-display text-xl font-bold text-text-primary">
-            Descompressão Espinal Profunda
-          </h3>
-          <div className="flex gap-4 font-mono text-xs text-text-secondary">
-            <span className="flex items-center gap-1">
-              <Icon name="schedule" className="text-sm" /> 15 min
-            </span>
-            <span className="flex items-center gap-1">
-              <Icon name="bolt" className="text-sm" /> Intermediário
-            </span>
+        <Card tone="elevated" className="flex flex-col gap-4 md:col-span-12">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-mono text-xs uppercase tracking-widest text-action-primary">
+              Plano corretivo do seu personal
+            </h2>
+            {correctivePlan?.publishedAt && (
+              <span className="font-mono text-[10px] uppercase text-text-secondary">
+                Publicado em {formatAssessedAt(correctivePlan.publishedAt)}
+              </span>
+            )}
           </div>
-        </Card>
 
-        <Card className="flex flex-col gap-3 md:col-span-4">
-          <h4 className="font-mono text-xs uppercase tracking-widest text-action-primary">
-            Progresso semanal
-          </h4>
-          <ProgressBar value={82} label="Conformidade semanal" />
-          <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
-            <div>
-              <p className="font-mono text-[10px] uppercase text-text-secondary">Sessões</p>
-              <p className="font-display text-xl text-text-primary">12</p>
-            </div>
-            <div>
-              <p className="font-mono text-[10px] uppercase text-text-secondary">Total min</p>
-              <p className="font-display text-xl text-text-primary">184</p>
-            </div>
-          </div>
+          {planStatus === 'loading' && <LoadingState label="Carregando seu plano…" />}
+
+          {planStatus !== 'loading' && (!correctivePlan || correctivePlan.items.length === 0) && (
+            <p className="text-sm text-text-secondary">
+              Seu personal ainda não publicou um plano corretivo. As sugestões abaixo seguem a sua
+              última avaliação postural.
+            </p>
+          )}
+
+          {correctivePlan && correctivePlan.items.length > 0 && (
+            <ul className="flex flex-col divide-y divide-border">
+              {correctivePlan.items.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    to={buildExerciseDetailPath(item.exerciseId)}
+                    className="flex items-center justify-between gap-3 py-3 transition-colors hover:text-action-primary"
+                  >
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate font-bold text-text-primary">
+                        {item.exerciseName}
+                      </span>
+                      {item.trainerNote && (
+                        <span className="text-xs italic text-text-secondary">
+                          {item.trainerNote}
+                        </span>
+                      )}
+                    </span>
+                    <span className="shrink-0 font-mono text-sm text-text-primary">
+                      {item.sets} × {item.reps}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
 
         <div className="md:col-span-12">

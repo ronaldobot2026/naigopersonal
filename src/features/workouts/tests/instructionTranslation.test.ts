@@ -3,7 +3,6 @@ import rawCatalog from '../../../../public/data/exercises.json?raw'
 import rawTranslations from '../../../../public/data/instructions.pt-BR.json?raw'
 import type { InstructionTranslations, RawExerciseCatalog } from '../domain/exercise.types'
 import { TRANSLATED_STEPS_LANGUAGE, toExerciseCatalog } from '../domain/exerciseCatalog'
-import { MOCK_WORKOUTS } from '@/mocks/workouts'
 
 const raw = JSON.parse(rawCatalog) as RawExerciseCatalog
 const translations = JSON.parse(rawTranslations) as InstructionTranslations
@@ -47,21 +46,6 @@ describe('tradução dos passos de execução', () => {
     const semTraducao = toExerciseCatalog(raw)
     expect(semTraducao.translatedStepsCount).toBe(0)
     expect(semTraducao.exercises[0].stepsLanguage).toBe(raw.sourceLanguage)
-  })
-})
-
-describe('cobertura dos exercícios prescritos', () => {
-  it('todo exercício usado nos treinos tem as instruções em português', () => {
-    const prescritos = MOCK_WORKOUTS.flatMap((workout) =>
-      workout.exercises.map((entry) => entry.exerciseId),
-    )
-
-    const semTraducao = prescritos.filter((id) => {
-      const exercise = catalog.exercises.find((item) => item.id === id)
-      return exercise?.stepsLanguage !== TRANSLATED_STEPS_LANGUAGE
-    })
-
-    expect(semTraducao).toEqual([])
   })
 })
 
