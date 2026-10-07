@@ -184,6 +184,27 @@ export const workoutLogRepository = {
   },
 
   /**
+   * Séries de VÁRIAS sessões numa única consulta (`in`), para a tela de aderência do personal:
+   * ela mostra 10 sessões com séries feitas, volume e drill-down, e uma chamada de `listSets` por
+   * sessão seria um N+1 em cima da RLS.
+   *
+   * Lista vazia entra e sai vazia sem tocar a rede — `in('…', [])` gera um filtro degenerado que
+   * não vale uma ida ao servidor.
+   */
+  async listSetsForSessions(workoutLogIds: string[]): Promise<SetLog[]> {
+    if (workoutLogIds.length === 0) return []
+
+    const { data, error } = await getSupabase()
+      .from('set_logs')
+      .select('*')
+      .in('workout_log_id', workoutLogIds)
+      .order('exercise_id', { ascending: true })
+      .order('set_index', { ascending: true })
+    if (error) throw error
+    return ((data ?? []) as SetLogRow[]).map(toSet)
+  },
+
+  /**
    * Fecha a sessão. `completed_at` deixa de ser `null`, e é só isso que distingue sessão
    * concluída de sessão em andamento (ver `workoutLogStatus`).
    */

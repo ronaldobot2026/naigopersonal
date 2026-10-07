@@ -19,6 +19,26 @@ vi.mock('@/lib/supabase/useAuthUser', () => ({
   useAuthUser: () => ({ userId: 'personal-1', status: 'authenticated' }),
 }))
 
+// A aderência tem teste próprio (`studentAdherenceCard.test.tsx`); aqui ela só não pode ir à rede.
+vi.mock('@/features/workouts/repositories/workoutLogRepository', () => ({
+  workoutLogRepository: {
+    listSessions: vi.fn(async () => []),
+    listSetsForSessions: vi.fn(async () => []),
+  },
+}))
+
+vi.mock('@/features/workouts/repositories/workoutPlanRepository', () => ({
+  workoutPlanRepository: { findPublished: vi.fn(async () => null) },
+}))
+
+vi.mock('@/features/workouts/hooks/useExerciseCatalog', () => ({
+  useExerciseCatalog: () => ({
+    status: 'ready',
+    catalog: { exercises: [] },
+    errorMessage: undefined,
+  }),
+}))
+
 import { StudentDetailPage } from '../pages/StudentDetailPage'
 
 function renderizar() {
