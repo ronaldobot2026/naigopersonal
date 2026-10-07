@@ -35,6 +35,28 @@ export function buildStudentDetailPath(studentId: string): string {
   return `/personal/alunos/${studentId}`
 }
 
+/**
+ * Parâmetro de busca que abre UMA sessão de treino já expandida na aderência
+ * (`/personal/alunos/:id?sessao=<workoutLogId>`).
+ *
+ * É a volta do link de contexto da conversa: a mensagem do aluno carrega `context_id` = a
+ * EXECUÇÃO (`workout_logs.id`, ver CHAT-4), e o personal precisa cair na sessão certa em vez de
+ * procurar na lista. Fica em query, não em rota nova: é um destaque sobre a ficha do aluno, e a
+ * mesma tela com a sessão fechada continua valendo.
+ */
+export const SESSION_HIGHLIGHT_PARAM = 'sessao'
+
+export function buildSessionHighlightPath(studentId: string, workoutLogId: string): string {
+  return `${buildStudentDetailPath(studentId)}?${SESSION_HIGHLIGHT_PARAM}=${workoutLogId}`
+}
+
+/** Conversa aberta na caixa de entrada do personal (`/personal/chat?conversa=<id>`). */
+export const INBOX_CONVERSATION_PARAM = 'conversa'
+
+export function buildTrainerConversationPath(conversationId: string): string {
+  return `/personal/chat?${INBOX_CONVERSATION_PARAM}=${conversationId}`
+}
+
 export function buildStudentAssessmentsPath(studentId: string): string {
   return `/personal/alunos/${studentId}/avaliacoes`
 }

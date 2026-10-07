@@ -204,11 +204,36 @@ Fases 6, 7 e 17.
       antes do envio, `context_kind/context_id/context_label` conferidos pela sessão do PERSONAL,
       treino intacto depois do envio e ao voltar para a tela, mensagem na conversa com o rótulo),
       com limpeza do dado de teste no fim.
-      **Falta nesta fase, não está no app**: lista de conversas do PERSONAL (ele só abre conversa
-      recebendo o id por prop; a tela `/personal/chat` mostra "Escolha um aluno"), abrir a mensagem
-      e navegar de volta para o treino/avaliação que ela cita (o `context_id` está gravado, nenhuma
-      tela usa como link), anexo de foto/vídeo, áudio, "digitando…", reação, push/Web Push
-      (**Fase 15**) e broadcast para vários alunos.
+      **Caixa de entrada do PERSONAL** (2026-10-07): `/personal/chat` virou a lista de TODAS as
+      conversas dos alunos dele (`TrainerInboxPage` + `useTrainerInbox`), ordenada por
+      `last_message_at`, com a prévia trazendo o rótulo do contexto antes do texto e as **não
+      lidas em destaque** (contador na linha e nome em negrito). Abrir uma conversa mostra o
+      histórico, o campo de resposta e, na MESMA tela, os números do aluno
+      (`StudentContextPanel`): aderência da semana e última avaliação concluída (peso e % de
+      gordura). A semana sai de `useStudentAdherence`/`summarizeWeek` — a mesma função da home do
+      aluno e do card de aderência, sem cálculo duplicado, para os dois lados nunca discordarem.
+      O rótulo de contexto da mensagem virou **link de volta**: `context_kind` de treino leva a
+      `/personal/alunos/:id?sessao=<workout_log>`, e aquela execução abre expandida e com a tela
+      rolada até ela (`SESSION_HIGHLIGHT_PARAM`, prop `highlightSessionId` do
+      `StudentAdherenceCard`). Badge global de não lidas na navegação do personal
+      (`TrainerShell` + `useTrainerUnreadCount`), pelo mesmo motivo do badge do aluno: não há
+      push. A conversa aberta vive na URL (`?conversa=<id>`), então o botão voltar do navegador
+      funciona e cada conversa tem endereço. A assinatura de Realtime aqui é de **todas** as
+      mensagens acessíveis (`subscribeToAllMessages`, sem filtro de `conversation_id`, com a RLS
+      como autorização): `postgres_changes` só aceita filtro de igualdade, e conversa que um aluno
+      acabe de abrir não existiria em nenhum filtro montado antes — quando o evento é de conversa
+      desconhecida, a lista é relida para trazer o nome do aluno.
+      **Prova de ponta a ponta**: `scripts/e2e-chat-inbox.cjs` — **17/17 asserts verdes** em
+      2026-10-07 com as DUAS sessões na UI, em contextos separados do Chromium (personal em
+      desktop, aluno em iPhone; um `localStorage` para cada token): badge "Chat, 2 não lidas" em
+      outra tela, lista com nome/prévia/contador, painel de contexto com os mesmos números do card
+      de aderência da ficha (conferidos contra a contagem da semana no banco), `read_at` preenchido
+      ao abrir, link do rótulo abrindo a execução exata com as séries daquela sessão, resposta do
+      personal chegando ao aluno sem recarregar, mensagem nova do aluno aparecendo na caixa de
+      entrada sem recarregar, e estado vazio honesto do personal sem conversa — com limpeza do
+      dado de teste no fim.
+      **Falta nesta fase, não está no app**: anexo de foto/vídeo, áudio, "digitando…", reação,
+      push/Web Push (**Fase 15**) e broadcast para vários alunos.
 - [x] Anamnese (pedido do cliente, 2026-10-01; dívida de banco fechada em 2026-10-07) — modelos
       **PAR-Q** (7 perguntas Sim/Não, com aviso de liberação médica quando há "Sim") e **Padrão**
       (17 itens), preenchidos pelo personal ("Eu irei preencher") ou enviados ao aluno ("Meu aluno

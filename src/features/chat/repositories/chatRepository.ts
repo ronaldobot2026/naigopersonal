@@ -301,6 +301,59 @@ export const chatRepository = {
     }))
   },
 
+  /** As conversas do PERSONAL logado. O `trainer_id` sai da sessão, nunca de parâmetro. */
+  async listConversationsForCurrentTrainer(): Promise<ConversationSummary[]> {
+    return chatRepository.listConversations(await currentUserId())
+  },
+
+  /**
+   * Não lidas do usuário logado em TODAS as conversas dele — o número do badge da navegação do
+   * personal, que tem uma conversa por aluno.
+   *
+   * Não há filtro de conversa aqui de propósito: a RLS de `messages`
+   * (`messages_select_participants` → `can_access_conversation`) já restringe o `count` às
+   * conversas em que ele participa. Listar as conversas primeiro para depois contar com `in`
+   * seria um round-trip a mais pelo mesmo número.
+   */
+  async unreadCountForCurrentUser(): Promise<number> {
+    const userId = await currentUserId()
+    const { count, error } = await getSupabase()
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .is('read_at', null)
+      .neq('sender_id', userId)
+    if (error) throw error
+    return count ?? 0
+  },
+
+  /**
+   * Assina os `INSERT` em `messages` de TODAS as conversas do usuário logado — é o que faz a caixa
+   * de entrada do personal (e o badge dele) subirem sem recarregar.
+   *
+   * Sem filtro de `conversation_id`, e isso é uma decisão: `postgres_changes` aceita um filtro de
+   * igualdade, não um `in`, então assinar N conversas exigiria N canais e ainda deixaria de fora a
+   * conversa que um aluno acabar de abrir. A RLS continua sendo a autorização — o Realtime só
+   * entrega a linha a quem poderia tê-la lido pelo `select` —, e quem consome ignora o que não
+   * reconhece (ver `applyIncomingMessage`).
+   */
+  subscribeToAllMessages(onInsert: (message: ChatMessage) => void): () => void {
+    const supabase = getSupabase()
+    const channel = supabase
+      // Sufixo único pelo mesmo motivo de `subscribeToMessages`: dois assinantes no mesmo topic
+      // multiplexam e um deles fica mudo.
+      .channel(`messages:all:${generateId()}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload) => onInsert(toMessage(payload.new as MessageRow)),
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
+    }
+  },
+
   /**
    * Assina os `INSERT` em `messages` da conversa aberta e devolve a função de cancelamento.
    *

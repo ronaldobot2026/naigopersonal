@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { Icon } from '@/components/ui/Icon'
 import { useAsyncData } from '@/hooks/useAsyncData'
-import { formatMessageTime } from '../domain/chatMessage.types'
+import { formatMessageTime, type ChatMessage } from '../domain/chatMessage.types'
 import { useChatConversation } from '../hooks/useChatConversation'
 import { chatRepository } from '../repositories/chatRepository'
 
@@ -18,6 +19,14 @@ type ChatPageProps = {
    * Fase 12 — ver docs/ROADMAP.md).
    */
   conversationId?: string
+  /**
+   * Para onde o rótulo de contexto da mensagem leva, quando leva a algum lugar. Recebe a mensagem
+   * e devolve `null` para contexto sem destino (conversa solta, ou execução que não existe mais).
+   *
+   * É prop e não cálculo interno porque o destino depende de quem olha: o PERSONAL volta para a
+   * execução na aderência do aluno (`/personal/alunos/:id?sessao=…`), e o aluno não tem essa tela.
+   */
+  contextHref?: (message: ChatMessage) => string | null
 }
 
 /**
@@ -25,7 +34,12 @@ type ChatPageProps = {
  * atualização por Realtime (`useChatConversation`). O alinhamento da bolha sai do `senderId`
  * comparado à sessão, não de um papel passado pela tela.
  */
-export function ChatPage({ selfRole, counterpartName, conversationId }: ChatPageProps) {
+export function ChatPage({
+  selfRole,
+  counterpartName,
+  conversationId,
+  contextHref,
+}: ChatPageProps) {
   const [draft, setDraft] = useState('')
 
   // O aluno tem UMA conversa; o personal escolhe o aluno (e aí a conversa chega por prop).
@@ -146,11 +160,28 @@ export function ChatPage({ selfRole, counterpartName, conversationId }: ChatPage
                     este chat de um WhatsApp: vai acima do texto, em bloco próprio com barra
                     lateral, para não ser lido como parte da mensagem.
                   */}
-                  {message.context.label !== '' && (
-                    <p className="mb-2 border-l-2 border-action-primary/60 bg-surface-high/50 py-1 pl-2 font-mono text-[10px] uppercase tracking-wide text-text-secondary">
-                      {message.context.label}
-                    </p>
-                  )}
+                  {message.context.label !== '' &&
+                    (() => {
+                      const href = contextHref?.(message) ?? null
+                      const className =
+                        'mb-2 flex items-center gap-1 border-l-2 border-action-primary/60 bg-surface-high/50 py-1 pl-2 font-mono text-[10px] uppercase tracking-wide'
+                      // Com destino o rótulo é LINK: é como o personal volta à execução que gerou
+                      // a dúvida. Sem destino segue texto — link que não leva a nada é pior que
+                      // texto.
+                      return href === null ? (
+                        <p className={`${className} text-text-secondary`}>
+                          {message.context.label}
+                        </p>
+                      ) : (
+                        <Link
+                          to={href}
+                          className={`${className} text-action-primary hover:underline`}
+                        >
+                          {message.context.label}
+                          <Icon name="open_in_new" className="text-xs" />
+                        </Link>
+                      )
+                    })()}
                   {/* overflow-wrap:anywhere (não `break-words`/overflow-wrap:break-word — esse
                       valor é ignorado no cálculo de min/max-content por spec, então a bolha ainda
                       calcula a largura como se a palavra não quebrasse e só quebra a linha depois,

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Icon } from '@/components/ui/Icon'
 import {
@@ -17,6 +17,12 @@ interface StudentAdherenceCardProps {
   studentId: string
   /** Primeiro nome do aluno, para a tela falar dele e não de "o aluno". */
   studentName: string
+  /**
+   * Execução (`workout_logs.id`) a abrir já expandida e com a tela rolada até ela — vem de
+   * `?sessao=` na URL, que é o destino do link de contexto da conversa (`/personal/chat`).
+   * `null`/ausente = lista fechada como sempre.
+   */
+  highlightSessionId?: string | null
 }
 
 /** `07/10 às 19:32` — o dia e a hora em que o aluno começou o treino, no fuso dele. */
@@ -148,19 +154,36 @@ function SessionItem({
   sets,
   entries,
   exerciseName,
+  highlighted = false,
 }: {
   session: AdherenceSession
   sets: SetLog[]
   entries: WorkoutExerciseEntry[]
   exerciseName: (exerciseId: string) => string
+  /** Sessão apontada pela URL: nasce aberta, com borda de destaque e rolagem até ela. */
+  highlighted?: boolean
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(highlighted)
+  const item = useRef<HTMLLIElement>(null)
   const title = session.divisionLabel
     ? `Treino ${session.divisionKey} · ${session.divisionLabel}`
     : `Treino ${session.divisionKey}`
 
+  /*
+   * Rolar até a sessão destacada. Sem isso, chegar pelo link da conversa cai no topo da ficha do
+   * aluno e a sessão aberta fica fora da tela — o link pareceria não ter funcionado.
+   */
+  useEffect(() => {
+    if (highlighted) item.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [highlighted])
+
   return (
-    <li className="rounded-lg border border-border bg-surface">
+    <li
+      ref={item}
+      className={`rounded-lg border bg-surface ${
+        highlighted ? 'border-action-primary' : 'border-border'
+      }`}
+    >
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -205,7 +228,11 @@ function SessionItem({
  * F10-1 não dá escrita ao personal), e nenhum número aqui é estimado: sem sessão registrada a
  * tela diz que não há nada, em vez de desenhar zeros que parecem medição.
  */
-export function StudentAdherenceCard({ studentId, studentName }: StudentAdherenceCardProps) {
+export function StudentAdherenceCard({
+  studentId,
+  studentName,
+  highlightSessionId = null,
+}: StudentAdherenceCardProps) {
   const { status, sessions, sets, divisions, week, hasPlan, errorMessage } =
     useStudentAdherence(studentId)
   const { catalog } = useExerciseCatalog()
@@ -282,6 +309,7 @@ export function StudentAdherenceCard({ studentId, studentName }: StudentAdherenc
                   sets={sets.filter((set) => set.workoutLogId === session.logId)}
                   entries={divisionEntries(session.divisionKey)}
                   exerciseName={exerciseName}
+                  highlighted={session.logId === highlightSessionId}
                 />
               ))}
             </ul>

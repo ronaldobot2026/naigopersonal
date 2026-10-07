@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from '@/app/layouts/AppShell'
-import { RoleShell } from '@/app/layouts/RoleShell'
 import { StudentShell } from '@/app/layouts/StudentShell'
+import { TrainerShell } from '@/app/layouts/TrainerShell'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { PersonalDashboardPage } from '@/features/dashboard/pages/PersonalDashboardPage'
 import { StudentHomePage } from '@/features/dashboard/pages/StudentHomePage'
@@ -26,15 +26,8 @@ import { WorkoutBuilderPage } from '@/features/workouts/pages/WorkoutBuilderPage
 import { NutritionPlanPage } from '@/features/nutrition/pages/NutritionPlanPage'
 import { BillingPage } from '@/features/billing/pages/BillingPage'
 import { ChatPage } from '@/features/chat/pages/ChatPage'
-import type { NavItem } from '@/components/navigation/BottomNavigation'
+import { TrainerInboxPage } from '@/features/chat/pages/TrainerInboxPage'
 import { ROUTES } from './routes'
-
-const TRAINER_NAV_ITEMS: NavItem[] = [
-  { to: ROUTES.trainer.dashboard, icon: 'dashboard', label: 'Dashboard' },
-  { to: ROUTES.trainer.students, icon: 'group', label: 'Alunos' },
-  { to: ROUTES.trainer.library, icon: 'menu_book', label: 'Biblioteca' },
-  { to: ROUTES.trainer.chat, icon: 'chat', label: 'Chat' },
-]
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to={ROUTES.login} replace /> },
@@ -63,13 +56,8 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: (
-      <RoleShell
-        navItems={TRAINER_NAV_ITEMS}
-        sidebarSubtitle="ELITE TRAINING SYSTEM"
-        switchTo="student"
-      />
-    ),
+    // Shell próprio do personal: ele carrega o badge global de não lidas (ver TrainerShell).
+    element: <TrainerShell />,
     children: [
       { path: ROUTES.trainer.dashboard, element: <PersonalDashboardPage /> },
       { path: ROUTES.trainer.students, element: <StudentsListPage /> },
@@ -82,10 +70,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.trainer.library, element: <ExerciseLibraryPage /> },
       { path: ROUTES.trainer.newWorkout, element: <WorkoutBuilderPage /> },
       { path: ROUTES.trainer.studentWorkoutBuilder, element: <WorkoutBuilderPage /> },
-      {
-        path: ROUTES.trainer.chat,
-        element: <ChatPage selfRole="trainer" counterpartName="Aluno" />,
-      },
+      { path: ROUTES.trainer.chat, element: <TrainerInboxPage /> },
     ],
   },
   { path: '*', element: <Navigate to={ROUTES.login} replace /> },
