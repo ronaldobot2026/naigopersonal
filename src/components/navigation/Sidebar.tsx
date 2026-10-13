@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { formatBadgeCount } from './navBadge'
 import type { NavItem } from './BottomNavigation'
 
 type SidebarProps = {
@@ -39,6 +40,14 @@ export function Sidebar({ items, title, subtitle }: SidebarProps) {
                 )}
                 <Icon name={item.icon} filled={isActive} />
                 <span>{item.label}</span>
+                {item.badgeCount !== undefined && item.badgeCount > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1.5 font-mono text-[10px] font-bold leading-none text-white"
+                  >
+                    {formatBadgeCount(item.badgeCount)}
+                  </span>
+                )}
               </>
             )}
           </NavLink>

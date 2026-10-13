@@ -166,6 +166,110 @@ Fases 6, 7 e 17.
       personal quando o aluno conclui, filtro por período e exportação na visão do personal; fila
       offline de séries (registrar exige rede). Nada disto foi prometido como pronto em nenhuma
       tela.
+- [x] Fase 12 — **chat em texto funciona do lado do ALUNO**, em 2026-10-07. Banco:
+      `conversations` (unique trainer/student, `last_message_at` por trigger) e `messages`
+      (contexto congelado em `context_kind/context_id/context_label`, colunas de anexo já criadas,
+      RLS por participante, Realtime habilitado) — migration `20261007140000`. Cliente:
+      `chatRepository` (conversa idempotente, páginas por cursor, envio com `sender_id` da sessão,
+      `markRead`, `unreadCount`, assinatura de Realtime) + `useChatConversation` (bolha otimista
+      reconciliada por id gerado no cliente, para a mensagem do próprio usuário não duplicar
+      quando o Realtime devolve o `INSERT`). Tela do aluno (`ChatPage`): uma conversa, a do
+      personal dele (vínculo em `students.trainer_id`), histórico paginado, envio por botão, campo
+      de 16px (abaixo disso o Safari do iOS dá zoom) acima da barra de navegação, rótulo do
+      contexto em bloco próprio acima do texto, rolagem automática ao fim só quando chega mensagem
+      nova (não ao carregar histórico antigo) e estado vazio honesto ("Nenhuma mensagem ainda").
+      Aviso de mensagem nova = **badge de não lidas na aba Chat** (`useStudentUnreadCount` no
+      shell do aluno, assinando Realtime em qualquer tela), porque não há push.
+      **Prova de ponta a ponta**: `scripts/e2e-chat-aluno.cjs` — sessão real do aluno em viewport
+      de iPhone, o personal manda pela REST com o token dele, **19/19 asserts verdes** em
+      2026-10-07 (chegada sem recarregar, rótulo do contexto, `read_at` preenchido com a conversa
+      aberta, badge subindo a 1 fora do chat e voltando a zero depois de ler, rolagem no fim com
+      thread maior que a tela), com limpeza do dado de teste no fim. Bug achado e corrigido aí:
+      dois consumidores (tela + badge) assinavam o MESMO topic de canal e o supabase-js deixava um
+      deles mudo — o topic passou a levar sufixo único.
+      **Comentar de dentro do contexto** (2026-10-07): `AskTrainerPanel`
+      (`features/chat/components`) põe um "Falar com o personal" discreto em cada exercício
+      **durante a execução do treino** (`/aluno/treinos/:divisao`, `context_kind='exercise'`,
+      `context_id` = a execução em `workout_logs`, `context_label` = "Treino A · Supino com
+      barra") e no detalhe da **avaliação** do aluno (`context_kind='assessment'`, rótulo
+      "Avaliação física · data"). O rótulo é **congelado no clique de enviar** — republicar a ficha
+      depois não reescreve a mensagem antiga (teste `askTrainerPanel.test.tsx`). `context_id` é o
+      id da execução/avaliação, e não o do exercício do catálogo, porque `messages.context_id` é
+      `uuid` e o catálogo usa códigos curtos (`'0025'`). Enviar **não interrompe o treino**:
+      `useWorkoutExecution.flushPendingSaves` (extraído do "Concluir treino") descarrega o
+      auto-save com debounce antes do envio, e a sessão segue em andamento. Depois do envio fica a
+      confirmação com o rótulo e o atalho "Abrir conversa" — mensagem não some no vazio.
+      **Prova de ponta a ponta**: `scripts/e2e-chat-contexto.cjs` — **22/22 asserts verdes** em
+      2026-10-07 (ação discreta com alvo de 44px, carga digitada dentro da janela de 400ms gravada
+      antes do envio, `context_kind/context_id/context_label` conferidos pela sessão do PERSONAL,
+      treino intacto depois do envio e ao voltar para a tela, mensagem na conversa com o rótulo),
+      com limpeza do dado de teste no fim.
+      **Caixa de entrada do PERSONAL** (2026-10-07): `/personal/chat` virou a lista de TODAS as
+      conversas dos alunos dele (`TrainerInboxPage` + `useTrainerInbox`), ordenada por
+      `last_message_at`, com a prévia trazendo o rótulo do contexto antes do texto e as **não
+      lidas em destaque** (contador na linha e nome em negrito). Abrir uma conversa mostra o
+      histórico, o campo de resposta e, na MESMA tela, os números do aluno
+      (`StudentContextPanel`): aderência da semana e última avaliação concluída (peso e % de
+      gordura). A semana sai de `useStudentAdherence`/`summarizeWeek` — a mesma função da home do
+      aluno e do card de aderência, sem cálculo duplicado, para os dois lados nunca discordarem.
+      O rótulo de contexto da mensagem virou **link de volta**: `context_kind` de treino leva a
+      `/personal/alunos/:id?sessao=<workout_log>`, e aquela execução abre expandida e com a tela
+      rolada até ela (`SESSION_HIGHLIGHT_PARAM`, prop `highlightSessionId` do
+      `StudentAdherenceCard`). Badge global de não lidas na navegação do personal
+      (`TrainerShell` + `useTrainerUnreadCount`), pelo mesmo motivo do badge do aluno: não há
+      push. A conversa aberta vive na URL (`?conversa=<id>`), então o botão voltar do navegador
+      funciona e cada conversa tem endereço. A assinatura de Realtime aqui é de **todas** as
+      mensagens acessíveis (`subscribeToAllMessages`, sem filtro de `conversation_id`, com a RLS
+      como autorização): `postgres_changes` só aceita filtro de igualdade, e conversa que um aluno
+      acabe de abrir não existiria em nenhum filtro montado antes — quando o evento é de conversa
+      desconhecida, a lista é relida para trazer o nome do aluno.
+      **Prova de ponta a ponta**: `scripts/e2e-chat-inbox.cjs` — **17/17 asserts verdes** em
+      2026-10-07 com as DUAS sessões na UI, em contextos separados do Chromium (personal em
+      desktop, aluno em iPhone; um `localStorage` para cada token): badge "Chat, 2 não lidas" em
+      outra tela, lista com nome/prévia/contador, painel de contexto com os mesmos números do card
+      de aderência da ficha (conferidos contra a contagem da semana no banco), `read_at` preenchido
+      ao abrir, link do rótulo abrindo a execução exata com as séries daquela sessão, resposta do
+      personal chegando ao aluno sem recarregar, mensagem nova do aluno aparecendo na caixa de
+      entrada sem recarregar, e estado vazio honesto do personal sem conversa — com limpeza do
+      dado de teste no fim.
+      **Prova de ponta a ponta da FASE, do zero** (2026-10-07): `scripts/e2e-chat-fase12.cjs` —
+      **25/25 asserts verdes**, três sessões simultâneas na UI, cada uma em seu
+      `launchPersistentContext` (aluno A em iPhone, personal em desktop, aluno B em iPhone; um
+      user-data-dir por papel, porque dois tokens no mesmo perfil se sobrescrevem no
+      `localStorage`). Os **dois alunos são criados pelo `naigo-aluno` no início e apagados no
+      fim** — nada de estado herdado do aluno demo. O roteiro: o personal publica a ficha (com a
+      sessão dele, não `service_role`), o aluno A inicia o treino, digita a carga e fala com o
+      personal **de dentro do exercício em execução**, o personal vê a conversa na caixa de
+      entrada com 1 não lida e a prévia trazendo o rótulo `Treino A · Supino com barra`, abre e o
+      rótulo é link para `/personal/alunos/:id?sessao=<workout_log>`, responde; o **badge do aluno
+      sobe a 1 sem recarregar com ele ainda na tela do treino** e **zera ao abrir a conversa**
+      (`read_at` conferido no banco), **sem bolha duplicada** (contagem na tela e as 2 linhas no
+      banco, porque `includes` passaria igual com a mensagem repetida pela reconciliação otimista);
+      o **aluno B não vê nada** — nem na tela (estado vazio) nem
+      pela REST com o token dele (`messages` = 0 linhas, `conversations` só a dele); e o treino do
+      aluno A segue **em andamento com a carga 47,5 kg** na tela e no banco depois de tudo. No
+      fim apaga conversas, mensagens, execuções, séries, fichas, vínculos, perfis e os usuários de
+      auth, e **assere que não sobrou nada** (todas as contagens em zero).
+      **Bug achado por esse E2E e corrigido**: o badge do aluno (`useStudentUnreadCount`)
+      resolvia a conversa no mount e, quando o aluno ainda não tinha nenhuma, não assinava nada —
+      a conversa nascia na primeira mensagem dele e a resposta do personal **não avisava até
+      recarregar**, justamente no aluno novo. O hook passou a contar com
+      `unreadCountForCurrentUser` e a assinar `subscribeToAllMessages` (RLS como escopo: o aluno só
+      participa da conversa dele), igual ao badge do personal, e deixou de depender de um
+      `conversation_id` resolvido no mount.
+      **Dívida explícita desta fase — NÃO foi feito**, nada disto está no app hoje: **anexo de
+      foto/vídeo** (as colunas `attachment_path/attachment_kind` existem em `messages` desde a
+      migration, mas não há upload, bucket de Storage, miniatura nem leitor — só o campo); **áudio**
+      (gravação e reprodução, nem campo nem UI); **broadcast para todos os alunos** (o plano é
+      Edge Function inserindo N mensagens, uma por conversa, porque um "para todos" sem linha por
+      aluno quebraria a RLS e o histórico de cada conversa — não existe função, nem tela, nem
+      fila); **notificação push** (Web Push/service worker → **Fase 15**: hoje o único aviso é o
+      badge da navegação, que só aparece com o app aberto); **notificação por e-mail** (depende da
+      Fase 15 e de um provedor de e-mail transacional contratado — não há provedor configurado);
+      **"digitando…"** (exigiria canal de presence do Realtime, nada assinado); **reação a
+      mensagem**; **busca no histórico** (a conversa pagina por cursor para trás, mas não há campo
+      de busca nem índice de texto em `messages.body`). Nada disto foi prometido como pronto em
+      nenhuma tela.
 - [x] Anamnese (pedido do cliente, 2026-10-01; dívida de banco fechada em 2026-10-07) — modelos
       **PAR-Q** (7 perguntas Sim/Não, com aviso de liberação médica quando há "Sim") e **Padrão**
       (17 itens), preenchidos pelo personal ("Eu irei preencher") ou enviados ao aluno ("Meu aluno

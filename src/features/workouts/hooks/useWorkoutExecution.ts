@@ -41,6 +41,14 @@ export interface UseWorkoutExecutionResult {
   complete: () => Promise<void>
   /** Altera uma série e agenda a gravação. Marcar "feita" grava na hora. */
   updateRow: (exerciseId: string, setIndex: number, patch: Partial<ExecutionSetRow>) => void
+  /**
+   * Grava AGORA tudo que está dentro da janela de debounce e resolve quando o banco confirmou.
+   *
+   * Existe porque sair do fluxo de digitação sem esperar os 400ms perde a última carga digitada.
+   * `complete` sempre fez isso; agora qualquer ação que interrompa o treino (mandar mensagem ao
+   * personal de dentro do exercício) chama o mesmo descarregamento antes.
+   */
+  flushPendingSaves: () => Promise<void>
 }
 
 /** Janela do auto-save por campo. Salvar a cada tecla seria 1 request por caractere no 4G. */
@@ -319,19 +327,15 @@ export function useWorkoutExecution({
   }, [userId, planId, divisionKey, load])
 
   /**
-   * Fecha a sessão.
+   * Descarrega os timers de debounce pendentes e espera o banco confirmar.
    *
-   * Antes de gravar `completed_at`, descarrega os timers de debounce pendentes: a última carga que
-   * o aluno digitou pode estar dentro da janela de 400ms, e fechar o treino sem esperá-la perderia
-   * a série e mostraria um volume menor do que ele levantou. Depois do fechamento a tela fica em
-   * `completed` — não há "reabrir", porque `startSession` abriria uma SEGUNDA sessão da mesma
-   * divisão no mesmo dia.
+   * A última carga que o aluno digitou pode estar dentro da janela de 400ms; qualquer coisa que
+   * tire o foco do campo (concluir o treino, abrir o painel de mensagem para o personal) tem de
+   * passar por aqui antes, senão a série se perde sem aviso nenhum.
    */
-  const complete = useCallback(async () => {
-    const log = sessionRef.current
-    if (!log || !userId) return
-
+  const flushPendingSaves = useCallback(async () => {
     const pending = [...timersRef.current.entries()]
+    if (pending.length === 0) return
     timersRef.current.clear()
     await Promise.all(
       pending.map(([key, timer]) => {
@@ -340,6 +344,21 @@ export function useWorkoutExecution({
         return persist(exerciseId, Number(setIndex))
       }),
     )
+  }, [persist])
+
+  /**
+   * Fecha a sessão.
+   *
+   * Antes de gravar `completed_at`, descarrega os timers de debounce pendentes
+   * (`flushPendingSaves`): fechar o treino sem esperá-los perderia a série e mostraria um volume
+   * menor do que o aluno levantou. Depois do fechamento a tela fica em `completed` — não há
+   * "reabrir", porque `startSession` abriria uma SEGUNDA sessão da mesma divisão no mesmo dia.
+   */
+  const complete = useCallback(async () => {
+    const log = sessionRef.current
+    if (!log || !userId) return
+
+    await flushPendingSaves()
 
     setStatus('loading')
     try {
@@ -354,7 +373,7 @@ export function useWorkoutExecution({
         error instanceof Error ? error.message : 'Não foi possível concluir o treino agora.',
       )
     }
-  }, [userId, persist])
+  }, [userId, flushPendingSaves])
 
   const progress = useMemo(() => countDone(groups), [groups])
   const summary = useMemo(
@@ -378,5 +397,6 @@ export function useWorkoutExecution({
     start,
     complete,
     updateRow,
+    flushPendingSaves,
   }
 }

@@ -206,6 +206,45 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          student_id: string
+          trainer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          student_id: string
+          trainer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          student_id?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'conversations_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'conversations_trainer_id_fkey'
+            columns: ['trainer_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       corrective_plan_items: {
         Row: {
           exercise_id: string
@@ -310,6 +349,63 @@ export type Database = {
             columns: ['student_id']
             isOneToOne: false
             referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachment_kind: string | null
+          attachment_path: string | null
+          body: string
+          context_id: string | null
+          context_kind: string
+          context_label: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          attachment_kind?: string | null
+          attachment_path?: string | null
+          body: string
+          context_id?: string | null
+          context_kind?: string
+          context_label?: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          attachment_kind?: string | null
+          attachment_path?: string | null
+          body?: string
+          context_id?: string | null
+          context_kind?: string
+          context_label?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'messages_conversation_id_fkey'
+            columns: ['conversation_id']
+            isOneToOne: false
+            referencedRelation: 'conversations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'messages_sender_id_fkey'
+            columns: ['sender_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
         ]
@@ -618,6 +714,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_conversation: {
+        Args: { target_conversation_id: string }
+        Returns: boolean
+      }
       current_role: {
         Args: never
         Returns: Database['public']['Enums']['user_role']

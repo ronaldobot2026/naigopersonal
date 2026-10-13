@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   buildNewAssessmentPath,
   buildStudentAnamnesisListPath,
   buildStudentAssessmentsPath,
   buildWorkoutBuilderPath,
+  SESSION_HIGHLIGHT_PARAM,
 } from '@/app/router/routes'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
@@ -20,6 +21,13 @@ type LoadState = 'loading' | 'error' | 'ready'
 
 export function StudentDetailPage() {
   const { studentId } = useParams<{ studentId: string }>()
+  /*
+   * `?sessao=<workoutLogId>` abre aquela execução já expandida na aderência. É o destino do link
+   * de contexto da conversa: a mensagem do aluno guarda a EXECUÇÃO em `context_id` (CHAT-4), e o
+   * personal cai na sessão exata que gerou a dúvida em vez de procurá-la na lista.
+   */
+  const [searchParams] = useSearchParams()
+  const highlightSessionId = searchParams.get(SESSION_HIGHLIGHT_PARAM)
   const [student, setStudent] = useState<Student | null>(null)
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const { status: authStatus } = useAuthUser()
@@ -74,7 +82,11 @@ export function StudentDetailPage() {
             Aderência antes dos atalhos de prescrição: o personal abre o aluno para decidir o
             próximo treino, e essa decisão depende do que ele de fato fez — não do que foi pedido.
           */}
-          <StudentAdherenceCard studentId={student.id} studentName={student.name} />
+          <StudentAdherenceCard
+            studentId={student.id}
+            studentName={student.name}
+            highlightSessionId={highlightSessionId}
+          />
 
           <Card className="mb-4">
             <Link

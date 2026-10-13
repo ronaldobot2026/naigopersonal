@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { PageHeader } from '@/components/navigation/PageHeader'
+import { AskTrainerPanel } from '@/features/chat/components/AskTrainerPanel'
 import { studentRepository } from '@/features/students/repositories/studentRepository'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import type { PhysicalAssessment, Student } from '@/types/domain'
@@ -47,13 +48,26 @@ export function StudentAssessmentDetailPage() {
         />
       )}
       {status === 'ready' && data && (
-        <ReviewStep
-          assessment={data.assessment}
-          student={data.student}
-          onSave={async () => {}}
-          saving={false}
-          onComplete={async () => {}}
-        />
+        <>
+          {/*
+            A dúvida sobre um achado postural nasce aqui, olhando o resultado — e não no chat
+            vazio, onde o aluno teria de descrever de novo de qual avaliação está falando. O
+            rótulo congelado leva a data da avaliação, que é o que a identifica para o personal.
+          */}
+          <AskTrainerPanel
+            contextKind="assessment"
+            contextId={data.assessment.id}
+            contextLabel={`Avaliação física · ${new Date(data.assessment.createdAt).toLocaleDateString('pt-BR')}`}
+            className="mb-4"
+          />
+          <ReviewStep
+            assessment={data.assessment}
+            student={data.student}
+            onSave={async () => {}}
+            saving={false}
+            onComplete={async () => {}}
+          />
+        </>
       )}
     </div>
   )
