@@ -1,6 +1,8 @@
 /** Constantes de rota, organizadas por papel. Padrões usados diretamente na config do router. */
 export const ROUTES = {
   login: '/login',
+  forgotPassword: '/esqueci-senha',
+  resetPassword: '/redefinir-senha',
   student: {
     home: '/aluno/inicio',
     workouts: '/aluno/treinos',

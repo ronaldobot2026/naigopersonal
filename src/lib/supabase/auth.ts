@@ -33,3 +33,26 @@ export async function signInAndFetchRole(email: string, password: string): Promi
 
   return { userId: signInData.user.id, role: (profile as { role: Role }).role }
 }
+
+/**
+ * Pede o e-mail de recuperação de senha. Responde sempre com sucesso, mesmo se o e-mail não
+ * existir: não revelamos quem tem conta (anti-enumeração). O link do e-mail aponta para
+ * `redirectTo`, que precisa estar em `additional_redirect_urls` do Supabase.
+ */
+export async function requestPasswordReset(email: string, redirectTo: string): Promise<void> {
+  const { error } = await getSupabase().auth.resetPasswordForEmail(email, { redirectTo })
+  if (error) {
+    throw new Error('Não foi possível enviar o e-mail agora. Tente de novo em instantes.')
+  }
+}
+
+/**
+ * Define a nova senha. Só funciona numa sessão de recuperação (o link do e-mail já trouxe o
+ * token e o Supabase criou a sessão); sem ela, o `updateUser` falha.
+ */
+export async function updatePassword(newPassword: string): Promise<void> {
+  const { error } = await getSupabase().auth.updateUser({ password: newPassword })
+  if (error) {
+    throw new Error('Não foi possível trocar a senha. Peça um novo link de recuperação.')
+  }
+}

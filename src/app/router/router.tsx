@@ -3,6 +3,8 @@ import { AppShell } from '@/app/layouts/AppShell'
 import { StudentShell } from '@/app/layouts/StudentShell'
 import { TrainerShell } from '@/app/layouts/TrainerShell'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
 import { PersonalDashboardPage } from '@/features/dashboard/pages/PersonalDashboardPage'
 import { StudentHomePage } from '@/features/dashboard/pages/StudentHomePage'
 import { NewPhysicalAssessmentPage } from '@/features/assessments/physical/pages/NewPhysicalAssessmentPage'
@@ -33,7 +35,11 @@ export const router = createBrowserRouter([
   { path: '/', element: <Navigate to={ROUTES.login} replace /> },
   {
     element: <AppShell />,
-    children: [{ path: ROUTES.login, element: <LoginPage /> }],
+    children: [
+      { path: ROUTES.login, element: <LoginPage /> },
+      { path: ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
+      { path: ROUTES.resetPassword, element: <ResetPasswordPage /> },
+    ],
   },
   {
     element: <StudentShell />,
