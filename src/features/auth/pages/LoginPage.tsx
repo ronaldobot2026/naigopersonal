@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useRole } from '@/app/providers/useRole'
 import { ROUTES } from '@/app/router/routes'
 import { Button } from '@/components/ui/Button'
@@ -82,6 +82,9 @@ export function LoginPage() {
         <Button type="submit" disabled={state === 'submitting'}>
           {state === 'submitting' ? 'Entrando…' : 'Entrar'}
         </Button>
+        <Link to={ROUTES.forgotPassword} className="text-center text-sm font-medium text-action-primary">
+          Esqueci minha senha
+        </Link>
       </form>
 
       <footer className="w-full px-8 text-center">
