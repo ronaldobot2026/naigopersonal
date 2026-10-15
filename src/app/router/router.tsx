@@ -79,6 +79,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.trainer.newWorkout, element: <WorkoutBuilderPage /> },
       { path: ROUTES.trainer.studentWorkoutBuilder, element: <WorkoutBuilderPage /> },
       { path: ROUTES.trainer.chat, element: <TrainerInboxPage /> },
+      { path: ROUTES.trainer.account, element: <StudentAccountPage /> },
     ],
   },
   { path: '*', element: <Navigate to={ROUTES.login} replace /> },
