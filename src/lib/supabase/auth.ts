@@ -35,6 +35,64 @@ export async function signInAndFetchRole(email: string, password: string): Promi
 }
 
 /**
+ * Entra com passkey (Face ID, Touch ID, Windows Hello ou chave de segurança). O navegador pede a
+ * biometria e o Supabase cria a sessão. Depois resolve o papel igual ao login por senha.
+ */
+export async function signInWithPasskeyAndFetchRole(): Promise<SignInResult> {
+  const supabase = getSupabase()
+
+  const { data, error } = await supabase.auth.signInWithPasskey()
+  if (error || !data.user) {
+    throw new Error('Não foi possível entrar com a passkey. Tente de novo ou use a senha.')
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .maybeSingle()
+
+  if (profileError || !profile) {
+    throw new Error('Login ok, mas não foi possível carregar o perfil da conta.')
+  }
+
+  return { userId: data.user.id, role: (profile as { role: Role }).role }
+}
+
+export interface PasskeyInfo {
+  id: string
+  friendlyName: string
+  createdAt: string
+}
+
+/** Cadastra uma passkey para o usuário já logado (biometria do aparelho atual). */
+export async function registerPasskeyForCurrentUser(): Promise<void> {
+  const { error } = await getSupabase().auth.registerPasskey()
+  if (error) {
+    throw new Error('Não foi possível cadastrar a passkey. Verifique se o aparelho tem Face ID, digital ou PIN.')
+  }
+}
+
+export async function listPasskeys(): Promise<PasskeyInfo[]> {
+  const { data, error } = await getSupabase().auth.passkey.list()
+  if (error || !data) {
+    throw new Error('Não foi possível carregar as passkeys.')
+  }
+  return data.map((passkey) => ({
+    id: passkey.id,
+    friendlyName: passkey.friendly_name ?? 'Sem nome',
+    createdAt: passkey.created_at,
+  }))
+}
+
+export async function deletePasskey(passkeyId: string): Promise<void> {
+  const { error } = await getSupabase().auth.passkey.delete({ passkeyId })
+  if (error) {
+    throw new Error('Não foi possível remover a passkey.')
+  }
+}
+
+/**
  * Pede o e-mail de recuperação de senha. Responde sempre com sucesso, mesmo se o e-mail não
  * existir: não revelamos quem tem conta (anti-enumeração). O link do e-mail aponta para
  * `redirectTo`, que precisa estar em `additional_redirect_urls` do Supabase.

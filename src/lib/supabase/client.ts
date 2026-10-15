@@ -18,7 +18,11 @@ let client: SupabaseClient<Database> | null = null
 
 export function getSupabase(): SupabaseClient<Database> {
   if (!client) {
-    client = createClient<Database>(env.supabaseUrl(), env.supabasePublishableKey())
+    // `passkey` é opt-in explícito: a API de passkey do Supabase está em beta e sem esta flag
+    // todos os métodos `passkey`/`registerPasskey`/`signInWithPasskey` lançam erro.
+    client = createClient<Database>(env.supabaseUrl(), env.supabasePublishableKey(), {
+      auth: { experimental: { passkey: true } },
+    })
   }
   return client
 }
