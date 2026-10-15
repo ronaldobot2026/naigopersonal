@@ -10,6 +10,7 @@ const TRAINER_NAV_ITEMS: NavItem[] = [
   { to: ROUTES.trainer.students, icon: 'group', label: 'Alunos' },
   { to: ROUTES.trainer.library, icon: 'menu_book', label: 'Biblioteca' },
   { to: ROUTES.trainer.chat, icon: 'chat', label: 'Chat' },
+  { to: ROUTES.trainer.account, icon: 'person_pin', label: 'Conta' },
 ]
 
 /**
