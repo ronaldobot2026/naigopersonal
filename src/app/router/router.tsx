@@ -5,6 +5,7 @@ import { TrainerShell } from '@/app/layouts/TrainerShell'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
+import { StudentAccountPage } from '@/features/auth/pages/StudentAccountPage'
 import { PersonalDashboardPage } from '@/features/dashboard/pages/PersonalDashboardPage'
 import { StudentHomePage } from '@/features/dashboard/pages/StudentHomePage'
 import { NewPhysicalAssessmentPage } from '@/features/assessments/physical/pages/NewPhysicalAssessmentPage'
@@ -59,6 +60,7 @@ export const router = createBrowserRouter([
         element: <ChatPage selfRole="student" counterpartName="Trainer Wood" />,
       },
       { path: ROUTES.student.billing, element: <BillingPage /> },
+      { path: ROUTES.student.account, element: <StudentAccountPage /> },
     ],
   },
   {

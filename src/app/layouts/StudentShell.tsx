@@ -12,6 +12,7 @@ const STUDENT_NAV_ITEMS: NavItem[] = [
   { to: ROUTES.student.posturalCorrection, icon: 'accessibility_new', label: 'Correção' },
   { to: ROUTES.student.myAssessments, icon: 'assignment', label: 'Avaliação' },
   { to: ROUTES.student.chat, icon: 'chat', label: 'Chat' },
+  { to: ROUTES.student.account, icon: 'person_pin', label: 'Conta' },
 ]
 
 /**

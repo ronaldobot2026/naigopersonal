@@ -5,7 +5,7 @@ import { ROUTES } from '@/app/router/routes'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { Input } from '@/components/ui/Input'
-import { signInAndFetchRole } from '@/lib/supabase/auth'
+import { signInAndFetchRole, signInWithPasskeyAndFetchRole } from '@/lib/supabase/auth'
 
 type SubmitState = 'idle' | 'submitting' | 'error'
 
@@ -38,6 +38,20 @@ export function LoginPage() {
     } catch (error) {
       setState('error')
       setErrorMessage(error instanceof Error ? error.message : 'Não foi possível entrar.')
+    }
+  }
+
+  async function handlePasskey(): Promise<void> {
+    setState('submitting')
+    setErrorMessage('')
+
+    try {
+      const { role } = await signInWithPasskeyAndFetchRole()
+      setRole(role)
+      navigate(role === 'trainer' ? ROUTES.trainer.dashboard : ROUTES.student.home)
+    } catch (error) {
+      setState('error')
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível entrar com a passkey.')
     }
   }
 
@@ -81,6 +95,14 @@ export function LoginPage() {
         )}
         <Button type="submit" disabled={state === 'submitting'}>
           {state === 'submitting' ? 'Entrando…' : 'Entrar'}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={state === 'submitting'}
+          onClick={() => void handlePasskey()}
+        >
+          Entrar com Face ID ou digital
         </Button>
         <Link to={ROUTES.forgotPassword} className="text-center text-sm font-medium text-action-primary">
           Esqueci minha senha

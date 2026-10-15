@@ -16,6 +16,7 @@ export const ROUTES = {
     anamnesisDetail: '/aluno/anamnese/:anamnesisId',
     chat: '/aluno/chat',
     billing: '/aluno/financeiro',
+    account: '/aluno/conta',
   },
   trainer: {
     dashboard: '/personal/dashboard',
